@@ -134,20 +134,26 @@ switch task
             mCSF = rmNearVox(mCSF, mOOH, aap.tasklist.currenttask.settings.C2Odist);
         end
         
+        % Find the voxels to help speed up the module
+        fGM = mGM>0;
+        fWM = mWM>0;
+        fCSF = mCSF>0;
+        fOOH = mOOH>0;
+        
         %% Print the number of voxels in each compartment
-        fprintf('\nGrey Matter mask comprises %d (%d) voxels', sum(mGM(:)>0), nG)
-        fprintf('\nWhite Matter mask comprises %d (%d) voxels', sum(mWM(:)>0), nW)
-        fprintf('\nCereberoSpinal Fluid mask comprises %d (%d) voxels', sum(mCSF(:)>0), nC)
-        fprintf('\nOut of Head mask comprises %d (%d) voxels', sum(mOOH(:)>0), nO)
+        fprintf('\nGrey Matter mask comprises %d (%d) voxels', sum(fGM(:)), nG)
+        fprintf('\nWhite Matter mask comprises %d (%d) voxels', sum(fWM(:)), nW)
+        fprintf('\nCereberoSpinal Fluid mask comprises %d (%d) voxels', sum(fCSF(:)), nC)
+        fprintf('\nOut of Head mask comprises %d (%d) voxels', sum(fOOH(:)), nO)
         
         compTC = zeros(size(EPIimg,1), 4);
         for e = 1:size(EPIimg,1)
             Y = spm_read_vols(spm_vol(EPIimg(e,:)));
             % Now average the data from each compartment
-            compTC(e,1) = mean(Y(mGM>0));
-            compTC(e,2) = mean(Y(mWM>0));
-            compTC(e,3) = mean(Y(mCSF>0));
-            compTC(e,4) = mean(Y(mOOH>0));
+            compTC(e,1) = mean(Y(fGM));
+            compTC(e,2) = mean(Y(fWM));
+            compTC(e,3) = mean(Y(fCSF));
+            compTC(e,4) = mean(Y(fOOH));
         end
         if any(isnan(compTC(:)))
             aas_log(aap,true, 'Compartment signal contains NaNs')

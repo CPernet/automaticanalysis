@@ -26,10 +26,19 @@ switch task
     % Save EXAMPLE dicom header (not all as previous code)
     subjpath=aas_getsubjpath(aap,subj);
 
+    mriname = aas_prepare_diagnostic(aap,subj);
     for f = 1:size(convertedfns,1)
         V = spm_vol(convertedfns{f});
         fprintf('Size of structural n=%d %s: %dx%dx%d\n', f, dcmhdr{f}.SeriesDescription, ...
             V.dim(1), V.dim(2), V.dim(3));
+        
+        %% Display structural diagnostic image
+        spm_check_registration(convertedfns{f})
+        
+        spm_orthviews('reposition', [0 0 0])
+        
+        print('-djpeg','-r150',fullfile(aap.acq_details.root, 'diagnostics', ...
+            [mfilename '__' mriname '_' num2str(f) '.jpeg']));
     end
     
      % Save outputs?
@@ -38,7 +47,6 @@ switch task
     dcmhdrfn=fullfile(subjpath,'structural_dicom_header.mat');
     save(dcmhdrfn,'dcmhdr');
     aap=aas_desc_outputs(aap,subj,'structural_dicom_header',dcmhdrfn);
-
  
     case 'checkrequirements'
         

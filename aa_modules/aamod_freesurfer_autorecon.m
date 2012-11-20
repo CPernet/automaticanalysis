@@ -24,13 +24,14 @@ switch task
         disp(FScommand)
         
         [s w] = aas_runFScommand(aap,FScommand);
+                
+        if s==1 %|| ~isempty(strfind(w, 'ERROR'))
+            disp(w);
+            error('Some freesurfer ERROR');
+        end
         
         if aap.tasklist.currenttask.settings.verbose
             disp(w);
-        end
-        
-        if s==1 %|| ~isempty(strfind(w, 'ERROR'))
-            error('Some freesurfer ERROR');
         end
         
         %%  make output stream

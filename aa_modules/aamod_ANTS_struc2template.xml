@@ -24,11 +24,7 @@
             </inputstreams>
             
             <outputstreams>
-                <stream>structural</stream>
                 <stream>ANTs</stream>
-                <!--
-                <stream>segmentation</stream>
-                -->
             </outputstreams>
             
             <!-- This specifies which structural we want to use, typically the first, but can be changed -->

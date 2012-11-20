@@ -20,8 +20,8 @@
             </outputstreams>
             
             <tmlimit></tmlimit>
-            <xyzlimit>0.3</xyzlimit>
-            <rotlimit_degrees>0.5</rotlimit_degrees>
+            <xyzlimit desc='Threshold in mm of movement'>0.5</xyzlimit>
+            <rotlimit_degrees desc='Threshold in degrees of movement'>0.3</rotlimit_degrees>
             
         </currenttask>
     </tasklist>

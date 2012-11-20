@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <aap>
     <tasklist>
-        <currenttask domain='session' mfile_alias='aamod_ANTS_warp' desc='Use ANTS to warp EPI to template based on structural warp' modality='MRI'>
+        <currenttask domain='subject' mfile_alias='aamod_ANTS_warp' desc='Use ANTS to warp EPI to template based on structural warp' modality='MRI'>
             
             <qsub>
                 <timeBase>1</timeBase>
@@ -18,6 +18,9 @@
             <outputstreams>
                 <stream>firstlevel_cons</stream>
             </outputstreams>
+            
+            <inversetransform desc='Do we do a forward [0] or inverse [1] transform?'>0</inversetransform>
+            <checkreg desc='Images to check, if empty, then all...'>1</checkreg>
             
         </currenttask>
     </tasklist>

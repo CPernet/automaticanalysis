@@ -3,9 +3,10 @@
 % Modified for aa by Rhodri Cusack Mar 2006-2011
 % Additions by Rik Henson Mar 2011
 
-function [aap,resp]=aamod_firstlevel_contrasts(aap,task,subj)
+function [aap,resp]=aamod_firstlevel_contrasts_GD(aap,task,i)
 
 resp='';
+
 
 switch task
     case 'domain'
@@ -15,7 +16,7 @@ switch task
         resp='SPM5 contrasts';
         
     case 'summary'
-        subjpath=aas_getsubjpath(subj);
+        subjpath=aas_getsubjpath(i);
         resp=sprintf('Contrasts %s\n',subjpath);
         
     case 'report'
@@ -24,7 +25,7 @@ switch task
         
         cwd=pwd;
         % get the subdirectories in the main directory
-        subj_dir = aas_getsubjpath(aap,subj);
+        subj_dir = aas_getsubjpath(aap,i);
         
         % Maintained for backwards compatibility- better now now put
         % module-specific value in
@@ -37,7 +38,7 @@ switch task
         anadir = fullfile(subj_dir,[aap.directory_conventions.stats_singlesubj stats_suffix]);
         
         % Now set up contrasts...
-        SPM=load(aas_getfiles_bystream(aap,subj,'firstlevel_spm'));
+        SPM=load(aas_getfiles_bystream(aap,i,'firstlevel_spm'));
         SPM=SPM.SPM;
         SPM.swd=anadir;
         
@@ -91,19 +92,21 @@ switch task
                     if (size(contrasts.con(conind).vector,2) > totnumcolsbarconstants)
                         aas_log(aap,true,sprintf('Number of columns in contrast matrix for session %d is more than number of columns in model (bar constants) - wanted %d columns, got ',totnumcolsbarconstants)); disp(contrasts.con(conind).vector);
                     elseif (size(contrasts.con(conind).vector,2) < totnumcolsbarconstants)
-                        convec = [contrasts.con(conind).vector zeros(size(contrasts.con(conind).vector,1),totnumcolsbarconstants-size(contrasts.con(conind).vector,2))];
-                        if (contrasts.automatic_movesandmeans)
-                            convec_out=[];
-                            ind=1;
-                            sessnuminspm=1;
-                            for sess=aap.acq_details.selected_sessions
-                                numcolsinthissess_withoutmoves=length(SPM.Sess(sessnuminspm).col)-6;
-                                newind=ind+numcolsinthissess_withoutmoves;
-                                convec_out=[convec_out convec(:,ind:(newind-1)) zeros(size(convec,1),6)];
-                                ind=newind;
-                                sessnuminspm=sessnuminspm+1;
-                            end;
-                            convec=convec_out;
+                        convec = contrasts.con(conind).vector;
+                        if (contrasts.automatic_movesandmeans) % moves are the realignment parameters, means the session mean signal
+                            % AVG! easier way of specifying the correct columns...
+                            convec_out = zeros(1,totnumcolsbarconstants);                            
+                            convec_out(SPM.xX.iC) = convec;
+                            
+                            convec_names = {SPM.xX.name(SPM.xX.iC)};
+                            
+                            % DIAGNOSTIC
+                            fprintf('\n%s\n', contrasts.con(conind).name)
+                            for r = 1:max(size(convec_names{1}))
+                                fprintf('\t%s: %d\n', convec_names{1}{r}, convec(r)) 
+                            end
+                            
+                            convec=convec_out;                            
                         end;
                         if (size(convec,2) < totnumcolsbarconstants)
                             aas_log(aap,false,sprintf('Warning: Number of columns in contrast matrix for ''uniquebysession'' option is less than number columns in model (bar constants) = %d, so padding to ',totnumcolsbarconstants)); disp(convec);
@@ -150,19 +153,23 @@ switch task
         
         % Describe outputs
         %  updated spm
-        aap=aas_desc_outputs(aap,subj,'firstlevel_spm',fullfile(anadir,'SPM.mat'));
+        aap=aas_desc_outputs(aap,i,'firstlevel_spm',fullfile(anadir,'SPM.mat'));
         
         %  firstlevel_betas (includes related statistical files)
         filters={'con','spmT','spmF'};
         
         for filterind=1:length(filters)
-            allbetas=dir(fullfile(anadir,[filters{filterind} '_*']));
+            allbetas=dir(fullfile(anadir,[filters{filterind} '_*.img']));
             betafns=[];
             for betaind=1:length(allbetas);
                 betafns=strvcat(betafns,fullfile(anadir,allbetas(betaind).name));
-            end;
-            aap=aas_desc_outputs(aap,subj,['firstlevel_' lower(filters{filterind}) 's'],betafns);
-        end;
+            end
+            allbetas=dir(fullfile(anadir,[filters{filterind} '_*.hdr']));
+            for betaind=1:length(allbetas);
+                betafns=strvcat(betafns,fullfile(anadir,allbetas(betaind).name));
+            end
+            aap=aas_desc_outputs(aap,i,['firstlevel_' lower(filters{filterind}) 's'],betafns);
+        end
         cd (cwd);
         
     case 'checkrequirements'
@@ -170,6 +177,3 @@ switch task
     otherwise
         aas_log(aap,1,sprintf('Unknown task %s',task));
 end;
-
-
-

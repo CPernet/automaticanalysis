@@ -1,6 +1,6 @@
 % AA module
-% Use the Anatomical Transformation Toolbox to normalise the structural to
-% a template image
+% Use the Anatomical Transformation Toolbox to derive normalisation parameters
+% from the structural to a template image
 
 function [aap,resp]=aamod_ANTS_struc2template(aap,task,subj)
 
@@ -92,18 +92,7 @@ switch task
         fprintf([ANTS_command '\n'])
         [s w] = aas_shell(ANTS_command);
         
-        warpANTS_command = [ warpANTSpath Ndim ... % dimension number
-            Simg ' ' fullfile(Spth, ['w' Sfn Sext]) ... % moving image & output
-            ' -R ' sTimg ' '... % reference image
-            fullfile(Spth, 'antsWarp.nii')]; % transform
-        if exist(fullfile(Spth,'antsAffine.txt'), 'file')
-            warpANTS_command = [warpANTS_command ' ' fullfile(Spth,'antsAffine.txt')]; % and affine, if this exists...
-        end    
-        
-        [s w] = aas_shell(warpANTS_command);
-        
         %% Describe outputs
-        aap=aas_desc_outputs(aap,subj,'structural', fullfile(Spth,['w' Sfn Sext]));
         outANTS = strvcat( ...
         fullfile(Spth,'antsWarp.nii'), ...
         fullfile(Spth, 'antsInverseWarp.nii'));
@@ -111,22 +100,5 @@ switch task
             outANTS = strvcat(outANTS, fullfile(Spth,'antsAffine.txt'));
         end
         aap=aas_desc_outputs(aap,subj,'ANTs', outANTS);
-        
-        %% DIAGNOSTIC
-        mriname = aas_prepare_diagnostic(aap,subj)
-        
-        %% Draw native template
-        spm_check_registration(strvcat( ...
-            fullfile(Spth,['w' Sfn Sext]), ...
-            sTimg))
-        
-        %% Diagnostic VIDEO of segmentations
-        aas_checkreg_avi(aap, subj, 2)
-        
-        spm_orthviews('reposition', [0 0 0])
-        
-        print('-djpeg','-r150',fullfile(aap.acq_details.root, 'diagnostics', ...
-            [mfilename '__' mriname '.jpeg']));
-        
 end
 end
