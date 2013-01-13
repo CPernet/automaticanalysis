@@ -9,10 +9,10 @@ resp='';
 switch task
     case 'doit'
         
-        for p = 1:length(aap.acq_details.subjects)
-            load(aas_getfiles_bystream(aap,p,'DMLT'));
+        for subj = 1:length(aap.acq_details.subjects)
+            load(aas_getfiles_bystream(aap,subj,'DMLT'));
             
-            if p == 1
+            if subj == 1
                 % MVPA data for Multivariate results
                 indStats = nan(length(aap.acq_details.subjects), ... % Subj
                     size(DMLout,1), ... % ROIs
@@ -21,13 +21,13 @@ switch task
                 Stats = nan( ... 
                     size(DMLout,1), ... % ROIs
                     size(DMLout,2), ... % Contrasts
-                    4); % mean, p, T, df
+                    4); % mean, subj, T, df
             end
             
             for r = 1:size(DMLout,1)
                 for c = 1:size(DMLout,2)
                     % Gather data from each participant
-                    indStats(p, r, c) = DMLout{r,c}.accuracy;
+                    indStats(subj, r, c) = DMLout{r,c}.accuracy;
                 end
             end
         end

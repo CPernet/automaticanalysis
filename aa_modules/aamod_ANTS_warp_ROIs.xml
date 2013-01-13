@@ -14,7 +14,7 @@
                 <stream>rois</stream>
                 <stream>ANTs</stream>
                 <!-- Reference image -->
-                <stream>structural</stream>
+                <stream>meanepi</stream>
             </inputstreams>
             
             <outputstreams>

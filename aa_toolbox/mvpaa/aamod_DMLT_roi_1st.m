@@ -16,10 +16,7 @@ switch task
         
         mriname = aas_prepare_diagnostic(aap,subj);
         fprintf('Working with data from participant %s. \n', mriname)
-        
-        % Required...
-        aap.tasklist.currenttask.settings.mergeSessions = 1;
-        
+                
         %% ANALYSIS
         
         % Load the data into a single big structure...

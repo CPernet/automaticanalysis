@@ -6,28 +6,28 @@
 % Based on aa by Rhodri Cusack MRC CBU Mar 2006-Aug 2007
 % Modified by Alejandro Vicente-Grabovetsky Dec-2008
 
-function [aap,resp] = aamod_MVPaa_brain_SPM(aap,task,p)
+function [aap,resp] = aamod_MVPaa_brain_SPM(aap,task,subj)
 
 resp='';
 
 switch task
     case 'doit'
         
-        fprintf('Working with data from participant %s. \n',aap.acq_details.subjects(p).mriname)
+        fprintf('Working with data from participant %s. \n',aap.acq_details.subjects(subj).mriname)
         
         Stats = []; EP = [];
-        load(aas_getfiles_bystream(aap,p,'MVPaa'));
+        load(aas_getfiles_bystream(aap,subj,'MVPaa'));
         
         % get sn mat file from normalisation
         if aap.tasklist.currenttask.settings.normalise == 1
-            normMAT = aas_getfiles_bystream(aap,p,'normalisation_seg_sn');
+            normMAT = aas_getfiles_bystream(aap,subj,'normalisation_seg_sn');
         end
         
         % Load SPM used for this analysis...
-        load(aas_getfiles_bystream(aap, p, 'firstlevel_spm'));
+        load(aas_getfiles_bystream(aap, subj, 'firstlevel_spm'));
         
         % Example BET mask
-        Mimg = aas_getfiles_bystream(aap, p, 'epiBETmask');
+        Mimg = aas_getfiles_bystream(aap, subj, 'epiBETmask');
         % Brain mask!
         for a = 1:size(Mimg,1)
             if ~isempty(strfind(Mimg(a,:), 'brain_mask'))
@@ -45,7 +45,7 @@ switch task
         mask = spm_read_vols(V);
         
         % Write out mask image...
-        V.fname = fullfile(aas_getsubjpath(aap,p), 'mask.img');
+        V.fname = fullfile(aas_getsubjpath(aap,subj), 'mask.img');
         V.dt(1) = 2;
         spm_write_vol(V, mask);
         
@@ -58,12 +58,12 @@ switch task
         fprintf('Saving images... \n')
         for c = 1:length(EP.contrasts)
             % Mean, median or beta
-            V.fname = fullfile(aas_getsubjpath(aap,p), sprintf('con_%04d.img', c));
+            V.fname = fullfile(aas_getsubjpath(aap,subj), sprintf('con_%04d.img', c));
             Flist = strvcat(Flist, V.fname);
             spm_write_vol(V, squeeze(Stats(:,:,:,c,1)));
             
             % T-value
-            V.fname = fullfile(aas_getsubjpath(aap,p), sprintf('spmT_%04d.img', c));
+            V.fname = fullfile(aas_getsubjpath(aap,subj), sprintf('spmT_%04d.img', c));
             Flist = strvcat(Flist, V.fname);
             spm_write_vol(V, squeeze(Stats(:,:,:,c,2)));
         end
@@ -117,7 +117,7 @@ switch task
         SPM.xCon = [];
         
         % Set correct path
-        SPM.swd = aas_getsubjpath(aap,p);
+        SPM.swd = aas_getsubjpath(aap,subj);
         
         % Set world coordinates for visualisation...
         % ...which should already be found in the images...
@@ -142,7 +142,7 @@ switch task
         % searchlight procedure means each voxels is already "smoothed" to
         % some extent...
         SPM.xVol.R = spm_resels_vol( ...
-            spm_vol(fullfile(aas_getsubjpath(aap,p), 'con_0001.img')), ...
+            spm_vol(fullfile(aas_getsubjpath(aap,subj), 'con_0001.img')), ...
             SPM.xVol.FWHM)';
         
         % Included voxels
@@ -161,15 +161,15 @@ switch task
             SPM.xCon(c).STAT = 'T';
             SPM.xCon(c).c = ones(size(SPM.xX.X,2),1);
             SPM.xCon(c).eidf = 1;
-            SPM.xCon(c).Vcon = spm_vol(fullfile(aas_getsubjpath(aap,p), sprintf('con_%04d.img', c)));
-            SPM.xCon(c).Vspm = spm_vol(fullfile(aas_getsubjpath(aap,p), sprintf('spmT_%04d.img', c)));
+            SPM.xCon(c).Vcon = spm_vol(fullfile(aas_getsubjpath(aap,subj), sprintf('con_%04d.img', c)));
+            SPM.xCon(c).Vspm = spm_vol(fullfile(aas_getsubjpath(aap,subj), sprintf('spmT_%04d.img', c)));
         end
         
         % Save SPM
-        save(fullfile(aas_getsubjpath(aap,p), 'SPM.mat'), 'SPM');
+        save(fullfile(aas_getsubjpath(aap,subj), 'SPM.mat'), 'SPM');
         
         %% DESCRIBE OUTPUTS
-        aap=aas_desc_outputs(aap,p,'firstlevel_spm', fullfile(aas_getsubjpath(aap,p), 'SPM.mat'));
+        aap=aas_desc_outputs(aap,subj,'firstlevel_spm', fullfile(aas_getsubjpath(aap,subj), 'SPM.mat'));
         
         % Remove spmT images
         for f = size(Flist,1):-1:1
@@ -182,5 +182,5 @@ switch task
             [Froot, Ffn, Fext] = fileparts(Flist(f,:));
             Flist = strvcat(Flist, fullfile(Froot, [Ffn '.hdr']));
         end
-        aap=aas_desc_outputs(aap,p,'firstlevel_cons', Flist);
+        aap=aas_desc_outputs(aap,subj,'firstlevel_cons', Flist);
 end

@@ -34,6 +34,8 @@
             <maskInclusive>1</maskInclusive>
             <!-- Minimum number of valid voxels present in ROI (otherwise error)-->
             <minVoxels>30</minVoxels>
+            <!-- Force equal number of conditions across blocks? -->
+            <constantFactors>1</constantFactors>
             
             <diagnostic>1</diagnostic>
             

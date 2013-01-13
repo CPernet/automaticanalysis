@@ -2,7 +2,7 @@
 %
 % Modified for aa4 by Alejandro Vicente-Grabovetsky Feb-2011
 
-function [aap,resp] = aamod_MVPaa_brain_1st(aap,task,p)
+function [aap,resp] = aamod_MVPaa_brain_1st(aap,task,subj)
 
 resp='';
 
@@ -16,7 +16,7 @@ switch task
         fprintf('Working with data from participant %s. \n', mriname)
         
         % Get the contrasts for this subject...
-        aap.tasklist.currenttask.settings.contrasts = mvpaa_loadContrasts(aap,p);
+        aap.tasklist.currenttask.settings.contrasts = mvpaa_loadContrasts(aap,subj);
         
         % Create a spherical masking matrix...
         ROIsphere = mvpaa_makeSphere(aap.tasklist.currenttask.settings.ROIradius);
@@ -29,17 +29,17 @@ switch task
         
         % Which tests will we use?
         if ~isempty(findstr(aap.tasklist.currenttask.settings.statsType, 'GLM'))
-            aap.tasklist.currenttask.settings.tests = {'beta', 't-value', 'p-value', 'SE'};
+            aap.tasklist.currenttask.settings.tests = {'beta', 't-value', 'subj-value', 'SE'};
         elseif ~isempty(findstr(aap.tasklist.currenttask.settings.statsType, 'ttest'))
-            aap.tasklist.currenttask.settings.tests = {'mean', 't-value', 'p-value', 'SE', 'normality'};
+            aap.tasklist.currenttask.settings.tests = {'mean', 't-value', 'subj-value', 'SE', 'normality'};
         elseif ~isempty(findstr(aap.tasklist.currenttask.settings.statsType, 'signrank'))
-            aap.tasklist.currenttask.settings.tests = {'median', 't-value (est)', 'p-value'};
+            aap.tasklist.currenttask.settings.tests = {'median', 't-value (est)', 'subj-value'};
         end        
                
         %% ANALYSIS!
         
         % Load the data into a single big structure...
-        [aap data] = mvpaa_loadData(aap, p);
+        [aap data] = mvpaa_loadData(aap, subj);
         
         brainSize = [size(data{1,1,1}, 1) size(data{1,1,1}, 2) size(data{1,1,1}, 3)];       
         
@@ -51,12 +51,9 @@ switch task
             length(aap.tasklist.currenttask.settings.tests));
                 
         % Loop the routine over all ROIs
-        ROIcheck = round(ROInum/10);
-        for r = 1:ROInum %#ok<BDSCI>
-            % We get the time that has ellapsed every 25000 voxels
-            if rem(r, ROIcheck) == 0
-                fprintf('Working with data from roi %d / %d\n', r, ROInum)
-            end            
+        reverseStr = ''; % for displaying progress
+        ROIcheck = round(ROInum/100);
+        for r = 1:ROInum %#ok<BDSCI>                       
             
             [x y z] = ind2sub(brainSize, r);            
             [indROI voxels] = mvpaa_buildROI([x y z], ...
@@ -75,12 +72,17 @@ switch task
             Simil = mvpaa_correlation(aap, Resid);
             
             Stats(r,:,:) = mvpaa_statistics(aap, Simil);
+            
+            % Display the progress at each complete %
+            if rem(r, ROIcheck) == 0   
+                reverseStr = aas_progress_text(r, ROInum, reverseStr, sprintf('ROI %d / %d...', r, ROInum));                
+            end
         end
         
         %% DESCRIBE OUTPUTS
         aap.tasklist.currenttask.settings.brainSize = brainSize;        
         EP = aap.tasklist.currenttask.settings;
-        save(fullfile(aas_getsubjpath(aap,p), [mriname '.mat']), ...
+        save(fullfile(aas_getsubjpath(aap,subj), [mriname '.mat']), ...
             'Stats', 'EP')
-        aap=aas_desc_outputs(aap,p,'MVPaa', fullfile(aas_getsubjpath(aap,p), [mriname '.mat']));
+        aap=aas_desc_outputs(aap,subj,'MVPaa', fullfile(aas_getsubjpath(aap,subj), [mriname '.mat']));
 end

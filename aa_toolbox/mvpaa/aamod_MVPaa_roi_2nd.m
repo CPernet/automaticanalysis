@@ -10,10 +10,10 @@ switch task
     case 'doit'
         
         Stats = []; meanSimil = [];% Statistic structure that we load for each participant
-        for p = 1:length(aap.acq_details.subjects)
-            load(aas_getfiles_bystream(aap,p,'MVPaa'));
+        for subj = 1:length(aap.acq_details.subjects)
+            load(aas_getfiles_bystream(aap,subj,'MVPaa'));
             
-            if p == 1
+            if subj == 1
                 % MVPA data for Multivariate results
                 indStats = nan(size(Stats,1), ...
                     length(aap.acq_details.subjects), ...
@@ -31,8 +31,8 @@ switch task
             end
             
             % Gather data from each participant
-            indStats(:, p, :,:) = Stats;
-            aggrSimil(:, p, :,:) = meanSimil;
+            indStats(:, subj, :,:) = Stats;
+            aggrSimil(:, subj, :,:) = meanSimil;
         end
         
         % 2nd level stats (aggregate StatisticollStat -> collapsed Statistics)

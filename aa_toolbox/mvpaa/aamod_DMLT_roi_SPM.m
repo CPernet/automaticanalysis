@@ -6,28 +6,28 @@
 % Based on aa by Rhodri Cusack MRC CBU Mar 2006-Aug 2007
 % Modified by Alejandro Vicente-Grabovetsky Dec-2008
 
-function [aap,resp] = aamod_DMLT_roi_SPM(aap,task,p)
+function [aap,resp] = aamod_DMLT_roi_SPM(aap,task,subj)
 
 resp='';
 
 switch task
     case 'doit'
         
-        fprintf('Working with data from participant %s. \n',aap.acq_details.subjects(p).mriname)
+        fprintf('Working with data from participant %s. \n',aap.acq_details.subjects(subj).mriname)
         
         DMLT = []; EP = []; DMLout = [];
-        load(aas_getfiles_bystream(aap,p,'DMLT'));
+        load(aas_getfiles_bystream(aap,subj,'DMLT'));
         
         % get sn mat file from normalisation
         if aap.tasklist.currenttask.settings.normalise == 1
-            normMAT = aas_getfiles_bystream(aap,p,'normalisation_seg_sn');
+            normMAT = aas_getfiles_bystream(aap,subj,'normalisation_seg_sn');
         end
         
         % Load SPM used for this analysis...
-        load(aas_getfiles_bystream(aap, p, 'firstlevel_spm'));
+        load(aas_getfiles_bystream(aap, subj, 'firstlevel_spm'));
         
         % Example BET mask
-        Mimg = aas_getfiles_bystream(aap, p, 'epiBETmask');
+        Mimg = aas_getfiles_bystream(aap, subj, 'epiBETmask');
         % Brain mask!
         for a = 1:size(Mimg,1)
             if ~isempty(strfind(Mimg(a,:), 'brain_mask'))
@@ -49,7 +49,7 @@ switch task
                 indx = (r - 1) * size(DMLout, 2) + c;
                 
                 % Absolute weights of subject...
-                V.fname = fullfile(aas_getsubjpath(aap,p), sprintf('con_%04d.img', indx));
+                V.fname = fullfile(aas_getsubjpath(aap,subj), sprintf('con_%04d.img', indx));
                 Flist = strvcat(Flist, V.fname);
                 
                 Y = DMLout{r,c}.weights;
@@ -105,7 +105,7 @@ switch task
         SPM.xCon = [];
         
         % Set correct path
-        SPM.swd = aas_getsubjpath(aap,p);
+        SPM.swd = aas_getsubjpath(aap,subj);
         
         % Set world coordinates for visualisation...
         % ...which should already be found in the images...
@@ -130,7 +130,7 @@ switch task
         % searchlight procedure means each voxels is already "smoothed" to
         % some extent...
         SPM.xVol.R = spm_resels_vol( ...
-            spm_vol(fullfile(aas_getsubjpath(aap,p), 'con_0001.img')), ...
+            spm_vol(fullfile(aas_getsubjpath(aap,subj), 'con_0001.img')), ...
             SPM.xVol.FWHM)';
         
         % Included voxels
@@ -152,21 +152,21 @@ switch task
                 SPM.xCon(indx).STAT = 'T';
                 SPM.xCon(indx).c = ones(size(SPM.xX.X,2),1);
                 SPM.xCon(indx).eidf = 1;
-                SPM.xCon(indx).Vcon = spm_vol(fullfile(aas_getsubjpath(aap,p), sprintf('con_%04d.img', indx)));
+                SPM.xCon(indx).Vcon = spm_vol(fullfile(aas_getsubjpath(aap,subj), sprintf('con_%04d.img', indx)));
                 SPM.xCon(indx).Vspm = '';
             end
         end
         
         % Save SPM
-        save(fullfile(aas_getsubjpath(aap,p), 'SPM.mat'), 'SPM');
+        save(fullfile(aas_getsubjpath(aap,subj), 'SPM.mat'), 'SPM');
         
         %% DESCRIBE OUTPUTS
-        aap=aas_desc_outputs(aap,p,'firstlevel_spm', fullfile(aas_getsubjpath(aap,p), 'SPM.mat'));
+        aap=aas_desc_outputs(aap,subj,'firstlevel_spm', fullfile(aas_getsubjpath(aap,subj), 'SPM.mat'));
         
         % Add headers to list of files...
         for f = 1:size(Flist,1)
             [Froot, Ffn, Fext] = fileparts(Flist(f,:));
             Flist = strvcat(Flist, fullfile(Froot, [Ffn '.hdr']));
         end
-        aap=aas_desc_outputs(aap,p,'firstlevel_cons', Flist);
+        aap=aas_desc_outputs(aap,subj,'firstlevel_cons', Flist);
 end

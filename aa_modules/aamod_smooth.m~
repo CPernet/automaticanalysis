@@ -21,13 +21,10 @@ switch task
     case 'report'
         
     case 'doit'
-               
-        % Is session specified in task header?
-        if (isfield(aap.tasklist.currenttask.settings,'session'))
-           sess = aap.tasklist.currenttask.settings.session; 
-        end
-        
+                
         streams=aap.tasklist.currenttask.inputstreams.stream;
+        
+        
         
         for streamind=1:length(streams)
             

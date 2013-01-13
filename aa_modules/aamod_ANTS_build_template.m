@@ -51,7 +51,7 @@ switch task
         
         options = aap.tasklist.currenttask.settings.extraoptions;
         
-        ANTS_command = [ ANTSpath Ndim outfiles options ' *'];
+        ANTS_command = [ ANTSpath Ndim outfiles options ' subj*'];
         
         cd(Tpth)
         

@@ -2,7 +2,7 @@
 %
 % Modified for aa4 by Alejandro Vicente-Grabovetsky Feb-2011
 
-function [aap,resp] = aamod_MVPaa_roi_1st(aap,task,p)
+function [aap,resp] = aamod_MVPaa_roi_1st(aap,task,subj)
 
 resp='';
 
@@ -15,24 +15,24 @@ switch task
         fprintf('Working with data from participant %s. \n', mriname)
         
         % Get the contrasts for this subject...
-        aap.tasklist.currenttask.settings.contrasts = mvpaa_loadContrasts(aap,p);
+        aap.tasklist.currenttask.settings.contrasts = mvpaa_loadContrasts(aap,subj);
                        
         % Load the ROIs from which to extract the data
-        ROIimg = aas_getfiles_bystream(aap,p,'rois');
+        ROIimg = aas_getfiles_bystream(aap,subj,'rois');
         
         % Which tests will we use?
         if ~isempty(findstr(aap.tasklist.currenttask.settings.statsType, 'GLM'))
-            aap.tasklist.currenttask.settings.tests = {'beta', 't-value', 'p-value', 'SE'};
+            aap.tasklist.currenttask.settings.tests = {'beta', 't-value', 'subj-value', 'SE'};
         elseif ~isempty(findstr(aap.tasklist.currenttask.settings.statsType, 'ttest'))
-            aap.tasklist.currenttask.settings.tests = {'mean', 't-value', 'p-value', 'SE', 'normality'};
+            aap.tasklist.currenttask.settings.tests = {'mean', 't-value', 'subj-value', 'SE', 'normality'};
         elseif ~isempty(findstr(aap.tasklist.currenttask.settings.statsType, 'signrank'))
-            aap.tasklist.currenttask.settings.tests = {'median', 't-value (est)', 'p-value'};
+            aap.tasklist.currenttask.settings.tests = {'median', 't-value (est)', 'subj-value'};
         end        
         
         %% ANALYSIS
         
         % Load the data into a single big structure...
-        [aap data] = mvpaa_loadData(aap, p);
+        [aap data] = mvpaa_loadData(aap, subj);
         
         ROInum = size(ROIimg,1);
         
@@ -125,7 +125,7 @@ switch task
         
         %% DESCRIBE OUTPUTS
         EP = aap.tasklist.currenttask.settings;
-        save(fullfile(aas_getsubjpath(aap,p), [mriname '.mat']), ...
+        save(fullfile(aas_getsubjpath(aap,subj), [mriname '.mat']), ...
             'meanSimil', 'Stats', 'EP')
-        aap=aas_desc_outputs(aap,p,'MVPaa', fullfile(aas_getsubjpath(aap,p), [mriname '.mat']));
+        aap=aas_desc_outputs(aap,subj,'MVPaa', fullfile(aas_getsubjpath(aap,subj), [mriname '.mat']));
 end

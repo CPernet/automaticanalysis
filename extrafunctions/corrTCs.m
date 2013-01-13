@@ -35,7 +35,7 @@ figure(2)
 set(2, 'Position', [0 0 1200 700])
 
 subplot(1,2,1)
-imagesc(TCvals)
+imagescnan(TCvals)
 set(gca, 'Xtick', 1:length(corrTC), 'Ytick', [1 size(TCvals,1)], ...
     'Xticklabel', TCnames, 'Yticklabel', [1 size(TCvals,1)])
 ylabel('Timepoints')

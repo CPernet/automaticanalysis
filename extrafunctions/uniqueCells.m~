@@ -1,0 +1,11 @@
+function cellR = uniqueCells(cellR)
+
+% Get rid of repeated names
+    for t1 = length(cellR):-1:1
+        for t2 = t1-1:-1:1
+            if strcmp(cellR{t1}, cellR{t2})
+                cellR(t1) = [];
+                break
+            end
+        end
+    end 

@@ -27,10 +27,10 @@ switch task
         %% Compartment regressors [AVG]
         CRstreams = streams.stream(strcmp('compSignal', streams.stream));
         
-        compRegNames = {'GM', 'WM', 'CSF', 'OOH'};
-        Cregs = cell(1,length(aap.acq_details.sessions));
         if ~isempty(CRstreams)
+            compRegNames = {'GM', 'WM', 'CSF', 'OOH'};
             compTC = [];
+            Cregs = cell(1,length(aap.acq_details.sessions));
             for sess = aap.acq_details.selected_sessions
                 % If we have compartment Signals load them...
                 if (exist(aas_getinputstreamfilename(aap,subj,sess,'compSignal'),'file'))
@@ -38,9 +38,6 @@ switch task
                     Cregs{sess} = compTC;
                 end
             end
-        else
-            % Ignore compSignal if it is not a stream...
-            aap.tasklist.currenttask.settings.compRegs = [];
         end
         
         % Covariates that may or may not exist [AVG]
@@ -284,7 +281,7 @@ switch task
             
             %% Movement and other nuisance regressors: compartments [AVG]
             if aap.tasklist.currenttask.settings.includemovementpars==1
-                SPM.Sess(sessnuminspm).C.C    = [SPM.Sess(sessnuminspm).C.C ...
+                7cwSPM.Sess(sessnuminspm).C.C    = [SPM.Sess(sessnuminspm).C.C ...
                     moves{sess} ...
                     Cregs{sess}(:, aap.tasklist.currenttask.settings.compRegs)];     % [n x c double] covariates
                 SPM.Sess(sessnuminspm).C.name = [SPM.Sess(sessnuminspm).C.name ...
