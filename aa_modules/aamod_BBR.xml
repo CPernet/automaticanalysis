@@ -31,7 +31,7 @@
                 <Mode desc='Default: rst [all rotations, scaling, all translations]'
                 >rst</Mode>
                 <MinVertices desc='Minimal number of vertices to which we go down to'
-                >10000</MinVertices>
+                >4000</MinVertices>
                 <MultipleLoops desc='Repeat procedure in the 6 different XYZ direction combinations? [true/false]'
                 >1</MultipleLoops>
                 <Accuracy desc='Minimum percentage of surface vertices to use for procedure'
@@ -42,6 +42,8 @@
                 >on</Display>
                 <BBR desc='Do we do Boundary Based Registration of surface to structural? [true/false]'
                 >1</BBR>
+                <TimeRequirement desc='How much time do we ask Torque for'
+                >1800</TimeRequirement>
             </bbrConfiguration>
             
             <!-- Diagnostic videos? -->

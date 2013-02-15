@@ -17,9 +17,10 @@ switch task
             aas_log(aap, true, sprintf('Couldn''t find template T1 image %s.', Timg));
         end
         
-        %% Get structural
-        % [AVG] Modified the way we get the structural, to be more aa4-like
-        Simg = aas_getfiles_bystream(aap,subj,'structural');
+        %% Get stream to normalise
+        streams=aap.tasklist.currenttask.inputstreams.stream;
+        Simg = aas_getfiles_bystream(aap,subj, streams{1});
+        
         % Cheap and cheerful way of ensuring only one file is considered!
         if size(Simg,1) > 1
             Simg = deblank(Simg(aap.tasklist.currenttask.settings.structural,:));

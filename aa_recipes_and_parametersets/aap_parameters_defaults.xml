@@ -44,6 +44,7 @@
         <freesurfershell desc='Shell used to run FSL' ui='text'>none</freesurfershell>
         <niftyregdir desc='Path to fieltrip toolbox' ui='dir'>/cn_apps/niftyreg</niftyregdir>
         <niftysegdir desc='Path to fieltrip toolbox' ui='dir'>/cn_apps/niftyseg</niftysegdir>
+        <MRIdenoisingdir desc='Path to MRIdenoising toolbox' ui='dir'>/cn_apps/MRIDenoisingPackage_r01</MRIdenoisingdir>
         <DMLTdir desc='Path to Donders Machine Learning Toolbox toolbox' ui='dir'>/cn_apps/DMLT</DMLTdir>
         <MIPAVdir desc='Path to Medical Image Processing, Analysis and Visualisation' ui='dir'>/cn_apps/MIPAV</MIPAVdir>
         <JISTlayoutdir desc='Path to Medical Image Processing, Analysis and Visualisation' ui='dir'></JISTlayoutdir>

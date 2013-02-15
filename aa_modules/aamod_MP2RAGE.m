@@ -32,6 +32,7 @@ switch task
         vFI = spm_vol(FIimg);
         yFI = spm_read_vols(vFI);
         
+        
         IC2thresh = aap.tasklist.currenttask.settings.threshold;
         if isempty(IC2thresh)
             % Create a histogram of IC2
@@ -72,33 +73,38 @@ switch task
             ylabel('Corresponding signal in FI voxels')
             
             set(gcf,'PaperPositionMode','auto')
-            print('-djpeg','-r150',fullfile(aap.acq_details.root, 'diagnostics', ...
-                [mfilename '__' mriname '_thresh.jpeg']));
+            saveas(3,fullfile(aap.acq_details.root, 'diagnostics', ...
+                [mfilename '__' mriname '_thresh.fig']), 'fig');
         end
-                
+        
         fprintf('Cutoff of IC2 is at %0.2f\n', IC2thresh)
         
-        % Then we can mask the IC2 and FI image...
-        yIC2(yIC2<(IC2thresh)) = 0;
-        yFI(yIC2<(IC2thresh)) = 0;
-        
-        spm_write_vol(vIC2, yIC2);
+        if strcmp(aap.tasklist.currenttask.settings.mode, 'sharp')
+            % Then we can mask the IC2 and FI image...
+            yIC2(yIC2<(IC2thresh)) = 0;
+            yFI(yIC2<(IC2thresh)) = 0;
+            
+            spm_write_vol(vIC2, yIC2);
+        elseif strcmp(aap.tasklist.currenttask.settings.mode, 'soft')
+            yIC2 = yIC2 ./ max(yIC2(:)); % Reset values in IC2 between 0 and 1
+            
+            % Scale values in yFI where yFI is not brain
+            yFI(yIC2<(IC2thresh)) = yFI(yIC2<(IC2thresh)) .* yIC2(yIC2<(IC2thresh));            
+        end
         spm_write_vol(vFI, yFI);
         
         %% DESCRIBE OUTPUTS!
         aap=aas_desc_outputs(aap,subj,'structural',Simg);
         
-        %% DIAGNOSTIC IMAGE
-                
-        %% Draw structural image...
+        %% DIAGNOSTIC IMAGE (structural)
         spm_check_registration(FIimg)
         
         spm_orthviews('reposition', [0 0 0])
         
         try figure(spm_figure('FindWin', 'Graphics')); catch; figure(1); end;
         set(gcf,'PaperPositionMode','auto')
-        print('-djpeg','-r150',fullfile(aap.acq_details.root, 'diagnostics', ...
-            [mfilename '__' mriname '.jpeg']));
+        saveas(1, fullfile(aap.acq_details.root, 'diagnostics', ...
+            [mfilename '__' mriname '.fig']), 'fig');
         
         %% Diagnostic VIDEO of masks
         if aap.tasklist.currenttask.settings.diagnostic

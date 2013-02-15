@@ -36,26 +36,34 @@ switch task
                 P = aas_getfiles_bystream(aap,subj,sess,streams{streamind});
             else
                 P = aas_getfiles_bystream(aap,subj,streams{streamind});
-            end;
-            imgs = strvcat(imgs, P);
-            % delete previous because otherwise nifti write routine doesn't
-            % save disc space when you reslice to a coarser voxel
+            end            
             
+            imgs = strvcat(imgs, P);
+            
+            % delete previous because otherwise nifti write routine doesn't
+            % save disc space when you reslice to a coarser voxel            
             for c=1:size(P,1)
                 [pth fle ext]=fileparts(P(c,:));
                 [s w] = aas_shell(['rm ' fullfile(pth,['w' fle ext])],true); % quietly
             end;
             
             % now write normalised
-            if (length(imgs)>0)
-                spm_write_sn(imgs,matname,aap.spm.defaults.normalise.write);
-            end;
+            if ~isempty(imgs)
+                % Ignore .hdr files from this list...
+                imgsGood = imgs;
+                for n = size(imgsGood,1):-1:1
+                    if ~isempty(strfind(imgsGood(n,:), '.hdr'))
+                        imgsGood(n,:) = [];
+                    end
+                end
+                spm_write_sn(imgsGood,matname,aap.spm.defaults.normalise.write);
+            end
             wimgs=[];
             
             % describe outputs
             for fileind=1:size(imgs,1)
-                [pth nme ext]=fileparts(imgs(fileind,:));
-                wimgs=strvcat(wimgs,fullfile(pth,['w' nme ext]));
+                [pth nme ext] = fileparts(imgs(fileind,:));
+                wimgs = strvcat(wimgs,fullfile(pth,['w' nme ext]));
             end
             if (exist('sess','var'))
                 aap=aas_desc_outputs(aap,subj,sess,streams{streamind},wimgs);

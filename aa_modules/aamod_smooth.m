@@ -9,22 +9,11 @@ function [aap,resp]=aamod_smooth(aap,task,subj,sess)
 resp='';
 
 switch task
-    case 'domain'
-        resp='session';   % this module needs to be run once per session
-        
-    case 'description'
-        resp='SPM5 smooth';
-        
-    case 'summary'
-        subjpath=aas_getsubjpath(subj);
-        resp=sprintf('Smooth run on %s\n',subjpath);
-    case 'report'
-        
     case 'doit'
-               
+        
         % Is session specified in task header?
         if (isfield(aap.tasklist.currenttask.settings,'session'))
-           sess = aap.tasklist.currenttask.settings.session; 
+            sess = aap.tasklist.currenttask.settings.session;
         end
         
         streams=aap.tasklist.currenttask.inputstreams.stream;
@@ -38,8 +27,6 @@ switch task
                 P = aas_getfiles_bystream(aap,subj,streams{streamind});
             end
             
-            P=aas_getimages_bystream(aap,subj,sess,streams{streamind});
-            
             % now smooth
             s   = aap.tasklist.currenttask.settings.FWHM;
             n   = size(P,1);
@@ -52,12 +39,19 @@ switch task
                 fn=['s' nam xt nm];
                 U = fullfile(pth,fn);
                 outputfns=strvcat(outputfns,U);
-                spm_smooth(Q,U,s);
-                spm_progress_bar('Set',imnum);
+                % Ignore .hdr files from this list...
+                if isempty(strfind(P(n,:), '.hdr'))
+                    spm_smooth(Q,U,s);
+                    spm_progress_bar('Set',imnum);
+                end
             end
             
             % Describe outputs
-            aap=aas_desc_outputs(aap,subj,sess,streams{streamind},outputfns);
+            if (exist('sess','var'))
+                aap=aas_desc_outputs(aap,subj,sess,streams{streamind},outputfns);
+            else
+                aap=aas_desc_outputs(aap,subj,streams{streamind},outputfns);
+            end
             
         end;
         % All done

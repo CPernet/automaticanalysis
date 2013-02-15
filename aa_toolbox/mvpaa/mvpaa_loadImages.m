@@ -1,23 +1,20 @@
 % MVPAA Load Data
 % Automatically attempts to load data, based on the model you have...
 
-function data = mvpaa_loadImages(aap, subj, SPM, segMask, ...
+function data = mvpaa_loadImages(aap, SPM, segMask, ...
     sessionNum, blockNum, conditionNum, conditionNamesUnique)
 
 %% Start loading data
 fprintf('Loading beta images \r')
 
-% Set up data structure...
-data = cell(length(conditionNum),1);
-
-Bimg = aas_findstream(aap,'spmts', subj);
+Bimg = aas_findstream(aap,'spmts', aap.subj);
 dataType = 'spmts';
 if isempty(Bimg)
-    Bimg = aas_findstream(aap,'cons', subj);
+    Bimg = aas_findstream(aap,'cons', aap.subj);
     dataType = 'cons';
 end
 if isempty(Bimg)
-    Bimg = aas_findstream(aap,'betas', subj);
+    Bimg = aas_findstream(aap,'betas', aap.subj);
     dataType = 'betas';
 end
 % Remove any existing *.hdr data from Bimg
@@ -28,7 +25,8 @@ for b = size(Bimg):-1:1
 end
 
 reverseStr = ''; % for displaying progress
-for d = 1:length(data)
+for d = 1:length(conditionNum)
+    
     % Get the relevant numbers
     s = sessionNum(d);
     b = blockNum(d);
@@ -66,14 +64,19 @@ for d = 1:length(data)
     V = spm_vol(deblank(Bimg(imageNum,:)));
     Y = spm_read_vols(V);
     
+    % Set up DATA structure...
+    if d == 1
+       data = nan(length(conditionNum), size(Y,1), size(Y,2), size(Y,3));
+    end    
+    
     % Set anything that is 0 to NaN
     Y(Y==0) = NaN;
     if ~isempty(segMask)
         Y(segMask==0) = NaN;
     end
     
-    data{d} = Y;
+    data(d,:,:,:) = Y;
     
     % Display the progress
-    reverseStr = aas_progress_text(d, length(data), reverseStr);    
+    reverseStr = aas_progress_text(d, length(conditionNum), reverseStr);    
 end

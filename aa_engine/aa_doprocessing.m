@@ -222,6 +222,8 @@ for l=1:length(mytasks)
         else
             mfile_alias=stagename;
         end
+        % [AVG] get rid of any possible extensions in mfile_alias
+        [junk mfile_alias] = fileparts(mfile_alias);
         
         aap=aas_setcurrenttask(aap,k);
         
@@ -608,4 +610,7 @@ if (isfield(aap.schema.tasksettings.(prev_stagename)(prev_index).ATTRIBUTE,'mfil
 else
     prev_mfile_alias=prev_stagename;
 end
+% [AVG] get rid of any possible extensions in mfile_alias
+[junk prev_mfile_alias] = fileparts(prev_mfile_alias);
+
 [aap,loopvar]=aa_feval(prev_mfile_alias,aap,'getparallelparts');

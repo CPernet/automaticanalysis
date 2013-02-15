@@ -9,30 +9,32 @@ resp='';
 switch task
     case 'doit'
         
+        aap.subj = subj;
+        
         %% PREPARATIONS
         
-        mriname = aas_prepare_diagnostic(aap,subj);        
+        mriname = aas_prepare_diagnostic(aap);        
         fprintf('Working with data from participant %s. \n', mriname)
         
         % Get the contrasts for this subject...
-        aap.tasklist.currenttask.settings.contrasts = mvpaa_loadContrasts(aap,subj);
-                       
-        % Load the ROIs from which to extract the data
+        aap = mvpaa_loadContrasts(aap);
+        
+        %% Load the ROIs from which to extract the data
         ROIimg = aas_getfiles_bystream(aap,subj,'rois');
         
         % Which tests will we use?
         if ~isempty(findstr(aap.tasklist.currenttask.settings.statsType, 'GLM'))
-            aap.tasklist.currenttask.settings.tests = {'beta', 't-value', 'subj-value', 'SE'};
+            aap.tasklist.currenttask.settings.tests = {'beta', 't-value', 'p-value', 'SE'};
         elseif ~isempty(findstr(aap.tasklist.currenttask.settings.statsType, 'ttest'))
-            aap.tasklist.currenttask.settings.tests = {'mean', 't-value', 'subj-value', 'SE', 'normality'};
+            aap.tasklist.currenttask.settings.tests = {'mean', 't-value', 'p-value', 'SE', 'normality'};
         elseif ~isempty(findstr(aap.tasklist.currenttask.settings.statsType, 'signrank'))
-            aap.tasklist.currenttask.settings.tests = {'median', 't-value (est)', 'subj-value'};
+            aap.tasklist.currenttask.settings.tests = {'median', 't-value (est)', 'p-value'};
         end        
         
         %% ANALYSIS
         
         % Load the data into a single big structure...
-        [aap data] = mvpaa_loadData(aap, subj);
+        [aap data] = mvpaa_loadData(aap);
         
         ROInum = size(ROIimg,1);
         
@@ -81,45 +83,19 @@ switch task
             Resid = mvpaa_shrinkage(aap, Betas);
             
             % Compute similarities of the the data
-            Simil = mvpaa_correlation(aap, Resid);
+            Simil = mvpaa_similarity(aap, Resid);            
             
+            % Remove effects related to temporal proximity... (if temp. info available)
+            Simil = mvpaa_temporalDenoising(aap, Simil, Rfn);
+
+            % Restructure (and normalise?) similarity scores...
+            Simil = mvpaa_restructureSimil(aap, Simil);
+            
+            % Get statistics for similarity values
             [Stats(r,:,:), meanSimil(r, :,:)] = mvpaa_statistics(aap, Simil);
             
-            %% SOME DIAGNOSTICS...
-            if aap.tasklist.currenttask.settings.diagnostic
-                try close(2); catch;end
-                figure(2)
-                set(2, 'Position', [0 0 1200 500], 'Name', Rfn)
-                
-                subplot(1,3,1)
-                imagesc( ...
-                    reshape(Resid, ...
-                    [size(Resid,1) size(Resid,2)*size(Resid,3)*size(Resid,4)]))
-                axis equal
-                axis off
-                title('Residuals')
-                
-                subplot(1,3,2)
-                imagesc( ...
-                    reshape(permute( ...
-                    Simil, [3, 1, 4, 2]), ...
-                    [size(Simil,3)*size(Simil,1), size(Simil,4)*size(Simil,2)]));
-                caxis([-1 1])
-                axis equal
-                axis off
-                title('Similarity matrix...')
-                
-                subplot(1,3,3)
-                imagesc(squeeze(meanSimil(r, :,:)));
-                caxis([-1 1])
-                axis equal
-                axis off
-                title('...collapsed across sessions and blocks')
-                
-                print('-djpeg','-r150',fullfile(aap.acq_details.root, 'diagnostics', ...
-                [mfilename '__' mriname '_' num2str(r) '.jpeg']));
-            end     
-            try close(2); catch;end
+            %% DATA DIAGNOSTICS...
+            mvpaa_diagnosticCorrelation(aap, r, Rfn, Resid, Simil, meanSimil)
         end
         aap.tasklist.currenttask.settings.ROIname = ROIname;
         

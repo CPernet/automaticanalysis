@@ -24,6 +24,6 @@ end
 if mode == 2
     keepM = zeros(size(cont));
     keepM(cont<0) = 1;
-    keepM(logical(~label), logical(~label)) = 1;
+    keepM(logical(label), logical(label)) = 1;
     cont(logical(~keepM)) = NaN;
 end

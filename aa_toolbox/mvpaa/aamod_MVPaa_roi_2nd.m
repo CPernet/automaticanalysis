@@ -20,7 +20,7 @@ switch task
                     size(Stats,2), ...
                     size(Stats,3));
                 
-                % MVPA data in matrix form..
+                % MVPA data in matrix form...
                 aggrSimil = nan(size(meanSimil,1), ...
                     length(aap.acq_details.subjects), ...
                     size(meanSimil,2), ...
@@ -32,7 +32,11 @@ switch task
             
             % Gather data from each participant
             indStats(:, subj, :,:) = Stats;
-            aggrSimil(:, subj, :,:) = meanSimil;
+            try
+                aggrSimil(:, subj, :,:) = meanSimil;
+            catch
+                aas_log(aap, false, 'Dimension mismatch between similarity matrices of different participants')
+            end
         end
         
         % 2nd level stats (aggregate StatisticollStat -> collapsed Statistics)

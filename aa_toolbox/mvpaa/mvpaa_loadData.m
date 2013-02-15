@@ -1,10 +1,13 @@
 % MVPAA Load Data
 % Automatically attempts to load data, based on the model you have...
 
-function [aap data] = mvpaa_loadData(aap, subj)
+function [aap, data] = mvpaa_loadData(aap)
 
 %% Determine which conditions we have in our model
-[SPM conditionNum sessionNum blockNum conditionNamesUnique nuisanceNum] = mvpaa_determineFactors(aap, subj);
+[SPM conditionNum sessionNum blockNum conditionNamesUnique nuisanceNum] = mvpaa_determineFactors(aap);
+
+% Which cell belongs to which session?
+aap.tasklist.currenttask.settings.sessionNum = sessionNum;
 
 fprintf('\nThis experiment contains (truly) \n\t%d conditions\n\t%d blocks\n\t%d sessions', ...
     length(unique(conditionNum)), ...
@@ -17,15 +20,15 @@ fprintf('\n(%d Nuisance variables)\n\n', sum(nuisanceNum))
 
 %% Do we grey/white/CSF matter mask the data?
 % Get segmentation masks we wish to use, if any
-segMask = mvpaa_getSegmentations(aap, subj);
+segMask = mvpaa_getSegmentations(aap);
 
 %% Load actual images!
-data = mvpaa_loadImages(aap, subj, SPM, segMask, ...
+data = mvpaa_loadImages(aap, SPM, segMask, ...
     sessionNum, blockNum, conditionNum, conditionNamesUnique);
 
-%% Reshape data?
-[aap data sessionNum, blockNum, conditionNum] = ...
-    mvpaa_reshapeData(aap, data, sessionNum, blockNum, conditionNum);
+%% Reshape data? [@@@ REMOVE THIS @@@]
+%[aap data sessionNum, blockNum, conditionNum] = ...
+%    mvpaa_reshapeData(aap, data, sessionNum, blockNum, conditionNum);
 
 %% Save parameters to aa structure
 aap.tasklist.currenttask.settings.conditions = length(unique(conditionNum));

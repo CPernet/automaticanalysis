@@ -12,6 +12,8 @@ switch task
         
     case 'doit'
         
+        warning off
+        
         % Get the mean epi image and structural (latter only for diagnostics)
         mepi = aas_getfiles_bystream(aap,subj,'meanepi');
         % Get the surfaces
@@ -99,10 +101,6 @@ switch task
         end
         
         %% Boundary registration
-        
-        % CRUDE FIX @@@
-        addpath(genpath('~/BoundaryRegistration'))
-        
         for hemisphere = 1:2 
             tic;
             %The original MPRAGE boundary is transformed into the new EPI boundary

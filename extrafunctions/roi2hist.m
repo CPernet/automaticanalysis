@@ -66,7 +66,7 @@ legStr = [legStr(1:end-1) ');'];
 try close(2); catch; end
 
 figure(2)
-set(2, 'Position', [0 0 1200 700])
+set(2, 'Position', [0 0 1000 550])
 maxI = 0;
 windI = 0;
 maxV = 0;

@@ -1,21 +1,28 @@
 % MVPAA Reshape Data
 % Automatically attempts to reshape data, based on the data and parameters you have...
+%% [OBSOLETED @@@] better reshape during extraction/shrinkage
 
 function [aap data sessionNum, blockNum, conditionNum] = ...
     mvpaa_reshapeData(aap, data, sessionNum, blockNum, conditionNum)
 
 if aap.tasklist.currenttask.settings.mergeSessions == 0
-    Rdata = cell(length(unique(conditionNum)), ...
+    keyboard
+    
+    % USE RESHAPE FUNCTION!
+    
+    Ndata = reshape(data
+    
+    Rdata = nan(length(unique(conditionNum)), ...
         length(unique(blockNum)), ...
-        length(unique(sessionNum)));
+        length(unique(sessionNum)), ...
+        size(data,2), size(data,3), size(data,4));
     
     for d = 1:length(conditionNum)
         % Set the correct locations for Rdata points
-        Rdata{conditionNum(d), blockNum(d), sessionNum(d)} = data{d};
-        data{d} = []; % To avoid memory problems...
+        Rdata(conditionNum(d), blockNum(d), sessionNum(d), :,:,:) = data(d,:,:,:);
     end
     % Reshaped data cell structure
-    data = Rdata;    
+    data = Rdata;
 elseif aap.tasklist.currenttask.settings.mergeSessions == 1
     aas_log(aap,false, ['All sessions merged into a single meta-session, ' ... 
         'you still can use normal machinery, but proceed with caution'])
@@ -27,15 +34,17 @@ elseif aap.tasklist.currenttask.settings.mergeSessions == 1
     compositeIndx = unique(compositeNum);
     % Then we create a new set of blocks, that span the entire
     [junk, blockNum] = ismember(compositeNum, compositeIndx);
-        
-    Rdata = cell(length(unique(conditionNum)), ...
+    
+    Rdata = nan(length(unique(conditionNum)), ...
         length(unique(blockNum)), ...
-        1);
+        1, ...
+        size(data,2), size(data,3), size(data,4));
+    
     for d = 1:length(conditionNum)
         % Set the correct locations for Rdata points
-        Rdata{conditionNum(d), blockNum(d), 1} = data{d};
-        data{d} = []; % To avoid memory problems...
+        Rdata(conditionNum(d), blockNum(d), 1, :,:,:) = data(d,:,:,:);
     end
+    
     % Reshaped data cell structure
     data = Rdata;
 else

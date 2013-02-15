@@ -3,29 +3,30 @@
 % Modified for aa by Rhodri Cusack Mar 2006-2011
 % Additions by Rik Henson Mar 2011
 
-function [aap,resp]=aamod_firstlevel_contrasts_GD(aap,task,i)
+function [aap,resp]=aamod_firstlevel_contrasts(aap,task,subj)
 
 resp='';
 
 
 switch task
     case 'domain'
-        resp='subject';   % this module needs to be run once per subject
+        resp='subject'; % this module needs to be run once per subject
         
     case 'description'
         resp='SPM5 contrasts';
         
     case 'summary'
-        subjpath=aas_getsubjpath(i);
+        subjpath=aas_getsubjpath(subj);
         resp=sprintf('Contrasts %s\n',subjpath);
         
     case 'report'
         
     case 'doit'
+        mriname = aas_prepare_diagnostic(aap,subj);
         
         cwd=pwd;
         % get the subdirectories in the main directory
-        subj_dir = aas_getsubjpath(aap,i);
+        subj_dir  =  aas_getsubjpath(aap,subj);
         
         % Maintained for backwards compatibility- better now now put
         % module-specific value in
@@ -35,10 +36,10 @@ switch task
         else
             stats_suffix=[];
         end;
-        anadir = fullfile(subj_dir,[aap.directory_conventions.stats_singlesubj stats_suffix]);
+        anadir  =  fullfile(subj_dir,[aap.directory_conventions.stats_singlesubj stats_suffix]);
         
         % Now set up contrasts...
-        SPM=load(aas_getfiles_bystream(aap,i,'firstlevel_spm'));
+        SPM=load(aas_getfiles_bystream(aap,subj,'firstlevel_spm'));
         SPM=SPM.SPM;
         SPM.swd=anadir;
         
@@ -49,7 +50,7 @@ switch task
             % Try for wildcard
             contrasts_set=find(strcmp({aap.tasklist.currenttask.settings.contrasts.subject},'*'));
             if (isempty(contrasts_set))
-                aas_log(aap,true,'Can''t find declaration of what contrasts to use - insert this in a local copy of aamod_firstlevel_contrasts.xml or put into user script');
+                aas_log(aap,true,'Can''t find declaration of what contrasts to use  -  insert this in a local copy of aamod_firstlevel_contrasts.xml or put into user script');
             end;
         end
         
@@ -60,12 +61,12 @@ switch task
             switch(contrasts.con(conind).format)
                 case {'singlesession','sameforallsessions'}
                     if (strcmp(contrasts.con(conind).format,'singlesession'))
-                        sessforcon=[strcmp({aap.acq_details.sessions.name},contrasts.con(conind).session)];
+                        sessforcon  =  strcmp({aap.acq_details.sessions.name},contrasts.con(conind).session);
                     else
                         % [AVG] To make the selected sessions work...
                         sessforcon=zeros(1,length(aap.acq_details.sessions));
                         for sess=aap.acq_details.selected_sessions
-                            sessforcon(sess) = 1;
+                            sessforcon(sess) =  1;
                         end
                         %sessforcon=ones(1,length(SPM.Sess));
                     end;
@@ -75,10 +76,10 @@ switch task
                         numcolsinthissess=length(SPM.Sess(sessnuminspm).col);
                         if (sessforcon(sess))
                             if (size(contrasts.con(conind).vector,2) > numcolsinthissess)
-                                aas_log(aap,true,sprintf('Number of columns in contrast matrix for session %d is more than number of columns in model for this session - wanted %d columns, got ',sess,numcolsinthissess)); disp(contrasts.con(conind).vector);
+                                aas_log(aap,true,sprintf('Number of columns in contrast matrix for session %d is more than number of columns in model for this session  -  wanted %d columns, got ',sess,numcolsinthissess)); disp(contrasts.con(conind).vector);
                             elseif (size(contrasts.con(conind).vector,2) < numcolsinthissess)
-                                convec = [convec contrasts.con(conind).vector zeros(size(contrasts.con(conind).vector,1),numcolsinthissess-size(contrasts.con(conind).vector,2))];
-                                aas_log(aap,false,sprintf('Warning: Number of columns in contrast matrix for session %d is less than number of columns in model for this session - wanted %d columns, so padding to ',sess,numcolsinthissess)); disp(convec);
+                                convec  = [convec contrasts.con(conind).vector zeros(size(contrasts.con(conind).vector,1),numcolsinthissess-size(contrasts.con(conind).vector,2))];
+                                aas_log(aap,false,sprintf('Warning: Number of columns in contrast matrix for session %d is less than number of columns in model for this session  -  wanted %d columns, so padding to ',sess,numcolsinthissess)); disp(convec);
                             else
                                 convec=[convec contrasts.con(conind).vector];
                             end
@@ -88,25 +89,25 @@ switch task
                         sessnuminspm=sessnuminspm+1;
                     end;
                 case 'uniquebysession'
-                    totnumcolsbarconstants = size(SPM.xX.X,2) - length(aap.acq_details.selected_sessions);
+                    totnumcolsbarconstants  =  size(SPM.xX.X,2) -  length(aap.acq_details.selected_sessions);
                     if (size(contrasts.con(conind).vector,2) > totnumcolsbarconstants)
-                        aas_log(aap,true,sprintf('Number of columns in contrast matrix for session %d is more than number of columns in model (bar constants) - wanted %d columns, got ',totnumcolsbarconstants)); disp(contrasts.con(conind).vector);
+                        aas_log(aap,true,sprintf('Number of columns in contrast matrix for session %d is more than number of columns in model (bar constants) -  wanted %d columns, got ',totnumcolsbarconstants)); disp(contrasts.con(conind).vector);
                     elseif (size(contrasts.con(conind).vector,2) < totnumcolsbarconstants)
-                        convec = contrasts.con(conind).vector;
+                        convec  =  contrasts.con(conind).vector;
                         if (contrasts.automatic_movesandmeans) % moves are the realignment parameters, means the session mean signal
                             % AVG! easier way of specifying the correct columns...
-                            convec_out = zeros(1,totnumcolsbarconstants);                            
-                            convec_out(SPM.xX.iC) = convec;
+                            convec_out  =  zeros(1,totnumcolsbarconstants);
+                            convec_out(SPM.xX.iC) =  convec;
                             
-                            convec_names = {SPM.xX.name(SPM.xX.iC)};
+                            convec_names  = {SPM.xX.name(SPM.xX.iC)};
                             
                             % DIAGNOSTIC
                             fprintf('\n%s\n', contrasts.con(conind).name)
-                            for r = 1:max(size(convec_names{1}))
-                                fprintf('\t%s: %d\n', convec_names{1}{r}, convec(r)) 
+                            for r  =  1:max(size(convec_names{1}))
+                                fprintf('\t%s: %d\n', convec_names{1}{r}, convec(r))
                             end
                             
-                            convec=convec_out;                            
+                            convec=convec_out;
                         end;
                         if (size(convec,2) < totnumcolsbarconstants)
                             aas_log(aap,false,sprintf('Warning: Number of columns in contrast matrix for ''uniquebysession'' option is less than number columns in model (bar constants) = %d, so padding to ',totnumcolsbarconstants)); disp(convec);
@@ -118,7 +119,7 @@ switch task
                     aas_log(aap,true,sprintf('Unknown format %s specified for contrast %d',contrasts.con(conind).format,conind));
             end;
             
-            cons{conind} = [convec zeros(size(convec,1),length(aap.acq_details.selected_sessions))];  % Add final constant terms
+            cons{conind} = [convec zeros(size(convec,1),length(aap.acq_details.selected_sessions))]; % Add final constant terms
             
             % Check not empty
             if (~any(cons{conind}(:)))
@@ -134,26 +135,26 @@ switch task
             
             % Allow F tests
             if (isfield(contrasts.con(conind),'type') && isempty(contrasts.con(conind).type))
-                type{conind}='T';
+                type{conind} = 'T';
             else
                 type{conind}=contrasts.con(conind).type;
             end;
         end;
         
         % Make the con images
-        SPM.xCon =[];
-        for conind = 1:size(cons,2)
-            if length(SPM.xCon)==0
-                SPM.xCon = spm_FcUtil('Set',cname{conind},type{conind},'c',cons{conind}',SPM.xX.xKXs);
+        SPM.xCon  = [];
+        for conind  =  1:size(cons,2)
+            if isempty(SPM.xCon)
+                SPM.xCon  =  spm_FcUtil('Set',cname{conind},type{conind},'c',cons{conind}',SPM.xX.xKXs);
             else
-                SPM.xCon(end+1) = spm_FcUtil('Set',cname{conind},type{conind},'c',cons{conind}',SPM.xX.xKXs);
+                SPM.xCon(end+1) =  spm_FcUtil('Set',cname{conind},type{conind},'c',cons{conind}',SPM.xX.xKXs);
             end
         end
         spm_contrasts(SPM);
         
         % Describe outputs
         %  updated spm
-        aap=aas_desc_outputs(aap,i,'firstlevel_spm',fullfile(anadir,'SPM.mat'));
+        aap=aas_desc_outputs(aap,subj,'firstlevel_spm',fullfile(anadir,'SPM.mat'));
         
         %  firstlevel_betas (includes related statistical files)
         filters={'con','spmT','spmF'};
@@ -168,9 +169,18 @@ switch task
             for betaind=1:length(allbetas);
                 betafns=strvcat(betafns,fullfile(anadir,allbetas(betaind).name));
             end
-            aap=aas_desc_outputs(aap,i,['firstlevel_' lower(filters{filterind}) 's'],betafns);
+            aap=aas_desc_outputs(aap,subj,['firstlevel_' lower(filters{filterind}) 's'],betafns);
         end
         cd (cwd);
+        
+        %% DIAGNOSTICS (check distribution of T-values in contrasts)        
+        D = dir(fullfile(anadir, 'spmT_*.img'));
+        for d = 1:length(D)
+            h = img2hist(fullfile(anadir, D(d).name), [], contrasts.con(d).name);
+            saveas(h, fullfile(aap.acq_details.root, 'diagnostics', ...
+            [mfilename '__' mriname '_' contrasts.con(d).name '.fig']), 'fig');
+            try close(h); catch; end
+        end
         
     case 'checkrequirements'
         

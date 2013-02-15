@@ -27,7 +27,8 @@ if (~any(whichmodel))
     emptymod=[];
     emptymod.subject=subject;
     emptymod.contrast.name=contrastname;
-    emptymod.contrast.matrix=matrix;    
+    emptymod.contrast.matrix=matrix;
+    emptymod.temporal=[];
     aap.tasksettings.(modulename)(moduleindex).model(end+1)=emptymod;
 else
     aap.tasksettings.(modulename)(moduleindex).model(whichmodel).contrast(end+1).name=contrastname;

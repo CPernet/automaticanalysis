@@ -1,0 +1,7 @@
+            
+            <!-- Collects and deletes unneeded files -->
+            <module><name>aamod_garbagecollection</name></module>
+            
+        </main>
+    </tasklist>
+</aap>

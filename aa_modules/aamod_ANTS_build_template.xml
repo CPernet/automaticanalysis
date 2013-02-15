@@ -20,7 +20,7 @@
             
             <structural>1</structural>
             <!-- Extra options to include (e.g. parallelisation) -->
-            <extraoptions>-c 2 -j 4 -r 1</extraoptions>
+            <extraoptions>-c 5 -j 4 -r 1</extraoptions>
             
             <diagnostic>0</diagnostic>
             

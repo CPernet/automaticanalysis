@@ -1,16 +1,16 @@
 % MVPA_LOADCONTRASTS load contrasts for current subject
 
-function contrasts = mvpaa_loadContrasts(aap,p)
+function aap = mvpaa_loadContrasts(aap)
 
 % Name of subject...
-subjname = aap.acq_details.subjects(p).mriname;
+subjname = aap.acq_details.subjects(aap.subj).mriname;
 
 % Get model data from aap
 subjmatches=strcmp(subjname,{aap.tasklist.currenttask.settings.model.subject});
 
 % If no exact spec found, try subject wildcard
 
-if (~any(subjmatches))    
+if (~any(subjmatches))
     subjwild=strcmp('*',{aap.tasklist.currenttask.settings.model.subject});
     if any(subjwild)
         subjmatches = subjwild;
@@ -26,4 +26,9 @@ if (isempty(modelnum))
     aas_log(aap,true,'Cannot find MVPaa contrasts specification. Check either user script');
 end
 
-contrasts = aap.tasklist.currenttask.settings.model(modelnum).contrast;
+% Set contrasts and temporal matrix for this subject...
+aap.tasklist.currenttask.settings.contrasts = aap.tasklist.currenttask.settings.model(modelnum).contrast;
+aap.tasklist.currenttask.settings.temporal = aap.tasklist.currenttask.settings.model(modelnum).temporal;
+
+%% CONTRAST DIAGNOSTICS...
+mvpaa_diagnosticContrast(aap);

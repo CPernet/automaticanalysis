@@ -44,10 +44,4 @@ if length(factorUnique) ~= length(conditionNum)
 end
 
 %% DIAGNOSTIC...
-try close(2); catch; end
-figure(2)
-hold on
-plot(conditionNum, 'r')
-plot(blockNum, 'g')
-plot(sessionNum, 'b')
-legend('Condition', 'Block', 'Session')
+mvpaa_diagnosticFactors(aap, conditionNum, sessionNum, blockNum)

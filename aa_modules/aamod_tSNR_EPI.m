@@ -119,6 +119,7 @@ switch task
                 chunkDim = chunkDim + 1;
             end
         end
+        clear EPIdata
         
         fprintf('\n\tCalculating & saving the tSNR image')
         % Calculate SNR as ratio of the two...
@@ -157,8 +158,8 @@ switch task
                 regexprep(aap.acq_details.sessions(sess).name, '[^a-zA-Z0-9]', ''), ...
                 size(EPIimg,1)))
             
-            print('-djpeg','-r150',fullfile(aap.acq_details.root, 'diagnostics', ...
-                [mfilename '__' mriname '_tSNR.jpeg']));
+            saveas(2, fullfile(aap.acq_details.root, 'diagnostics', ...
+                [mfilename '__' mriname '_tSNR.fig']), 'fig');
             
             %% Time-course results figure!            
             fprintf('\nDisplaying the results of the timecourse analysis')
@@ -199,8 +200,8 @@ switch task
                 regexprep(aap.acq_details.sessions(sess).name, '[^a-zA-Z0-9]', ''), ...
                 size(EPIimg,1)))
             
-            print('-djpeg','-r150',fullfile(aap.acq_details.root, 'diagnostics', ...
-                [mfilename '__' mriname '_timecourse.jpeg']));
+            saveas(2,fullfile(aap.acq_details.root, 'diagnostics', ...
+                [mfilename '__' mriname '_timecourse.fig']), 'fig');
             
             %% Diagnostic VIDEO
             if aap.tasklist.currenttask.settings.diagnostic && sess == aap.acq_details.selected_sessions(1)

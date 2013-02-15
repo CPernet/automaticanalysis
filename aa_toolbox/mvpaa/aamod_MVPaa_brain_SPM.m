@@ -45,11 +45,11 @@ switch task
         mask = spm_read_vols(V);
         
         % Write out mask image...
-        V.fname = fullfile(aas_getsubjpath(aap,subj), 'mask.img');
+        V.fname = fullfile(aas_getsubjpath(aap,subj), 'mask.nii');
         V.dt(1) = 2;
         spm_write_vol(V, mask);
         
-        %% WRITE .img
+        %% WRITE .nii
         Stats = reshape(Stats, [V.dim(1), V.dim(2), V.dim(3), length(EP.contrasts), length(EP.tests)]);
         
         Flist = V.fname;
@@ -58,12 +58,12 @@ switch task
         fprintf('Saving images... \n')
         for c = 1:length(EP.contrasts)
             % Mean, median or beta
-            V.fname = fullfile(aas_getsubjpath(aap,subj), sprintf('con_%04d.img', c));
+            V.fname = fullfile(aas_getsubjpath(aap,subj), sprintf('con_%04d.nii', c));
             Flist = strvcat(Flist, V.fname);
             spm_write_vol(V, squeeze(Stats(:,:,:,c,1)));
             
             % T-value
-            V.fname = fullfile(aas_getsubjpath(aap,subj), sprintf('spmT_%04d.img', c));
+            V.fname = fullfile(aas_getsubjpath(aap,subj), sprintf('spmT_%04d.nii', c));
             Flist = strvcat(Flist, V.fname);
             spm_write_vol(V, squeeze(Stats(:,:,:,c,2)));
         end
@@ -142,7 +142,7 @@ switch task
         % searchlight procedure means each voxels is already "smoothed" to
         % some extent...
         SPM.xVol.R = spm_resels_vol( ...
-            spm_vol(fullfile(aas_getsubjpath(aap,subj), 'con_0001.img')), ...
+            spm_vol(fullfile(aas_getsubjpath(aap,subj), 'con_0001.nii')), ...
             SPM.xVol.FWHM)';
         
         % Included voxels
@@ -161,8 +161,8 @@ switch task
             SPM.xCon(c).STAT = 'T';
             SPM.xCon(c).c = ones(size(SPM.xX.X,2),1);
             SPM.xCon(c).eidf = 1;
-            SPM.xCon(c).Vcon = spm_vol(fullfile(aas_getsubjpath(aap,subj), sprintf('con_%04d.img', c)));
-            SPM.xCon(c).Vspm = spm_vol(fullfile(aas_getsubjpath(aap,subj), sprintf('spmT_%04d.img', c)));
+            SPM.xCon(c).Vcon = spm_vol(fullfile(aas_getsubjpath(aap,subj), sprintf('con_%04d.nii', c)));
+            SPM.xCon(c).Vspm = spm_vol(fullfile(aas_getsubjpath(aap,subj), sprintf('spmT_%04d.nii', c)));
         end
         
         % Save SPM
@@ -178,9 +178,11 @@ switch task
             end
         end
         % Add headers to list of files...
+        %{
         for f = 1:size(Flist,1)
             [Froot, Ffn, Fext] = fileparts(Flist(f,:));
             Flist = strvcat(Flist, fullfile(Froot, [Ffn '.hdr']));
         end
+        %}
         aap=aas_desc_outputs(aap,subj,'firstlevel_cons', Flist);
 end

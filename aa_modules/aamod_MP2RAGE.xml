@@ -19,10 +19,8 @@
                 <stream>structural</stream>
             </outputstreams>
             
-            <!-- OLD WAY
-            <histInit>512</histInit>
-            <histStep>8</histStep>
-            -->
+            <mode desc='sharp [cutoff at adaptive threshold] or soft [uses IC2 image as multiplier]'
+            >sharp</mode>
             
             <threshold 
             desc='Constant intensity threshold for masking the IC2

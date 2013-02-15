@@ -1,4 +1,4 @@
-function segMask = mvpaa_getSegmentations(aap, subj)
+function segMask = mvpaa_getSegmentations(aap)
 
 %% TASKS:
 % @@@@@ IMPOVE THIS! @@@@@
@@ -6,7 +6,7 @@ function segMask = mvpaa_getSegmentations(aap, subj)
 %% Do we grey/white/CSF matter mask the data?
 % Get segmentation masks we wish to use, if any
 
-SEGimg = aas_findstream(aap, 'mask', subj);
+SEGimg = aas_findstream(aap, 'mask', aap.subj);
 Mimg = [];
 
 if ~isempty(SEGimg)
@@ -28,7 +28,7 @@ if ~isempty(SEGimg)
         end
     end
     % The mask is not based on segmentations (e.g. brain mask)
-    if ~isempty(Mimg)
+    if isempty(Mimg)
         Mimg = SEGimg(1,:);
     end
     
@@ -36,9 +36,9 @@ if ~isempty(SEGimg)
     % If mask is exclusive, invert it...
     if aap.tasklist.currenttask.settings.maskInclusive == 0;
         segMask = ~segMask;
-        aap_log(aap, 0, sprintf('Using %s image as an exclusive mask for the data', Mimg))
+        aas_log(aap, 0, sprintf('Using %s image as an exclusive mask for the data', Mimg))
     else
-        aap_log(aap, 0, sprintf('Using %s image as an inclusive mask for the data', Mimg))
+        aas_log(aap, 0, sprintf('Using %s image as an inclusive mask for the data', Mimg))
     end
 else
     segMask = [];

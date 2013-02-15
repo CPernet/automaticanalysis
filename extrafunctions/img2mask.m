@@ -1,4 +1,4 @@
-function img2mask(Mimg)
+function Mimg = img2mask(Mimg)
 
 % Load image first
 V = spm_vol(Mimg);

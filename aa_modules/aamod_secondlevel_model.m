@@ -23,7 +23,7 @@ switch task
     case 'report'
         
     case 'doit'
-        
+        aas_prepare_diagnostic(aap);
         
         global defaults
         global UFp
@@ -169,7 +169,12 @@ switch task
             end;
             aap=aas_desc_outputs(aap,'secondlevel_betas',betafns);
             
-        end;
+            %% DIAGNOSTICS (check distribution of T-values in contrasts)
+            h = img2hist(fullfile(rfxdir, 'spmT_0001.img'), [], conname);
+            saveas(h, fullfile(aap.acq_details.root, 'diagnostics', ...
+                [mfilename '_' conname '.fig']), 'fig');
+            try close(h); catch; end
+        end
     case 'checkrequirements'
         
     otherwise

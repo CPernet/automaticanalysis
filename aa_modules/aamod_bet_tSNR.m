@@ -1,6 +1,6 @@
 % AA module
-% Runs EPI slicing after BET
-% aamod_realign should be run before running this module
+% Creates a brain mask, looking at regions of low tSNR
+% [EXPERIMENTAL MODULE, PROCEED WITH CAUTION]
 
 function [aap,resp]=aamod_bet_tSNR(aap,task,subj)
 

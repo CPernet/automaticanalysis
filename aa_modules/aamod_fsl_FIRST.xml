@@ -24,7 +24,18 @@
             <structural>1</structural>
             
             <!-- Options? -->
-            <options>-b -v</options>
+            <options>-v</options>
+            
+            <!-- Mode [normal/robust]-->
+            <mode>normal</mode>
+            
+            <!-- Cost function FLIRT -->
+            <cost desc='Cost function for normalisation [mutualinfo,corratio,normcorr,normmi,leastsq,labeldiff]'
+            >normcorr</cost>
+            
+            <!-- Betted Brains? -->
+            <bet desc='Not skull stripped = 0; skull stripped = 1'
+            >0</bet>
             
             <!-- Diagnostic videos? -->
             <diagnostic>0</diagnostic>

@@ -1,7 +1,10 @@
 % MVPAA Load Data
 % Automatically attempts to load data, based on the model you have...
 
-function [SPM conditionNum sessionNum blockNum conditionNamesUnique nuisanceNum] = mvpaa_determineFactors(aap, subj)
+function [SPM conditionNum sessionNum blockNum conditionNamesUnique nuisanceNum] = mvpaa_determineFactors(aap)
+
+% Get current subject number...
+subj = aap.subj;
 
 SPM = []; load(aas_getfiles_bystream(aap,subj,'firstlevel_spm'));
 
@@ -28,18 +31,18 @@ for s = 1:length(SPM.Sess)
     for c = 1:length(SPM.Sess(s).U) 
         % Where is the block string for this condition?        
         % Find where the condition name ends, and the "_sub" begins
-        sub = strfind(SPM.Sess(s).U(c).name{:}, '_sub');
+        sub = strfind(SPM.Sess(s).U(c).name{1}, '_sub');
         
-        if isempty(sub); sub = length(SPM.Sess(s).U(c).name{:}) + 1; end
+        if isempty(sub); sub = length(SPM.Sess(s).U(c).name{1}) + 1; end
         % Set the names for the conditionNames
-        conditionNames{s}{c} = SPM.Sess(s).U(c).name{:}(1:sub-1);
+        conditionNames{s}{c} = SPM.Sess(s).U(c).name{1}(1:sub-1);
         
         % If condition does not belong to a "block" (subdivision) -> nuisance
-        if (sub - 1) == length(SPM.Sess(s).U(c).name{:})
+        if (sub - 1) == length(SPM.Sess(s).U(c).name{1})
             nuisanceNum{s}(c) = 1;
         else
             % Obtain the number of the subblock/subdivision
-            blockNum{s}(c) = str2double(SPM.Sess(s).U(c).name{:}(sub+4:end));
+            blockNum{s}(c) = str2double(SPM.Sess(s).U(c).name{1}(sub+4:end));
         end
     end
 end

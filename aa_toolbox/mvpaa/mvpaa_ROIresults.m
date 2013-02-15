@@ -5,6 +5,7 @@
 % MCcorrection: multiple comparisons correction
 % rois: vector of ROI numbers to analyse
 % contrasts: vector of contrast numbers to analyse
+
 function mvpaa_ROIresults( mvpaa_pth, threshold, MCcorrection, rois, contrasts)
 if nargin < 2
     threshold = 0.05;
