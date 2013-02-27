@@ -1,7 +1,8 @@
-function segMask = mvpaa_getSegmentations(aap)
+function MVPaa_data = mvpaa_maskData(aap, MVPaa_data)
 
-%% TASKS:
-% @@@@@ IMPOVE THIS! @@@@@
+%% NEXT IMPROVEMENTS:
+% @@@@@ IMPOVE THIS! GET ANY STREAM THAT IS NOT DATA/SETTINGS?
+% PRESPECIFIED? WHAT ABOUT MULTIPLE MASKS? HOW TO COMBINE? @@@@@
 
 %% Do we grey/white/CSF matter mask the data?
 % Get segmentation masks we wish to use, if any
@@ -34,12 +35,17 @@ if ~isempty(SEGimg)
     
     segMask = spm_read_vols(spm_vol(Mimg));
     % If mask is exclusive, invert it...
-    if aap.tasklist.currenttask.settings.maskInclusive == 0;
+    if aap.tasklist.currenttask.settings.maskInclusive == 0
+        aas_log(aap, 0, sprintf('Using %s image as an exclusive mask for the data, masking out %d voxels', ...
+            Mimg, sum(segMask(:))));
+    elseif aap.tasklist.currenttask.settings.maskInclusive == 1
         segMask = ~segMask;
-        aas_log(aap, 0, sprintf('Using %s image as an exclusive mask for the data', Mimg))
+        aas_log(aap, 0, sprintf('Using %s image as an inclusive mask for the data, masking out %d voxels', ...
+            Mimg, sum(segMask(:))));
     else
-        aas_log(aap, 0, sprintf('Using %s image as an inclusive mask for the data', Mimg))
+        aas_log(aap, 1, 'Invalid maskInclusive option used [0 - No, 1 - Yes]')
     end
-else
-    segMask = [];
+
+    % Mask all the data, once!
+    MVPaa_data(:,segMask) = NaN;
 end

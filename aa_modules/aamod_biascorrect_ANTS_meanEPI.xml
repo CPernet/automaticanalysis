@@ -11,11 +11,11 @@
             <permanenceofoutput>2</permanenceofoutput>
             
             <inputstreams>
-                <stream>structural</stream>
+                <stream>meanepi</stream>
             </inputstreams>
             
             <outputstreams>
-                <stream>structural</stream>
+                <stream>meanepi</stream>
             </outputstreams>
             
             <!-- This specifies which structural we want to use, typically the first, but can be changed -->

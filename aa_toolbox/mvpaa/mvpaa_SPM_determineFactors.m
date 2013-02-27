@@ -1,7 +1,9 @@
-% MVPAA Load Data
-% Automatically attempts to load data, based on the model you have...
+% MVPAA determine factors
+% Determine the condition identity, blocks and sessions from the SPM
+% structure, and the names assigned to the conditions during the
+% 1st level modelling/contrasts steps
 
-function [SPM conditionNum sessionNum blockNum conditionNamesUnique nuisanceNum] = mvpaa_determineFactors(aap)
+function [SPM conditionNum sessionNum blockNum conditionNamesUnique nuisanceNum] = mvpaa_SPM_determineFactors(aap)
 
 % Get current subject number...
 subj = aap.subj;

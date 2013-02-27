@@ -1,3 +1,5 @@
+% DEPRECATED... FIX!
+
 % results__ROI_MVPA  prints results of ROI based MVPA analysis
 % function mvpaa_ROIresults( mvpaa_pth, threshold, MCcorrection, rois, contrasts)
 % mvpaa_pth: path to the MVPaa.mat you want to use

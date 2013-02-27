@@ -4,9 +4,14 @@
 % modulename = name of module (e.g.,'aamod_MVPaa_roi_1st') for contrast
 % subject = subject for this contrast
 % contrastname = name of the contrast matrix
-% matrix = contrast matrix itself
+% vector = temporal vector itself
+% transform = how to transform the temporal denoising matrix/regressor?
 
-function aap=mvpaa_addtemporal(aap,modulename,subject,matrix)
+function aap=mvpaa_addtemporal(aap,modulename,subject,vector, transform)
+
+if nargin<5
+    transform = [];
+end
 
 % Get number from end of module name if present in format _%05d (e.g, _00001)
 if (length(modulename>6)) %#ok<ISMT>
@@ -26,5 +31,6 @@ whichmodel=strcmp({aap.tasksettings.(modulename)(moduleindex).model.subject},sub
 if (~any(whichmodel))
     aas_log(aap, 1, 'You should add contrasts before adding temporal information...')
 else
-    aap.tasksettings.(modulename)(moduleindex).model(whichmodel).temporal=matrix;
+    aap.tasksettings.(modulename)(moduleindex).model(whichmodel).temporal.vector = vector(:);
+    aap.tasksettings.(modulename)(moduleindex).model(whichmodel).temporal.transform = transform;
 end

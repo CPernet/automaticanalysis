@@ -1,3 +1,5 @@
+% DEPRECATED, USE THE LOAD MVPAA MODULE INSTEAD...
+
 % MVPA_LOADCONTRASTS load contrasts for current subject
 
 function DMLT = mvpaa_loadDMLT(aap,p)

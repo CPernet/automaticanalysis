@@ -9,7 +9,7 @@ movePars = [];
 for s = 1:length(mv)
     if isstr(mv{s})
         % Typically, movePars will be a text file...
-        tmp = load(mv{s});
+        tmp = load(deblank(mv{s}));
         movePars = [movePars; tmp];
     else
         movePars = mv{s};

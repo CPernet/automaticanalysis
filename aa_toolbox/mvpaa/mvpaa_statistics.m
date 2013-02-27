@@ -2,102 +2,68 @@
 % C = correlation data
 % EP.triangulation = how are the block*subblock comparisons structured
 
-function [Stats meanSimil] = mvpaa_statistics(aap, Simil)
+function Statistics = mvpaa_statistics(aap, Similarity)
 
-% Rename settings to keep easier track...
-EP = aap.tasklist.currenttask.settings;
+% Take only the cells that we will test...
+Similarity = Similarity(aap.tasklist.currenttask.settings.testedCells);
 
-%C => [EP.blocks*EP.sessions, EP.blocks*EP.sessions, EP.conditions, EP.conditions]
+% Statistics structure
+Statistics = zeros(length(aap.tasklist.currenttask.settings.contrasts), ...
+    length(aap.tasklist.currenttask.settings.tests));
 
-ind=0;
-if strcmp(EP.triangulation, 'acrossSessions')
-    uSimil = zeros(EP.conditions, ...
-        EP.conditions, ...
-        ((EP.blocks ...
-        * EP.sessions)^2 ...
-        - EP.blocks ...
-        * EP.sessions) / 2);
-    % Triangulate, such that comparisons across EP.blocks occur only once
-    for i = 1:(EP.blocks*EP.sessions)
-        for j = (i+1):(EP.blocks*EP.sessions)
-            ind = ind + 1;
-            uSimil(:,:,ind) = Simil(i,j,:,:);
-        end
-    end
-elseif strcmp(EP.triangulation, 'withinSessions')
-    % Triangulation but only consider within block comparisons...
-    uSimil = zeros(EP.conditions, ...
-        EP.conditions, ...
-        EP.sessions ...
-        * ((EP.blocks)^2 ...
-        - EP.blocks) / 2);
-    % Triangulate, such that comparisons across EP.blocks within each block occur only once...    
-    for b = EP.sessions
-        for i = 1:(EP.blocks)
-            for j = (i+1):(EP.blocks)
-                ind = ind + 1;
-                uSimil(:,:,ind) = Simil((b-1)*EP.blocks + i, (b-1)*EP.blocks + j,:,:);
-            end
-        end
-    end
-elseif strcmp(EP.triangulation, 'all')
-    uSimil = zeros(EP.conditions, ...
-        EP.conditions, ...
-        (EP.blocks ...
-        * EP.sessions)^2 ...
-        - EP.blocks ...
-        * EP.sessions);
-    % Don't triangulate (useful for sparse data... and unusual designs)
-    for i = 1:(EP.blocks*EP.sessions)
-        for j = 1:(EP.blocks*EP.sessions) % Only one triangle of matrix carries information...
-            if i == j
-                % Ignore within block-subblock comparisons
-                continue
-            end
-            ind = ind + 1;
-            uSimil(:,:,ind) = Simil(i,j,:,:);
-        end
-    end
-elseif strcmp(EP.triangulation, 'none')
-    % One single big matrix!
-    % Already sorted out in mvpaa_correlation script.
-    uSimil = zeros(EP.conditions ...
-        * EP.blocks ...
-        * EP.sessions, ...
-        EP.conditions ...
-        * EP.blocks ...
-        * EP.sessions, 1);
-    uSimil(:,:,1) = Simil;    
 
-elseif strcmp(EP.triangulation, 'average')
-    % This averages over all subblock/block comparisons (excluding the
-    % equivalent ones, but does not exclue the leading diagonal, instead
-    % naning it when i and j are equal. Finally, it nanmeans the matrix.
-    % Your contrasts should probably only consider the tril or triu of the
-    % contrast matrix (@@@ TO BE IMPLEMENTED @@@);
-    uSimil = zeros(EP.conditions, ...
-        EP.conditions, ...
-        (EP.blocks * ...
-        EP.sessions)^2);
-    for i = 1:(EP.blocks*EP.sessions)
-        for j = i:(EP.blocks*EP.sessions)
-            ind = ind + 1;
-            if i == j
-                % Ignore within block-subblock comparisons
-                tmp = squeeze(Simil(i,j,:,:));
-                tmp(logical(eye(size(tmp)))) = NaN;
-                uSimil(:,:,ind) = tmp;
-            else
-                uSimil(:,:,ind) = Simil(i,j,:,:);
-            end
+switch aap.tasklist.currenttask.settings.statsType
+    case 'GLM'
+        % Typical parametric analysis
+        for c = 1:size(Statistics,1)
+            
+            predictor = [aap.tasklist.currenttask.settings.contrasts(c).vector, ...
+                aap.tasklist.currenttask.settings.blockNumberingVector];
+            
+            [b, dev, stats] = glmfit(predictor, Similarity, ...
+                aap.tasklist.currenttask.settings.GLMdist, ...
+                'constant', 'off');
+            
+            % Put statistics of the GLM in structure
+            Statistics(c, 1) = stats.beta(1);
+            Statistics(c, 2) = stats.t(1);
+            Statistics(c, 3) = stats.p(1);
+            Statistics(c, 4) = stats.se(1);
         end
-    end
-    uSimil = nanmean(uSimil,3);
-else
-    aas_log(aap, true, 'Cannot find the correct triangulation')
+        
+    case 'fullGLM'
+        
+        predictor = [aap.tasklist.currenttask.settings.contrasts.vector, ...
+            aap.tasklist.currenttask.settings.blockNumberingVector];
+        
+        [b, dev, stats] = glmfit(predictor, Similarity, ...
+            aap.tasklist.currenttask.settings.GLMdist, ...
+            'constant', 'off');
+        
+        for c = 1:size(Statistics,1)
+            % Put statistics of the GLM in structure
+            Statistics(c, 1) = stats.beta(c);
+            Statistics(c, 2) = stats.t(c);
+            Statistics(c, 3) = stats.p(c);
+            Statistics(c, 4) = stats.se(c);
+        end
+        
+    case 'ranksum'
+        
+        % Typical non-parametric analysis
+        for c = 1:size(Statistics,1)
+            % Get positive and negative expected similarities
+            pos = Similarity(aap.tasklist.currenttask.settings.contrasts(c).vector > 0);
+            neg = Similarity(aap.tasklist.currenttask.settings.contrasts(c).vector < 0);
+            
+            [p,h,stats] = ranksum(pos(:), neg(:));
+            
+            Statistics(t,1) = median(pos(:)) - median(neg(:));
+            % Rank Sum is for independent samples
+            % our samples are usually not paired
+            Statistics(t,2) = tinv(1-p, length(pos(:))+length(neg(:))-2);
+            Statistics(t,3) = p;
+        end
+    otherwise
+        aas_log(aap, 1, 'No proper statistics type chosen')
 end
-
-% Useful for ROI analysis visualization...
-meanSimil = mean(uSimil,3);
-
-Stats = mvpaa_stats1st(aap, uSimil);

@@ -1,4 +1,4 @@
-% AA module - MVPaa 1st level (ROI based)
+% AA module - MVPaa 1st level (Searchlight based)
 %
 % Modified for aa4 by Alejandro Vicente-Grabovetsky Feb-2011
 
@@ -8,79 +8,92 @@ resp='';
 
 switch task
     case 'doit'
-        
-        aap.subj = subj;
+        %% PLAN
+        % A) Much better way of specifying masks! Maskstreams, manually selected...
         
         %% PREPARATIONS...
-        
+        aap.subj = subj;
         mriname = aas_prepare_diagnostic(aap);
         
-        fprintf('Working with data from participant %s. \n', mriname)
+        % Statistics types
+        switch aap.tasklist.currenttask.settings.statsType
+            case {'GLM', 'fullGLM'}
+                aap.tasklist.currenttask.settings.tests = {'beta', 't-value', 'p-value', 'SE'};
+            case 'ranksum'
+                aap.tasklist.currenttask.settings.tests = {'median', 't-value (est)', 'p-value'};
+            otherwise
+                aas_log(aap, 1, 'Unknown type of statistics!')
+        end
         
-        % Get the contrasts for this subject...
+        fprintf('Working with MVPaa_data from participant %s. \n', mriname)
+        
+        %% GET CONTRASTS
         aap = mvpaa_loadContrasts(aap);
         
-        % Create a spherical masking matrix...
-        ROIsphere = mvpaa_makeSphere(aap.tasklist.currenttask.settings.ROIradius);
-        ROIind = find(ROIsphere==1);
-        [Bx By Bz] = ind2sub(size(ROIsphere), ROIind);
-        % base indices
-        Bx = Bx - aap.tasklist.currenttask.settings.ROIradius - 1;
-        By = By - aap.tasklist.currenttask.settings.ROIradius - 1;
-        Bz = Bz - aap.tasklist.currenttask.settings.ROIradius - 1;
+        %% GET fMRI DATA AND SETTINGS
+        MVPaa_data = []; MVPaa_settings = [];
+        load(aas_getfiles_bystream(aap, subj, 'MVPaa_data'));
+        load(aas_getfiles_bystream(aap, subj, 'MVPaa_settings'));
         
-        % Which tests will we use?
-        if ~isempty(findstr(aap.tasklist.currenttask.settings.statsType, 'GLM'))
-            aap.tasklist.currenttask.settings.tests = {'beta', 't-value', 'p-value', 'SE'};
-        elseif ~isempty(findstr(aap.tasklist.currenttask.settings.statsType, 'ttest'))
-            aap.tasklist.currenttask.settings.tests = {'mean', 't-value', 'p-value', 'SE', 'normality'};
-        elseif ~isempty(findstr(aap.tasklist.currenttask.settings.statsType, 'signrank'))
-            aap.tasklist.currenttask.settings.tests = {'median', 't-value (est)', 'p-value'};
-        end
+        % Settings are vectors indexing each fMRI image on:
+        % condition, block, session
+        aap.tasklist.currenttask.settings.conditionNum = MVPaa_settings.conditionNum;
+        aap.tasklist.currenttask.settings.blockNum = MVPaa_settings.blockNum;
+        aap.tasklist.currenttask.settings.sessionNum = MVPaa_settings.sessionNum;
+        
+        % MASK DATA (using segmentation masks, for instance...)
+        MVPaa_data = mvpaa_maskData(aap, MVPaa_data);
+        
+        % Label the similarity matrix according to condition, block, session comparisons
+        % This "structures" similarity data to allow us to test hypotheses on observation similiarity values
+        aap = mvpaa_structureSimilarity(aap);
+        % Structure the contrast matrices based on the above
+        aap = mvpaa_structureContrasts(aap);
+        
+        %% DENOISING
+        % Motion denoising for similarity data cleanup!
+        motionDenoising = mvpaa_motionDenoising_prepare(aap);
+        % Temporal denoising for similarity data cleanup!
+        temporalDenoising = mvpaa_temporalDenoising_prepare(aap);
+        
+        %% ROI SPHERE (x-y-z indices)
+        [ROIx ROIy ROIz] = mvpaa_makeSphere(aap);
+        
+        brainSize = [size(MVPaa_data, 2) size(MVPaa_data, 3) size(MVPaa_data, 4)];
+        ROInum = brainSize(1) .* brainSize(2) .* brainSize(3);            
+        
+        aap.tasklist.currenttask.settings.brainSize = brainSize;
         
         %% ANALYSIS!
         
-        % Load the data into a single big structure...
-        [aap data] = mvpaa_loadData(aap);
-        
-        brainSize = [size(data{1,1,1}, 1) size(data{1,1,1}, 2) size(data{1,1,1}, 3)];
-        
-        ROInum = brainSize(1) .* brainSize(2) .* brainSize(3);
-        
         % Create output arrays...
-        Stats = NaN(ROInum, ...
+        Statistics = NaN(ROInum, ...
             length(aap.tasklist.currenttask.settings.contrasts), ...
             length(aap.tasklist.currenttask.settings.tests));
         
         % Loop the routine over all ROIs
-        reverseStr = ''; % for displaying progress
+        reverseStr = ''; % for displaying % progress
         ROIcheck = round(ROInum/100);
+        
         for r = 1:ROInum %#ok<BDSCI>
+            [indROI voxels] = mvpaa_buildROI(r, [ROIx ROIy ROIz], brainSize);
             
-            [x y z] = ind2sub(brainSize, r);
-            [indROI voxels] = mvpaa_buildROI([x y z], ...
-                [Bx By Bz], brainSize);
+            Pattern = mvpaa_extraction(aap, MVPaa_data, indROI);
             
-            Betas = mvpaa_extraction(aap, data, indROI);
+            if isempty(Pattern); continue; end % Not enough data for MVPaa?
             
-            if isempty(Betas)
-                continue
-            end
+            % Compute similarities of the the MVPaa_data
+            Similarity = mvpaa_similarity(aap, Pattern);
             
-            % Get the residuals
-            Resid = mvpaa_shrinkage(aap, Betas);
-            
-            % Compute similarities of the the data
-            Simil = mvpaa_similarity(aap, Resid);
+            % DENOISING
+            % Remove effects related to subject motion (if info available)
+            Similarity = mvpaa_Denoising(Similarity, motionDenoising);
             
             % Remove effects related to temporal proximity... (if temp. info available)
-            Simil = mvpaa_temporalDenoising(aap, Simil);
-            
-            % Restructure (and normalise?) similarity scores...
-            Simil = mvpaa_restructureSimil(aap, Simil);
+            Similarity = mvpaa_Denoising(Similarity, temporalDenoising);
             
             % Get statistics for similarity values
-            Stats(r,:,:) = mvpaa_statistics(aap, Simil);
+            Statistics(r,:,:) = mvpaa_statistics(aap, Similarity);
             
             % Display the progress at each complete %
             if rem(r, ROIcheck) == 0
@@ -89,12 +102,11 @@ switch task
         end
         
         % DIAGNOSTIC DISPLAY OF T-VALUES FOR EACH CON
-        mvpaa_diagnosticSearchlight(aap, Stats);
+        mvpaa_diagnosticSearchlight(aap, Statistics);
         
         %% DESCRIBE OUTPUTS
-        aap.tasklist.currenttask.settings.brainSize = brainSize;
-        EP = aap.tasklist.currenttask.settings;
-        save(fullfile(aas_getsubjpath(aap,subj), [mriname '.mat']), ...
-            'Stats', 'EP')
-        aap=aas_desc_outputs(aap,subj,'MVPaa', fullfile(aas_getsubjpath(aap,subj), [mriname '.mat']));
+        MVPaa_settings = aap.tasklist.currenttask.settings;
+        save(fullfile(aas_getsubjpath(aap,subj), 'MVPaa_1st.mat'), ...
+            'Statistics', 'MVPaa_settings')
+        aap=aas_desc_outputs(aap,subj,'MVPaa_1st', fullfile(aas_getsubjpath(aap,subj), 'MVPaa_1st.mat'));
 end

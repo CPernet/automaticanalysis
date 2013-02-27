@@ -1,7 +1,7 @@
 % MVPAA Load Data
 % Automatically attempts to load data, based on the model you have...
 
-function data = mvpaa_loadImages(aap, SPM, segMask, ...
+function data = mvpaa_SPM_loadData(aap, SPM, ...
     sessionNum, blockNum, conditionNum, conditionNamesUnique)
 
 %% Start loading data
@@ -64,16 +64,10 @@ for d = 1:length(conditionNum)
     V = spm_vol(deblank(Bimg(imageNum,:)));
     Y = spm_read_vols(V);
     
-    % Set up DATA structure...
+    % Set up data structure...
     if d == 1
        data = nan(length(conditionNum), size(Y,1), size(Y,2), size(Y,3));
     end    
-    
-    % Set anything that is 0 to NaN
-    Y(Y==0) = NaN;
-    if ~isempty(segMask)
-        Y(segMask==0) = NaN;
-    end
     
     data(d,:,:,:) = Y;
     

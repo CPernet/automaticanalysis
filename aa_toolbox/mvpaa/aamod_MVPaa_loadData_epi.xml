@@ -12,9 +12,7 @@
             
             <inputstreams>
                 <!--Depending on previous module (model or contrasts) we choose either betas or t-values -->
-                <stream>firstlevel_spm</stream>
-                <!--Depending on previous module (model or contrasts) we choose either betas or t-values -->
-                <stream>firstlevel_betas</stream>
+                <stream>epi</stream>
             </inputstreams>
             
             <outputstreams>
@@ -28,7 +26,7 @@
             <native>1</native>
             
             <!-- Force equal number of conditions across blocks? -->
-            <constantFactors>1</constantFactors>
+            <constantFactors>0</constantFactors>
             
             <diagnostic>0</diagnostic>
             

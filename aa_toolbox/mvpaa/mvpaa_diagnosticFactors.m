@@ -7,9 +7,9 @@ mriname = aas_prepare_diagnostic(aap);
 %% DIAGNOSTIC...
 h = figure;
 hold on
-plot(conditionNum, 'r')
-plot(blockNum, 'g')
-plot(sessionNum, 'b')
+plot(conditionNum./max(conditionNum), 'r')
+plot(blockNum./max(blockNum), 'g')
+plot(sessionNum./max(sessionNum), 'b')
 legend('Condition', 'Block', 'Session')
 
 print('-djpeg','-r150',fullfile(aap.acq_details.root, 'diagnostics', ...

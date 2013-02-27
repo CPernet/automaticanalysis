@@ -101,7 +101,8 @@ switch task
         % Run the reslicing
         spm_reslice(imgs, resFlags);
         
-        % Describe outputs
+        %% Describe outputs
+        movPars = {};
         for sess = aap.acq_details.selected_sessions
             rimgs=[];
             for k=1:size(imgs{sess},1);
@@ -119,16 +120,24 @@ switch task
             sessdir=aas_getsesspath(aap,subj,sess);
             aap = aas_desc_outputs(aap,subj,sess,'epi',rimgs);
             
+            % Get the realignment parameters...
             fn=dir(fullfile(pth,'rp_*.txt'));
-            aap = aas_desc_outputs(aap,subj,sess,'realignment_parameter',fullfile(pth,fn(1).name));
+            outpars = fullfile(pth,fn(1).name); 
+            % Add it to the movement pars...
+            movPars = [movPars outpars];
+            
+            aap = aas_desc_outputs(aap,subj,sess,'realignment_parameter', outpars);
             
             if (sess==1)
                 % mean only for first session
                 fn=dir(fullfile(pth,'mean*.nii'));
                 aap = aas_desc_outputs(aap,subj,'meanepi',fullfile(pth,fn(1).name));
             end
-            
         end
+        
+        aas_realign_graph(movPars)
+        print('-djpeg','-r150',fullfile(aap.acq_details.root, 'diagnostics', ...
+            [mfilename '__' mriname '_MP.jpeg']));
         
     case 'checkrequirements'
         

@@ -1,5 +1,6 @@
 % MVPAA Check factors
 % Automatically checks conditions/blocks in each session
+
 function [equalConditions, equalBlocks] = mvpaa_checkFactors(aap, conditionNum, sessionNum, blockNum)
 
 % Check if unique number of conditions, sessions and blocks corresponds

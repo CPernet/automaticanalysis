@@ -5,6 +5,10 @@ function [ indROI voxels ] = mvpaa_buildROI( centreROI, subROI, brainSize)
 % centred at [0 0 0], making many of them negative
 % - The brainSize is by default a vector with the values for hte 3 dims
 
+if  length(centreROI) == 1
+    [x y z] = ind2sub(brainSize, centreROI);
+    centreROI = [x y z];
+end
 if length(centreROI) ~= 3
     error('Your ROI centre are not correctly specified')
 end

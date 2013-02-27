@@ -3,39 +3,38 @@
 
 function [aap, data] = mvpaa_loadData(aap)
 
-%% Determine which conditions we have in our model
-[SPM conditionNum sessionNum blockNum conditionNamesUnique nuisanceNum] = mvpaa_determineFactors(aap);
+streams = aap.tasklist.currenttask.inputstreams.stream;
 
-% Which cell belongs to which session?
-aap.tasklist.currenttask.settings.sessionNum = sessionNum;
-
-fprintf('\nThis experiment contains (truly) \n\t%d conditions\n\t%d blocks\n\t%d sessions', ...
-    length(unique(conditionNum)), ...
-    length(unique(blockNum)), ...
-   length(unique(sessionNum)))
-fprintf('\n(%d Nuisance variables)\n\n', sum(nuisanceNum))
+if any(strcmp(streams, 'firstlevel_betas')) || any(strcmp(streams, 'firstlevel_spmts'))
+    % If we are dealing with betas/T-values from a GLM model...
+    
+    %% Determine which conditions we have in our model
+    [SPM conditionNum sessionNum blockNum conditionNamesUnique nuisanceNum] = mvpaa_SPM_determineFactors(aap);
+    
+    % Which cell belongs to which session?
+    aap.tasklist.currenttask.settings.sessionNum = sessionNum;
+    
+    fprintf('\nThis experiment contains (truly) \n\t%d conditions\n\t%d blocks\n\t%d sessions', ...
+        length(unique(conditionNum)), ...
+        length(unique(blockNum)), ...
+        length(unique(sessionNum)))
+    fprintf('\n(%d Nuisance variables)\n\n', sum(nuisanceNum))
+    
+    %% Load actual SPM images!
+    data = mvpaa_SPM_loadData(aap, SPM, ...
+        sessionNum, blockNum, conditionNum, conditionNamesUnique);
+    
+elseif any(strcmp(streams, 'epi'))
+    % If we have EPI data, we load it differently
+    [data, conditionNum, sessionNum, blockNum] = mvpaa_raw_loadData(aap, 'epi');
+else
+    aas_log(aap, true, 'Unknown input stream, if you wish to add a new input stream, you may need to write a new function to import it...')
+end
 
 % Check if the number of conditions and blocks is equal across the two sessions...
 [equalConditions, equalBlocks] = mvpaa_checkFactors(aap, conditionNum, sessionNum, blockNum);
 
-%% Do we grey/white/CSF matter mask the data?
-% Get segmentation masks we wish to use, if any
-segMask = mvpaa_getSegmentations(aap);
-
-%% Load actual images!
-data = mvpaa_loadImages(aap, SPM, segMask, ...
-    sessionNum, blockNum, conditionNum, conditionNamesUnique);
-
-%% Reshape data? [@@@ REMOVE THIS @@@]
-%[aap data sessionNum, blockNum, conditionNum] = ...
-%    mvpaa_reshapeData(aap, data, sessionNum, blockNum, conditionNum);
-
 %% Save parameters to aa structure
-aap.tasklist.currenttask.settings.conditions = length(unique(conditionNum));
-aap.tasklist.currenttask.settings.blocks = length(unique(blockNum));
-aap.tasklist.currenttask.settings.sessions = length(unique(sessionNum));
-
-fprintf('\nThis experiment contains (to the purpose of MVPaa) \n\t%d conditions\n\t%d blocks\n\t%d sessions', ...
-    aap.tasklist.currenttask.settings.conditions, ...
-    aap.tasklist.currenttask.settings.blocks, ...
-    aap.tasklist.currenttask.settings.sessions)
+aap.tasklist.currenttask.settings.conditionNum = conditionNum;
+aap.tasklist.currenttask.settings.blockNum = blockNum;
+aap.tasklist.currenttask.settings.sessionNum = sessionNum;

@@ -1,39 +1,29 @@
-% MVPAA_CORRELATION - Simillate the betas/spmTs
-% R - betas/spmTs (or residuals of betas/spmTs)
+% MVPAA_SIMILARITY - Obtain the similarities for our data points
+% Pattern (Volumes * Pattern length)
 
-function [Simil] = mvpaa_similarity(aap, Resid)
+function Similarity = mvpaa_similarity(aap, Pattern)
 
-% Rename settings to keep easier track...
-EP = aap.tasklist.currenttask.settings;
-
-%% R ==> (voxels, EP.conditions, EP.blocks, EP.sessions)]
-sResid = reshape(Resid, [size(Resid,1), ...
-    EP.conditions ...
-    * EP.blocks ...
-    * EP.sessions]);
-
-% Set missing data to NaN here...
-missed = all(sResid == 0, 1);
-sResid(:,missed) = NaN;
-
-% Simillate across voxels to find the similarity of voxel patterns
+% Similaritylate across voxels to find the similarity of voxel patterns
 % across conditions.
-if strcmp('Pearson', EP.corrType)
-    % This is *much* faster than corr...
-    Simil = corrcoef(sResid);
-elseif strcmp('Spearman', EP.corrType)
-    % Get Spearman correlations
-    Simil = corr(sResid, 'type', 'Spearman');
-elseif strcmp('Euclid', EP.corrType);
-    % Get Euclidian distance
-    Simil = squareform(pdist_complex(sResid', 'euclidean'));
-elseif strcmp('sEuclid', EP.corrType);
-    % Get Euclidian distance (standardised)
-    Simil = squareform(pdist_complex(sResid', 'seuclidean'));
-elseif strcmp('Mahalanobis', EP.corrType);
-    % Get Mahalanobis distance
-    dbstop if warning % If matrix is close to singular or badly scaled, we may see NaNs...
-    Simil = squareform(pdist_complex(sResid', 'mahalanobis'));
-else
-    error('Incorrect metric of (dis)similarity between patterns');
+% Distance metrics are inverted (less negative distances are closer)
+
+switch aap.tasklist.currenttask.settings.similarityMetric
+    case 'Pearson'
+        % This is *much* faster than corr...
+        Similarity = corrcoef(Pattern');
+    case 'Spearman'
+        % Get Spearman correlations
+        Similarity = corr(Pattern', 'type', 'Spearman');
+    case 'Euclid'
+        % Get Euclidian distance
+        Similarity = -squareform(pdist_complex(Pattern, 'euclidean'));
+    case 'sEuclid'
+        % Get Euclidian distance (standardised)
+        Similarity = -squareform(pdist_complex(Pattern, 'seuclidean'));
+    case 'Mahalanobis'
+        % Get Mahalanobis distance
+        dbstop if warning % If matrix is close to singular or badly scaled, we may see NaNs...
+        Similarity = -squareform(pdist_complex(Pattern, 'mahalanobis'));
+    otherwise
+        error('Incorrect metric of (dis)similarity between patterns');
 end

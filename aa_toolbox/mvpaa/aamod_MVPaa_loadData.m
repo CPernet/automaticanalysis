@@ -9,6 +9,11 @@ resp='';
 switch task
     case 'doit'
         
+        %% WORKING ON
+        % A) Allow input of conditions/blocks/session manually (useful for raw data)
+        % B) Check which cells are not used in the data, and ignore them...
+        %%
+        
         aap.subj = subj;
         
         %% PREPARATIONS...        
@@ -24,6 +29,7 @@ switch task
         
         %% DESCRIBE OUTPUTS
         % And save it all to disk
+        fprintf('Saving data to disk\n')
         save(fullfile(aas_getsubjpath(aap,subj), 'MVPaa_data.mat'), 'MVPaa_data');
         save(fullfile(aas_getsubjpath(aap,subj), 'MVPaa_settings.mat'), 'MVPaa_settings');
         

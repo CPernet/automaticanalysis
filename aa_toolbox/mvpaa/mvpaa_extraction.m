@@ -1,25 +1,16 @@
 % MVPAA Extraction
 % Extracts ROI data from aap.tasklist.currenttask.settingsIs
 
-function Betas = mvpaa_extraction(aap, data, indROI)
+function Pattern = mvpaa_extraction(aap, data, indROI)
 
-voxels = sum(~isnan(data(1,1,1,indROI)));
+% We only want the indices that are not NaN
+indROI = indROI(~isnan(data(1,indROI)));
+voxels = length(indROI);
 
 % Check that it's worth to extract data
 if voxels > aap.tasklist.currenttask.settings.minVoxels
-    Betas = nan(voxels, ...
-        aap.tasklist.currenttask.settings.conditions, ...
-        aap.tasklist.currenttask.settings.blocks, ...
-        aap.tasklist.currenttask.settings.sessions);
-    
-    for s=1:aap.tasklist.currenttask.settings.sessions
-        for b=1:aap.tasklist.currenttask.settings.blocks
-            for c=1:aap.tasklist.currenttask.settings.conditions
-                 tmp = data(c,b,s, indROI);
-                 Betas(:,c,b,s) = tmp(~isnan(tmp));
-            end
-        end
-    end
+    % Get all betas quickly
+    Pattern = data(:,indROI);
 else
-    Betas = [];
+    Pattern = [];
 end
