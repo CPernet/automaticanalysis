@@ -10,11 +10,14 @@ if any(strcmp(streams, 'realignment_parameter'))
     
     % Get motion parameters
     for sess = aap.acq_details.selected_sessions
-        RP = [RP; load(aas_getfiles_bystream(aap,aap.subj, sess,'realignment_parameter'))];
+        RPfn = aas_getfiles_bystream(aap,aap.subj, sess,'realignment_parameter');
+        RPfn = deblank(RPfn(1,:));
+        RP = [RP; load(RPfn)];
     end
     motionDenoising = mvpaa_Denoising_prepare(aap, ...
         RP, aap.tasklist.currenttask.settings.motionDenoisingMode);
+    
+    mvpaa_diagnosticDenoising(aap, 'motion', motionDenoising)
+else
+    motionDenoising = [];
 end
-
-
-mvpaa_diagnosticDenoising(aap, 'motion', motionDenoising)

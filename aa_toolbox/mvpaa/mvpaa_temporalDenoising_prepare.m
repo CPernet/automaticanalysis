@@ -5,10 +5,15 @@
 
 function temporalDenoising = mvpaa_temporalDenoising_prepare(aap)
 
-temporalDenoising = mvpaa_Denoising_prepare(aap, ...
-            aap.tasklist.currenttask.settings.temporal.vector, ...
-            aap.tasklist.currenttask.settings.temporalDenoisingMode, ...
-            aap.tasklist.currenttask.settings.temporal.transform);
-        
-mvpaa_diagnosticDenoising(aap, 'temporal', temporalDenoising)
-        
+if ~isempty(aap.tasklist.currenttask.settings.temporal)
+    
+    temporalDenoising = mvpaa_Denoising_prepare(aap, ...
+        aap.tasklist.currenttask.settings.temporal.vector, ...
+        aap.tasklist.currenttask.settings.temporalDenoisingMode, ...
+        aap.tasklist.currenttask.settings.temporal.transform);
+    
+    mvpaa_diagnosticDenoising(aap, 'temporal', temporalDenoising)
+    
+else
+    temporalDenoising = [];
+end

@@ -89,6 +89,17 @@ aap.tasklist.currenttask.settings.testedCells = testedCells;
 aap.tasklist.currenttask.settings.conditions = unique(conditionNum);
 aap.tasklist.currenttask.settings.blocks = unique(blockNum);
 aap.tasklist.currenttask.settings.sessions = unique(sessionNum);
+aap.tasklist.currenttask.settings.observations = length(conditionNum);
+
+%% BONUS: set up stats!
+switch aap.tasklist.currenttask.settings.statsType
+    case {'GLM', 'fullGLM'}
+        aap.tasklist.currenttask.settings.tests = {'beta', 't-value', 'p-value', 'SE'};
+    case 'ranksum'
+        aap.tasklist.currenttask.settings.tests = {'median', 't-value (est)', 'p-value'};
+    otherwise
+        aas_log(aap, 1, 'Unknown type of statistics!')
+end
 
 %% DIAGNOSTIC (very important to see if all makes sense)
 mriname = aas_prepare_diagnostic(aap);

@@ -36,7 +36,7 @@ for d = 1:length(conditionNum)
     if strcmp(dataType, 'betas')
         % What should our condition name contain?
         condStr =  ['Sn(' num2str(s) ') ' ... % Session number
-            conditionNamesUnique{c} '_sub' num2str(b)]; % Condition name
+            conditionNamesUnique{c} '_sub' num2str(b) '*']; % Condition name
         % Check which beta value corresponds to the expected condition name...
         condComp = strfind({SPM.Vbeta.descrip}, condStr);
         % Get the beta index

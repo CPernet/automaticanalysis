@@ -30,7 +30,7 @@ switch task
         %% DESCRIBE OUTPUTS
         % And save it all to disk
         fprintf('Saving data to disk\n')
-        save(fullfile(aas_getsubjpath(aap,subj), 'MVPaa_data.mat'), 'MVPaa_data');
+        save(fullfile(aas_getsubjpath(aap,subj), 'MVPaa_data.mat'), '-v7.3', 'MVPaa_data');
         save(fullfile(aas_getsubjpath(aap,subj), 'MVPaa_settings.mat'), 'MVPaa_settings');
         
         aap=aas_desc_outputs(aap,subj,'MVPaa_data', fullfile(aas_getsubjpath(aap,subj), 'MVPaa_data.mat'));

@@ -15,16 +15,6 @@ switch task
         aap.subj = subj;
         mriname = aas_prepare_diagnostic(aap);
         
-        % Statistics types
-        switch aap.tasklist.currenttask.settings.statsType
-            case {'GLM', 'fullGLM'}
-                aap.tasklist.currenttask.settings.tests = {'beta', 't-value', 'p-value', 'SE'};
-            case 'ranksum'
-                aap.tasklist.currenttask.settings.tests = {'median', 't-value (est)', 'p-value'};
-            otherwise
-                aas_log(aap, 1, 'Unknown type of statistics!')
-        end
-        
         fprintf('Working with MVPaa_data from participant %s. \n', mriname)
         
         %% GET CONTRASTS
@@ -36,7 +26,7 @@ switch task
         load(aas_getfiles_bystream(aap, subj, 'MVPaa_settings'));
         
         % Settings are vectors indexing each fMRI image on:
-        % condition, block, session
+        % condition, block, session (and the number of observations...)
         aap.tasklist.currenttask.settings.conditionNum = MVPaa_settings.conditionNum;
         aap.tasklist.currenttask.settings.blockNum = MVPaa_settings.blockNum;
         aap.tasklist.currenttask.settings.sessionNum = MVPaa_settings.sessionNum;
@@ -106,7 +96,7 @@ switch task
         
         %% DESCRIBE OUTPUTS
         MVPaa_settings = aap.tasklist.currenttask.settings;
-        save(fullfile(aas_getsubjpath(aap,subj), 'MVPaa_1st.mat'), ...
+        save(fullfile(aas_getsubjpath(aap,subj), 'MVPaa_1st.mat'), '-v7.3', ...
             'Statistics', 'MVPaa_settings')
         aap=aas_desc_outputs(aap,subj,'MVPaa_1st', fullfile(aas_getsubjpath(aap,subj), 'MVPaa_1st.mat'));
 end

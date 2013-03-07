@@ -45,8 +45,8 @@ end
 aap.tasklist.currenttask.settings.contrasts = contrasts;
 
 %% Set block numbering for possible use as a set of nuisance regressors
+blockNumbering = aap.tasklist.currenttask.settings.blockNumbering(testedCells);
 if aap.tasklist.currenttask.settings.regressBlock
-    blockNumbering = aap.tasklist.currenttask.settings.blockNumbering(testedCells);
     uniqueBlocks = unique(blockNumbering);
     uniqueBlocks(uniqueBlocks == 0) = [];
     

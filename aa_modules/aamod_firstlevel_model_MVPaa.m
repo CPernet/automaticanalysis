@@ -217,9 +217,12 @@ switch task
         SPMdes = spm_fmri_spm_ui(SPM);
         
         %% DIAGNOSTIC
-        mriname = aas_prepare_diagnostic(aap,subj);
+        mriname = aas_prepare_diagnostic(aap, subj);
+        try
         saveas(1, fullfile(aap.acq_details.root, 'diagnostics', ...
             [mfilename '__' mriname '.fig']));
+        catch
+        end
         
         % now check real covariates and nuisance variables are
         % specified correctly

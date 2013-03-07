@@ -17,6 +17,12 @@ for d = 1:size(denoisingVector,2)
     if ~isempty(denoisingTransform)
         denoisingMatrix{d} = feval(denoisingTransform, denoisingMatrix{d});
     end
+    
+    % Our initial denoising matrix must be the same size as our data
+    if size(denoisingMatrix{d},1) ~= aap.tasklist.currenttask.settings.observations;
+        aas_log(aap,1,sprintf('Your denoising matrix is the wrong size (%d) for your data (%d)', ...
+            size(denoisingMatrix{d},1),aap.tasklist.currenttask.settings.observations))
+    end
 end
 
 % Empty structure to store motion regressors...
