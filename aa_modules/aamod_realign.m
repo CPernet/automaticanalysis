@@ -104,6 +104,8 @@ switch task
         %% Describe outputs
         movPars = {};
         for sess = aap.acq_details.selected_sessions
+            aas_log(aap,0,sprintf('Working with session %s', sess))
+            
             rimgs=[];
             for k=1:size(imgs{sess},1);
                 [pth nme ext]=fileparts(imgs{sess}(k,:));
@@ -128,12 +130,15 @@ switch task
             
             aap = aas_desc_outputs(aap,subj,sess,'realignment_parameter', outpars);
             
-            if (sess==1)
+            if find(sess==aap.acq_details.selected_sessions) == 1 % [AVG!]
                 % mean only for first session
                 fn=dir(fullfile(pth,'mean*.nii'));
                 aap = aas_desc_outputs(aap,subj,'meanepi',fullfile(pth,fn(1).name));
             end
         end
+        
+        %% DIAGNOSTICS
+        mriname = aas_prepare_diagnostic(aap,subj);
         
         aas_realign_graph(movPars)
         print('-djpeg','-r150',fullfile(aap.acq_details.root, 'diagnostics', ...

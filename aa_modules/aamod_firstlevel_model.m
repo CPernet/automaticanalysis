@@ -234,10 +234,10 @@ switch task
                 SPM.Sess(sessnuminspm).row = [];
             end
             
-            %% ADD ANY EXISTING COVARIATES HERE...
-            
             SPM.Sess(sessnuminspm).C.C = [];
             SPM.Sess(sessnuminspm).C.name = {};
+            
+            %% ADD ANY EXISTING COVARIATES HERE...
             
             if ~isempty(modelCnum)
                 

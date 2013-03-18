@@ -68,6 +68,15 @@ switch task
         
         %% 2) THRESHOLD
         
+        % Remove voxels with very low probabilities...
+        for a = 1:size(SEGimg,1)
+            [pth, fn, ext] = fileparts(SEGimg(a,:));
+            V = spm_vol(fullfile(pth, ['r' fn ext]));
+            Y = spm_read_vols(V);
+            Y = Y > aap.tasklist.currenttask.settings.Zthreshold;
+            spm_write_vol(V,Y);
+        end
+        
         %% IN PROGRESS
         Zoutstream = '';
         Soutstream = '';
@@ -99,6 +108,9 @@ switch task
         fprintf('\n')
         
         %% B) Specific thresholding of each mask
+        % TOTAL PROBABILITY...
+        WtY = 0; NtY = 0;
+        
         for a = 1:size(SEGimg,1)
             [pth, fn, ext] = fileparts(SEGimg(a,:));
             
@@ -122,6 +134,9 @@ switch task
             % We want to check where the new segmentation has greater
             % values than the last time
             if ~isempty(strfind(fn(1), 'w'))
+                % Whole total probability
+                WtY = WtY + Y{a};
+                
                 if size(WeY,2) == 1;
                     WeY = zeros(size(Y{a}));
                 end
@@ -129,6 +144,9 @@ switch task
                 WeY(Y{a} > maxWeY) = a;
                 maxWeY = max(Y{a}, maxWeY);
             else
+                % Whole total probability
+                NtY = NtY + Y{a};
+                
                 if size(NeY,2) == 1;
                     NeY = zeros(size(Y{a}));
                 end
@@ -143,10 +161,12 @@ switch task
         for a = 1:size(SEGimg,1)
             [pth, fn, ext] = fileparts(SEGimg(a,:));
             
+            % Voxel classified according to greatest probability AND
+            % the total probability of being any tissue!
             if ~isempty(strfind(fn(1), 'w'))
-                eY = WeY == a;
+                eY = and(WeY == a, WtY > aap.tasklist.currenttask.settings.tWthreshold);
             else
-                eY = NeY == a;
+                eY = and(NeY == a, NtY > aap.tasklist.currenttask.settings.tNthreshold);
             end
             eY = double(eY);
             
@@ -166,10 +186,12 @@ switch task
         %% Some diagnostic images
         spm_check_registration(strvcat( ...
             mEPIimg, ... % Get mean EPI across sessions
-            Eoutstream(1,:))); % Get first segmented GM image
+            Eoutstream(1,:), ... % Get first segmented GM image
+            Eoutstream(2,:), ... % Get first segmented WM image
+            Eoutstream(3,:))); % Get first segmented CSF image
         
         % Outline of structural!
-        spm_ov_reorient('context_init', 2)
+        spm_ov_reorient('context_init', 1)
         
         mriname = aas_prepare_diagnostic(aap,subj);
         

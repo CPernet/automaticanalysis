@@ -78,7 +78,7 @@ switch task
             mriname = aas_prepare_diagnostic(aap,subj);
             
             %% Draw noisy and denoised structural...
-            spm_check_registration(strvcat(V.fname, dV.fname))
+            spm_check_registration(strvcat(V.fname, dV.fname, rV.fname))
             
             spm_orthviews('reposition', [0 0 0])
             

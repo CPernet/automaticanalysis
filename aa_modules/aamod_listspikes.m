@@ -17,7 +17,6 @@ switch task
         
         try close(2); catch; end
         figure(2)
-        set(2,'Position', [0 0 800 600])
         
         % lists all scans with high deviation from mean, based on timediff.mat file
         % created in tsdiffana.m, and on rp*.txt file, created by
@@ -41,42 +40,79 @@ switch task
             rotlimit_radians=aap.tasklist.currenttask.settings.rotlimit_degrees*pi/180;
             
             %% Now find big changes from one image to the next
-            %  td= mean (across voxels) of square difference between one volume and the next
-            %  globals= mean global value across an image
+            %  td = mean (across voxels) of square difference between one volume and the next
+            %  globals = mean global value across an image
             
             tm = td/(mean(globals).^2); % RC/KM added .^2 16/6/2008
-            if isempty(aap.tasklist.currenttask.settings.tmlimit)
-                % Soft limit
-                tmlimit = (mean(tm) + 2 * std(tm));
-            else
-                % Hard limit
-                tmlimit = aap.tasklist.currenttask.settings.tmlimit;
+            
+            switch aap.tasklist.currenttask.settings.tmbaseline
+                case 'zero'
+                    Btm = 0;
+                case 'mean'
+                    Btm = mean(tm);
+                case 'median'
+                    Btm = median(tm);
+                case 'smooth'
+                    Btm = smooth(1:length(tm),tm,0.1,'rloess');
             end
-            badimages=[false; (tm > tmlimit)];
+            
+            % Residuals of the line
+            Rtm = tm - Btm;
+            
+            switch aap.tasklist.currenttask.settings.tmmode
+                case 'absolute'
+                    tmlimit = aap.tasklist.currenttask.settings.tmlimit;
+                case 'std'
+                    tmlimit = aap.tasklist.currenttask.settings.tmlimit * std(Rtm);
+                case 'rstd'
+                    % Robust std using only bottom 99% of distribution
+                    oRtm = sort(Rtm);
+                    oRtm = oRtm(1:round(0.99*length(oRtm)));
+                    tmlimit = aap.tasklist.currenttask.settings.tmlimit * std(oRtm);
+            end
+            
+            badimages=[false; (Rtm > tmlimit)];
+                
             TSspikes=[find(badimages),tm(badimages(2:end)),slicediff(badimages(2:end))];
             
             %% Now find big movements
-            Mspikes = [];
-            
             % shift to sync with scan number
             rpdiff = [zeros(1,6); diff(rp{sess})];
             absrpdiff = abs(rpdiff);
             
-            badMspikes=(any(absrpdiff(:,1:3) > xyzlimit,2)) | (any(absrpdiff(:,4:6) > rotlimit_radians,2));
-            Mspikes=[find(badMspikes),rpdiff(badMspikes,:)];
+            badTspikes = any(absrpdiff(:,1:3) > xyzlimit,2);
+            badRspikes = any(absrpdiff(:,4:6) > rotlimit_radians,2);
+            badMspikes= badTspikes | badRspikes;
+            
+            Mspikes=[find(badMspikes), rpdiff(badMspikes,:)];
             
             %% DIAGNOSTIC
             
-            % Diagnostic
-            subplot(nsess,2,sess * 2 - 1)
+            subplot(nsess,4, (sess - 1) * 4 + 1)
+            hold off
+            plot(tm, 'b.')
             hold on
-            plot(tm, 'b')
-            plot(TSspikes(:,1), repmat(tmlimit, [1 size(TSspikes,1)]), 'r*')
+            plot(TSspikes(:,1), TSspikes(:,2), 'ko')
+            title(sprintf('Sess %d \t Spikes: %d\n', sess, size(TSspikes,1)))
             
-            subplot(nsess,2,sess * 2)
+            subplot(nsess,4, (sess - 1) * 4 + 2)
+            hist(Rtm,50)
+            title(sprintf('Distribution of the tm data underlying spikes'))
+            
+            subplot(nsess,4, (sess - 1) * 4 + 3)
+            hold off
+            plot(rpdiff(:,1:3))
             hold on
-            plot(rpdiff, 'b')
-            plot(Mspikes(:,1), repmat(0, [1 size(Mspikes,1)]), 'r*')
+            plot(find(badTspikes), rpdiff(badTspikes,1:3), 'ko')
+            title(sprintf('Sess %d \t Translations: %d\n', sess, sum(badTspikes,1)))
+            
+            subplot(nsess,4, (sess - 1) * 4 + 4)
+            hold off
+            plot(rpdiff(:,4:6))
+            hold on
+            plot(find(badRspikes), rpdiff(badRspikes,4:6), 'ko')
+            title(sprintf('Sess %d \t Rotations: %d\n', sess, sum(badRspikes,1)))
+            
             
             %% Save things
             fprintf('Sess %d \t Spikes: %d; Moves: %d\n', sess, size(TSspikes,1), size(Mspikes,1))

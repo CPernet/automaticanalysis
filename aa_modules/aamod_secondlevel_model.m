@@ -46,12 +46,22 @@ switch task
         cd(rfxrootdir);
         
         % Now check all subjects have same number of contrasts and same
-        %   contrast names at first level
+        % contrast names at first level
         clear flSPM
         clear flSPMfn;
         for m=1:nsub
             flSPMfn{m}=aas_getfiles_bystream(aap,m,'firstlevel_spm');
-            confiles{m}=aas_getfiles_bystream(aap,m,'firstlevel_cons');
+            
+            % Get the confiles in order...
+            % try first to get Cons, then Ts, then Fs
+            confiles{m} = aas_findstream(aap,'firslevel_cons', aap.subj);
+            if isempty(confiles{m})
+                confiles{m} = aas_findstream(aap,'firslevel_spmts', aap.subj);
+            end
+            if isempty(confiles{m})
+                confiles{m} = aas_findstream(aap,'firslevel_spmfs', aap.subj);
+            end
+            
             SPMtemp=load(flSPMfn{m});
             flSPM{m}.SPM.xCon=SPMtemp.SPM.xCon;
             if (m~=1)

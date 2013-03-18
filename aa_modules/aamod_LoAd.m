@@ -53,118 +53,59 @@ switch task
         
         % Let us loop the load algorhythm several times, so as to obtain
         % a single WM and GM mass...
-        looseBits = 1;
         
-        while ~isnan(looseBits)
-            fprintf('Runing LoAd...\n')
-            %% Use LoAd to segment the structural!
-            LoAd_command = ['sh LoAd_brainonly.sh ' ... % Run LoAd command
-                Simg ' ' ... % structural
-                BETmask]; % mask
-            
-            [s w] = aas_shell(LoAd_command);
-            disp(w)
-            
-            %% Use seg_maths to extract the relevant
-            outSeg = '';
-            
-            tissues = {'WM' 'GM' 'CSF' 'DeepGM' 'Ventricles'};
-            
-            for t = 1:length(tissues)
-                % For each tissue...
-                Mfn = fullfile(Spth, [tissues{t} Sext]);
-                outSeg = strvcat(outSeg, Mfn);
-                segmaths_command = ['seg_maths ' ... % Segment the end result...
-                    fullfile(Spth, [Sfn '_segmentation' Sext]) ' ' ... % Segmentation image
-                    '-tp ' num2str(t-1) ' ' ...
-                    Mfn];
-                [s w] = aas_shell(segmaths_command);
-            end
-            
-            %% BET mask
-            mY = 0;
-            % There are 5 sensible tissue classes, the rest are not
-            % Exclude CSF, as this will make the brain mask too large...
-            for t = [1 2 4 5]
-                mY = mY + spm_read_vols(spm_vol(deblank(outSeg(t,:))));
-            end
-            mY = mY > 0;
-            
-            fprintf('Doing image operations on mask to clean it up...\n')
-            % Remove loose bits
-            try
-                CC = bwconncomp(mY, 26);
-                numPixels = cellfun(@numel,CC.PixelIdxList);
-                [biggest,idx] = max(numPixels);
-                numPixels(idx) = []; % For display purposes...
-                sumPixels = sum(numPixels);
-                
-                if length(CC.PixelIdxList) == 1 || sumPixels < aap.tasklist.currenttask.settings.looseBits_voxthresh
-                    looseBits = NaN;
-                else
-                    for b = 1:CC.NumObjects
-                        if b~=idx
-                            mY(CC.PixelIdxList{b}) = 0;
-                        end
-                    end
-                end
-                fprintf('The brain mask consists of %d clusters, of approx. %0.2f voxels (main cluster = %d)\n', length(CC.PixelIdxList), mean(numPixels), biggest)
-                
-            catch aa_error
-                aas_log(aap, false, 'You may be lacking the MATLAB image toolbox')
-                looseBits = NaN;
-            end
-            
-            % Then erode and dilate sequentially, several times
-            if ~isempty(aap.tasklist.currenttask.settings.imopen_se)
-                try
-                    se = strel(mvpaa_makeSphere(aap.tasklist.currenttask.settings.imopen_se));
-                    mY = imopen(mY,se);
-                catch aa_error
-                    aas_log(aap, false, 'Could not imopen brain mask')
-                end
-            end
-            
-            % Then erode and dilate sequentially, several times
-            if ~isempty(aap.tasklist.currenttask.settings.imclose_se)
-                try
-                    se = strel(mvpaa_makeSphere(aap.tasklist.currenttask.settings.imclose_se));
-                    mY = imclose(mY,se);
-                catch aa_error
-                    aas_log(aap, false, 'Could not imclose brain mask')
-                end
-            end
-            
-            % And dilate slightly, to ensure we don't remove anything important
-            if ~isempty(aap.tasklist.currenttask.settings.imdilate_se)
-                try
-                    se = strel(mvpaa_makeSphere(aap.tasklist.currenttask.settings.imdilate_se));
-                    mY = imdilate(mY,se);
-                catch aa_error
-                    aas_log(aap, false, 'Could not imdilate brain mask')
-                end
-            end
-            
-            % Fill any holes that may be remaining
-            try
-                mY = imfill(mY,'holes');
-            catch aa_error
-                aas_log(aap, false, 'Could not fill the holes in brain mask')
-            end
-            
-            V = spm_vol(BETmask);
-            BETmask = fullfile(Spth, [Sfn '_LoADbrain_mask' Sext ]);
-            V.fname = BETmask;
-            spm_write_vol(V,double(mY));
-            
-            spm_check_registration(strvcat( ...
-                Simg, ... % Get structural
-                BETmask)); % Get BET mask
-            spm_orthviews('reposition', [0 0 0])
-            fprintf('\n')
-            
-            looseBits = looseBits + 1;
+        fprintf('Runing LoAd...\n')
+        %% Use LoAd to segment the structural!
+        LoAd_command = ['sh LoAd_brainonly.sh ' ... % Run LoAd command
+            Simg ' ' ... % structural
+            BETmask]; % mask
+        
+        [s w] = aas_shell(LoAd_command);
+        disp(w)
+        
+        %% Use seg_maths to extract the relevant
+        outSeg = '';
+        
+        tissues = {'WM' 'GM' 'CSF' 'DeepGM' 'Ventricles'};
+        
+        for t = 1:length(tissues)
+            % For each tissue...
+            Mfn = fullfile(Spth, [tissues{t} Sext]);
+            outSeg = strvcat(outSeg, Mfn);
+            segmaths_command = ['seg_maths ' ... % Segment the end result...
+                fullfile(Spth, [Sfn '_segmentation' Sext]) ' ' ... % Segmentation image
+                '-tp ' num2str(t-1) ' ' ...
+                Mfn];
+            [s w] = aas_shell(segmaths_command);
         end
+        
+        %% BET mask
+        mY = 0;
+        % There are 5 sensible tissue classes, the rest are not
+        % Exclude CSF, as this will make the brain mask too large...
+        for t = [1 2 4 5]
+            mY = mY + spm_read_vols(spm_vol(deblank(outSeg(t,:))));
+        end
+        mY = mY > 0;
+        
+        
+        % Fill any holes that may be remaining
+        try
+            mY = imfill(mY,'holes');
+        catch aa_error
+            aas_log(aap, false, 'Could not fill the holes in brain mask')
+        end
+        
+        V = spm_vol(BETmask);
+        BETmask = fullfile(Spth, [Sfn '_LoADbrain_mask' Sext ]);
+        V.fname = BETmask;
+        spm_write_vol(V,double(mY));
+        
+        spm_check_registration(strvcat( ...
+            Simg, ... % Get structural
+            BETmask)); % Get BET mask
+        spm_orthviews('reposition', [0 0 0])
+        fprintf('\n')
         
         % Mask current structural with the more accurate mask, to improve
         % future normalisation
@@ -231,5 +172,4 @@ switch task
         end
         aap=aas_desc_outputs(aap,subj,'structural',Simg);
         aap=aas_desc_outputs(aap,subj,'segmentation',outSeg);
-end
 end
