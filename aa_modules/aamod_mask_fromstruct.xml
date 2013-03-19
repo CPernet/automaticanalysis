@@ -22,8 +22,18 @@
                 <stream>segmasksExclusive</stream>
             </outputstreams>
             
-            <Nthreshold> 0.99 </Nthreshold>
-            <Wthreshold> 0.05 </Wthreshold>
+            <Nthreshold desc='Specific threshold for Native masks'
+            > 0.99 </Nthreshold>
+            <Wthreshold desc='Specific threshold for Warped masks'
+            > 0.05 </Wthreshold>
+            
+            <tNthreshold desc='Exclusive total probability threshold for Native masks'
+            > 0.5 </tNthreshold>
+            <tWthreshold desc='Exclusive total probability threshold for Warped masks'
+            > 0.25 </tWthreshold>
+            
+            <Zthreshold desc='Absolute minimum threshold'
+            > 0.001 </Zthreshold>
             
         </currenttask>
     </tasklist>

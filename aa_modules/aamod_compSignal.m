@@ -161,13 +161,14 @@ switch task
         
         Rnames = {'GM', 'WM', 'CSF', 'OOH'};
         % Show an image of correlated timecourses...
-        corrTCs(compTC, Rnames);
+        [sharedVar, h] = corrTCs(compTC, Rnames);
         
         %% DIAGNOSTIC IMAGE
         mriname = aas_prepare_diagnostic(aap,subj);
         
         print('-djpeg','-r150',fullfile(aap.acq_details.root, 'diagnostics', ...
             [mfilename '__' mriname '.jpeg']));
+        close(h);
         
         %% Diagnostic VIDEO of masks
         if aap.tasklist.currenttask.settings.diagnostic && ...

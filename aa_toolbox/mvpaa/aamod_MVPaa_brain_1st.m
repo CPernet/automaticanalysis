@@ -34,17 +34,18 @@ switch task
         % MASK DATA (using segmentation masks, for instance...)
         MVPaa_data = mvpaa_maskData(aap, MVPaa_data);
         
-        % Label the similarity matrix according to condition, block, session comparisons
-        % This "structures" similarity data to allow us to test hypotheses on observation similiarity values
-        aap = mvpaa_structureSimilarity(aap);
-        % Structure the contrast matrices based on the above
-        aap = mvpaa_structureContrasts(aap);
-        
         %% DENOISING
         % Motion denoising for similarity data cleanup!
         motionDenoising = mvpaa_motionDenoising_prepare(aap);
         % Temporal denoising for similarity data cleanup!
         temporalDenoising = mvpaa_temporalDenoising_prepare(aap);
+        
+        %% DATA STRUCTURING...
+        % Label the similarity matrix according to condition, block, session comparisons
+        % This "structures" similarity data to allow us to test hypotheses on observation similiarity values
+        aap = mvpaa_structureSimilarity(aap);
+        % Structure the contrast matrices based on the above
+        aap = mvpaa_structureContrasts(aap);
         
         %% ROI SPHERE (x-y-z indices)
         [ROIx ROIy ROIz] = mvpaa_makeSphere(aap);

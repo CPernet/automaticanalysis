@@ -70,8 +70,8 @@
             <!-- DENOISING VARIABLES USED IN THE MODULE -->
             <temporalDenoisingMatrix desc='Matrix used for temporal denoising of the similarity data'
             ></temporalDenoisingMatrix>
-            <temporalDenoisingMode desc='session/subject'
-            >session</temporalDenoisingMode>
+            <temporalDenoisingMode desc='session/subject/[distance in temporal matrix by which to exclude]'
+            >10</temporalDenoisingMode>
             
             <motionDenoisingMatrix desc='Matrix used for motion denoising of the similarity data'
             ></motionDenoisingMatrix>

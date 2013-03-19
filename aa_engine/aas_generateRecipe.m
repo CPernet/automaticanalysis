@@ -31,7 +31,11 @@ unix(['cat ' which('aap_tasklist_begin.xml') ' >> ' currentRecipe]);
 for iAnalysis = 1:length(analyses)
     moduleAdded = which([prefix analyses{iAnalysis} '.xml']);
     if isempty(moduleAdded)
+<<<<<<< HEAD
         error(sprintf('Cannot find tasklist %s ', [prefix analyses{iAnalysis} '.xml']))
+=======
+        error(['Cannot find analysis ' prefix analyses{iAnalysis} '.xml'])
+>>>>>>> 84c473977212723ff0dd78c54cb48ab9e24073ba
     end
     unix(['cat ' moduleAdded ' >> ' currentRecipe]);    
 end
