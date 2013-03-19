@@ -21,258 +21,36 @@ switch task
     case 'report'
         
     case 'doit'
-        %get subject directory
+        % Get subject directory
         cwd=pwd;
-        subjname = aap.acq_details.subjects(subj).mriname;
         
-        streams = aap.tasklist.currenttask.inputstreams;
+        % Prepare basic SPM model...
+        [SPM, anadir, files, allfiles, model, modelC] = aas_firstlevel_model_prepare(aap, subj);
         
-        %% Movement regressors (extended!) [AVG]
-        [moves, mnames] = aas_movPars(aap,subj, aap.tasklist.currenttask.settings.moveMat);
-        
-        %% Compartment regressors [AVG]
-        compRegNames = {'GM', 'WM', 'CSF', 'OOH'};
-        compTC = [];
-        Cregs = cell(1,length(aap.acq_details.sessions));
-        for sess=aap.acq_details.selected_sessions
-            % If we don't have compartment Signals, this should give up...
-            try
-                load(aas_getfiles_bystream(aap,subj,sess,'compSignal'));
-                Cregs{sess} = compTC;
-            catch
-            end
-        end
-        
-        clear SPM
-        
-        %% Set up basis functions
-        if (isfield(aap.tasklist.currenttask.settings,'xBF'))
-            SPM.xBF=aap.tasklist.currenttask.settings.xBF;
-        else
-            SPM.xBF.T          = 16; % number of time bins per scan
-            SPM.xBF.UNITS      = 'scans';           % OPTIONS: 'scans'|'secs' for onsets
-            SPM.xBF.Volterra   = 1;                 % OPTIONS: 1|2 = order of convolution
-            SPM.xBF.name       = 'hrf';
-            SPM.xBF.length     = 32;                % length in seconds
-            SPM.xBF.order      = 1;                 % order of basis set
-        end
-        
-        firstsess=aap.acq_details.selected_sessions(1);
-        
-        %% retrieve TR from DICOM header
-        % TR is manually specified (not recommended as source of error)
-        if isfield(aap.tasklist.currenttask.settings,'TR') && ...
-                ~isempty(aap.tasklist.currenttask.settings.TR)
-            SPM.xY.RT =aap.tasklist.currenttask.settings.TR;
-        else
-            % Get TR from DICOM header checking they're the same for all sessions
-            for sess=aap.acq_details.selected_sessions
-                DICOMHEADERS=load(aas_getfiles_bystream(aap,subj,sess,'epi_dicom_header'));
-                try
-                    TR=DICOMHEADERS.DICOMHEADERS{1}.volumeTR;
-                catch
-                    % [AVG] This is for backwards compatibility!
-                    TR=DICOMHEADERS.DICOMHEADERS{1}.RepetitionTime/1000;
-                end
-                if (sess==firstsess)
-                    SPM.xY.RT = TR;
-                else
-                    if (SPM.xY.RT~=TR)
-                        aas_log(aap,true,sprintf('Session %d has different TR from earlier sessions, they can''t be in the same model.',sess));
-                    end
-                end
-            end
-        end
-        
-        %% Get slice order from sliceorder stream if it exists, check same
-        % for all sessions
-        usesliceorder=aas_stream_has_contents(aap,'sliceorder');
-        if (usesliceorder)
-            for sess=aap.acq_details.selected_sessions
-                sliceorderstruct=load(aas_getfiles_bystream(aap,subj,sess,'sliceorder'));
-                if (sess==firstsess)
-                    sliceorder=sliceorderstruct.sliceorder;
-                    refslice=sliceorderstruct.refslice;
-                else
-                    if (any(sliceorderstruct.sliceorder~=sliceorder))
-                        aas_log(aap,true,sprintf('Session %d has different slice order from earlier sessions, they can''t be in the same model.',sess));
-                    end
-                end
-            end
-        end
-        
-        SPM.xGX.iGXcalc = 'None';
-        SPM.xVi.form = 'AR(1)';
-        
-        %% Adjust time bin T0 according to reference slice & slice order
-        %  implements email to CBU from Rik Henson 27/06/07
-        %  assumes timings are relative to beginning of scans
-        
-        if (usesliceorder)
-            refwhen=(find(sliceorder==refslice)-1)/(length(sliceorder)-1);
-        else
-            aas_log(aap,false,'No stream sliceorder found, defaulting timing to SPM.xBF.T0=0 in model');
-            refwhen=0;
-        end
-        SPM.xBF.T0 = round(SPM.xBF.T*refwhen);
-        
-        subdata = aas_getsubjpath(aap,subj);
-        
-        %% Deal with extraparameters. Not needed any more, as
-        % aap.directory_conventions.stats_singlesubj
-        % can have module specific value, but kept for backwards compatability
-        if (isfield(aap.tasklist.currenttask.extraparameters,'stats_suffix'))
-            stats_suffix=aap.tasklist.currenttask.extraparameters.stats_suffix;
-        else
-            stats_suffix=[];
-        end
-        
-        anadir = fullfile(subdata,[aap.directory_conventions.stats_singlesubj stats_suffix]);
-        if ~exist(anadir,'dir')
-            mkdir(subdata,[aap.directory_conventions.stats_singlesubj stats_suffix]);
-        end
-        
-        allfiles='';
+        % Get all the nuisance regressors...
+        [movementRegs, compartmentRegs, physiologicalRegs, spikeRegs] = ...
+            aas_firstlevel_model_nuisance(aap, subj, files);
         
         %% Set up CORE model
         coreSPM = SPM;
         cols_nuisance=[];
         cols_interest=[];
-        sessnuminspm=0;
         currcol=1;
         
-        % [AVG] - let's save the model...
-        model = cell(size(aap.acq_details.sessions));
-        files = cell(size(aap.acq_details.sessions));
+        sessnuminspm=0;
         
         for sess = aap.acq_details.selected_sessions
             sessnuminspm=sessnuminspm+1;
             
-            %% SETTINGS & GET FILES
-            
-            files{sess} = aas_getfiles_bystream(aap,subj,sess,'epi');
-            allfiles = strvcat(allfiles,files{sess});
-            
+            % Settings
             SPM.nscan(sessnuminspm) = size(files{sess},1);
-            
             SPM.xX.K(sessnuminspm).HParam = aap.tasklist.currenttask.settings.highpassfilter;
             
-            %% Get model{sess} data from aap
-            subjmatches=strcmp(subjname,{aap.tasklist.currenttask.settings.model.subject});
-            sessmatches=strcmp(aap.acq_details.sessions(sess).name,{aap.tasklist.currenttask.settings.model.session});
-            % If no exact spec found, try session wildcard, then subject
-            % wildcard, then wildcard for both
-            if (~any(sessmatches & subjmatches))
-                sesswild=strcmp('*',{aap.tasklist.currenttask.settings.model.session});
-                if (any(sesswild & subjmatches))
-                    sessmatches=sesswild;
-                else
-                    subjwild=strcmp('*',{aap.tasklist.currenttask.settings.model.subject});
-                    if (any(sessmatches & subjwild))
-                        subjmatches=subjwild;
-                    else
-                        subjmatches=subjwild;
-                        sessmatches=sesswild;
-                    end
-                end
-            end
-            
-            %% Should now have just one model{sess} spec
-            modelnum=find(sessmatches & subjmatches);
-            if (length(modelnum)>1)
-                aas_log(aap,true,sprintf('Error while getting model details as more than one specification for subject %s session %s',subjname,aap.acq_details.sessions(sess).name));
-            end
-            if (isempty(modelnum))
-                aas_log(aap,true,'Cannot find model specification. Check either user script or aamod_firstlevel_model{sess}.xml');
-            end
-            
-            model{sess}=aap.tasklist.currenttask.settings.model(modelnum);
-            
-            for c = 1:length(model{sess}.event);
-                if (isempty(model{sess}.event(c).parametric))
-                    parametric=struct('name','none');
-                else
-                    parametric=model{sess}.event(c).parametric;
-                end
-                SPM.Sess(sessnuminspm).U(c) = struct(...
-                    'ons',model{sess}.event(c).ons,...
-                    'dur',model{sess}.event(c).dur,...
-                    'name',{{model{sess}.event(c).name}},...
-                    'P',parametric);
-                cols_interest=[cols_interest currcol];
-                currcol=currcol+1;
-            end
-            
-            SPM.Sess(sessnuminspm).C.C = [];
-            SPM.Sess(sessnuminspm).C.name = {};
-            
-            %% Movement and other nuisance regressors: compartments [AVG]
-            if aap.tasklist.currenttask.settings.includemovementpars==1
-                SPM.Sess(sessnuminspm).C.C    = [SPM.Sess(sessnuminspm).C.C ...
-                    moves{sess} ...
-                    Cregs{sess}(:, aap.tasklist.currenttask.settings.compRegs)];     % [n x c double] covariates
-                SPM.Sess(sessnuminspm).C.name = [SPM.Sess(sessnuminspm).C.name ...
-                    mnames ...
-                    compRegNames{aap.tasklist.currenttask.settings.compRegs}]; % [1 x c cell]   names
-                cols_nuisance=[cols_nuisance [currcol:(currcol + ...
-                    length(mnames) ...
-                    + length(aap.tasklist.currenttask.settings.compRegs) - 1)]];
-                currcol=currcol ...
-                    + length(mnames) ...
-                    + length(aap.tasklist.currenttask.settings.compRegs);
-            end
-            
-            
-            %% Physiological Regressors?
-            PRstreams = streams.stream(strcmp('physreg', streams.stream));
-            
-            if ~isempty(PRstreams)
-                
-                PRfn = aas_getimages_bystream(aap,subj,sess,PRstreams{:});
-                
-                % Contains spike scan numbers
-                PR = load(PRfn);
-                
-                SPM.Sess(sessnuminspm).C.C = [SPM.Sess(sessnuminspm).C.C ...
-                    PR.R];
-                SPM.Sess(sessnuminspm).C.name = [SPM.Sess(sessnuminspm).C.name ...
-                    PR.names];
-                cols_nuisance=[cols_nuisance [currcol:(currcol+length(PR.names)-1)]];
-                currcol = currcol + length(PR.names);
-                
-                if isempty(PR.R)
-                    aas_log(aap,false, sprintf('Could not find Physiological Regressors for session %d\n', sess))
-                end
-            end
-            
-            %% Spikes and moves, if these exist...
-            % open file with spikes and moves
-            SPstreams = streams.stream(strcmp('listspikes', streams.stream));
-            
-            if ~isempty(SPstreams)
-                
-                SPfn = aas_getimages_bystream(aap,subj,sess,SPstreams{:});
-                
-                % Contains spike scan numbers
-                SP = load(SPfn);
-                
-                % Combine spikes and moves...
-                regrscans = union(SP.TSspikes(:,1), SP.Mspikes(:,1));
-                
-                regr = zeros( size(files{sess},1), length(regrscans));
-                regrnames = {};
-                
-                for s=1:length(regrscans),
-                    regr(regrscans(s),s) = 1;    % scan regrscan(s) is at one for scan s
-                    regrnames{s} = sprintf('SpikeMov%d', s);
-                end
-                SPM.Sess(sessnuminspm).C.C = [SPM.Sess(sessnuminspm).C.C ...
-                    regr];
-                SPM.Sess(sessnuminspm).C.name = [SPM.Sess(sessnuminspm).C.name ...
-                    regrnames];
-                cols_nuisance=[cols_nuisance [currcol:(currcol+length(regrnames)-1)]];
-                currcol = currcol + length(regrnames);
-            end
+            % Set up model
+            [SPM, cols_interest, cols_nuisance, currcol] = ...
+                aas_firstlevel_model_define(aap, sess, sessnuminspm, SPM, model, modelC, ...
+                cols_interest, cols_nuisance, currcol, ...
+                movementRegs, compartmentRegs, physiologicalRegs, spikeRegs);
         end
         
         cd (anadir)
@@ -293,10 +71,16 @@ switch task
         SPMdes.xX.iG=cols_nuisance;
         SPMdes.xX.iC=cols_interest;
         
+        % Turn off masking if requested
+        if ~aap.tasklist.currenttask.settings.firstlevelmasking
+            SPMdes.xM.I=0;
+            SPMdes.xM.TH=-inf(size(SPMdes.xM.TH));
+        end
+        
         spm_unlink(fullfile('.', 'mask.img')); % avoid overwrite dialog
         SPMest = spm_spm(SPMdes);
         
-        %% REDO MODEL WITH MVPA bonus...
+        %% REDO MODEL WITH Mumford/Poldrak method...
         
         % Find out how large the model{sess} should be (per session)
         eventNumber = [];
@@ -306,6 +90,8 @@ switch task
             sessNumber = [sessNumber sess*ones(1,size(model{sess}.event,2))];
         end
         sessRegs = 1:max(eventNumber);
+        
+        Tmodel{sess} = cell(size(model));
         
         for n = sessRegs
             % Make temporary directory inside folder
@@ -321,6 +107,10 @@ switch task
             rSPM = coreSPM;
             
             for sess = aap.acq_details.selected_sessions
+                
+                rSPM.nscan(sessnuminspm) = size(files{sess},1);
+                rSPM.xX.K(sessnuminspm).HParam = aap.tasklist.currenttask.settings.highpassfilter;
+                
                 % * Get noise regressor numbers
                 noiseRegs = eventNumber(sessNumber == sess);
                 if ismember(n, noiseRegs)
@@ -328,18 +118,18 @@ switch task
                 end
                 
                 % No need to check model{sess} again, did already before...
-                Tmodel = model{sess};
-                Tmodel.event = [];
+                Tmodel{sess} = model{sess};
+                Tmodel{sess}.event = [];
                 % Event names, rather simple...
-                Tmodel.event(1).name = 'Noise';
+                Tmodel{sess}.event(1).name = 'Noise';
                 % I don't see a way to do parameteric stuff here
-                Tmodel.event(1).parametric = [];
+                Tmodel{sess}.event(1).parametric = [];
                 % Easy to set up the Regressor event
                 try
-                    Tmodel.event(2).ons = model{sess}.event(n).ons;
-                    Tmodel.event(2).dur = model{sess}.event(n).dur;
-                    Tmodel.event(2).name = 'Reg';
-                    Tmodel.event(2).parametric = [];
+                    Tmodel{sess}.event(2).ons = model{sess}.event(n).ons;
+                    Tmodel{sess}.event(2).dur = model{sess}.event(n).dur;
+                    Tmodel{sess}.event(2).name = 'Reg';
+                    Tmodel{sess}.event(2).parametric = [];
                 catch
                     % If we can't model that event... don't model it
                 end
@@ -358,96 +148,16 @@ switch task
                 if (length(Tdur)>1)
                     Tdur=Tdur(ind);
                 end
-                Tmodel.event(1).ons = Tons;
-                Tmodel.event(1).dur = Tdur;
-                
-                rSPM.nscan(sessnuminspm) = size(files{sess},1);
-                
-                for c = 1:length(Tmodel.event);
-                    if (isempty(model{sess}.event(c).parametric))
-                        parametric=struct('name','none');
-                    else
-                        parametric=Tmodel.event(c).parametric;
-                    end
-                    rSPM.Sess(sessnuminspm).U(c) = struct(...
-                        'ons',Tmodel.event(c).ons,...
-                        'dur',Tmodel.event(c).dur,...
-                        'name',{{Tmodel.event(c).name}},...
-                        'P',parametric);
-                    cols_interest=[cols_interest currcol];
-                    currcol=currcol+1;
-                end
+                Tmodel{sess}.event(1).ons = Tons;
+                Tmodel{sess}.event(1).dur = Tdur;
                 
                 rSPM.Sess(sessnuminspm).C.C = [];
                 rSPM.Sess(sessnuminspm).C.name = {};
                 
-                %% Movement and other nuisance regressors: compartments [AVG]
-                if aap.tasklist.currenttask.settings.includemovementpars==1
-                    rSPM.Sess(sessnuminspm).C.C    = [rSPM.Sess(sessnuminspm).C.C ...
-                        moves{sess} ...
-                        Cregs{sess}(:, aap.tasklist.currenttask.settings.compRegs)];     % [n x c double] covariates
-                    rSPM.Sess(sessnuminspm).C.name = [rSPM.Sess(sessnuminspm).C.name ...
-                        mnames ...
-                        compRegNames{aap.tasklist.currenttask.settings.compRegs}]; % [1 x c cell]   names
-                    cols_nuisance=[cols_nuisance [currcol:(currcol + ...
-                        length(mnames) ...
-                        + length(aap.tasklist.currenttask.settings.compRegs) - 1)]];
-                    currcol=currcol ...
-                        + length(mnames) ...
-                        + length(aap.tasklist.currenttask.settings.compRegs);
-                end
-                
-                
-                %% Physiological Regressors?
-                PRstreams = streams.stream(strcmp('physreg', streams.stream));
-                
-                if ~isempty(PRstreams)
-                    
-                    PRfn = aas_getimages_bystream(aap,subj,sess,PRstreams{:});
-                    
-                    % Contains spike scan numbers
-                    PR = load(PRfn);
-                    
-                    rSPM.Sess(sessnuminspm).C.C = [rSPM.Sess(sessnuminspm).C.C ...
-                        PR.R];
-                    rSPM.Sess(sessnuminspm).C.name = [rSPM.Sess(sessnuminspm).C.name ...
-                        PR.names];
-                    cols_nuisance=[cols_nuisance [currcol:(currcol+length(PR.names)-1)]];
-                    currcol = currcol + length(PR.names);
-                    
-                    if isempty(PR.R)
-                        aas_log(aap,false, sprintf('Could not find Physiological Regressors for session %d\n', sess))
-                    end
-                end
-                
-                %% Spikes and moves, if these exist...
-                % open file with spikes and moves
-                SPstreams = streams.stream(strcmp('listspikes', streams.stream));
-                
-                if ~isempty(SPstreams)
-                    
-                    SPfn = aas_getimages_bystream(aap,subj,sess,SPstreams{:});
-                    
-                    % Contains spike scan numbers
-                    SP = load(SPfn);
-                    
-                    % Combine spikes and moves...
-                    regrscans = union(SP.TSspikes(:,1), SP.Mspikes(:,1));
-                    
-                    regr = zeros( size(files{sess},1), length(regrscans));
-                    regrnames = {};
-                    
-                    for s=1:length(regrscans),
-                        regr(regrscans(s),s) = 1;    % scan regrscan(s) is at one for scan s
-                        regrnames{s} = sprintf('SpikeMov%d', s);
-                    end
-                    rSPM.Sess(sessnuminspm).C.C = [rSPM.Sess(sessnuminspm).C.C ...
-                        regr];
-                    rSPM.Sess(sessnuminspm).C.name = [rSPM.Sess(sessnuminspm).C.name ...
-                        regrnames];
-                    cols_nuisance=[cols_nuisance [currcol:(currcol+length(regrnames)-1)]];
-                    currcol = currcol + length(regrnames);
-                end
+                [rSPM, cols_interest, cols_nuisance, currcol] = aas_firstlevel_model_define(aap, sess, sessnuminspm, rSPM, Tmodel, modelC, ...
+                    cols_interest, cols_nuisance, currcol, ...
+                    movementRegs, compartmentRegs, physiologicalRegs, spikeRegs);
+
             end
             cd(Tanadir)
             
@@ -497,7 +207,6 @@ switch task
         unix('rm -rf temp_*');
         
         %% Describe outputs
-        
         cd (cwd);
         
         % Describe outputs

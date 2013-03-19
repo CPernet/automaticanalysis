@@ -25,8 +25,20 @@ for p = 1:length(aap.acq_details.subjects)
         
         % Add each event...
         for c = 1:length(cnames)
-            ons = load(fullfile(Wdir,['onset_' cnames{c} '.txt']));
-            dur = load(fullfile(Wdir,['duration_' cnames{c} '.txt']));
+            % Resave the data to make it faster to load later...
+            if ~exist(fullfile(Wdir,['onset_' cnames{c} '.mat']), 'file')
+                ons = load(fullfile(Wdir,['onset_' cnames{c} '.txt']));
+                save(fullfile(Wdir,['onset_' cnames{c} '.mat']), 'ons');
+            else
+                load(fullfile(Wdir,['onset_' cnames{c} '.mat']));
+            end
+            
+            if ~exist(fullfile(Wdir,['duration_' cnames{c} '.mat']), 'file')
+                dur = load(fullfile(Wdir,['duration_' cnames{c} '.txt']));
+                save(fullfile(Wdir,['duration_' cnames{c} '.mat']), 'dur');
+            else
+                load(fullfile(Wdir,['duration_' cnames{c} '.mat']));
+            end
             
             aap = aas_addevent(aap, modelName, ...
                 aap.acq_details.subjects(p).mriname, ...
