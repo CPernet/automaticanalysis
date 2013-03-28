@@ -94,19 +94,23 @@ switch task
         Tmodel{sess} = cell(size(model));
         
         for n = sessRegs
+            fprintf('Dealing with reg %d/%d\n', find(n==sessRegs), length(sessRegs))
+            
             % Make temporary directory inside folder
             Tanadir = (fullfile(anadir, sprintf('temp_%03d', n)));
             
             try rmdir(Tanadir); catch; end
             mkdir(Tanadir)
             
+            rSPM = coreSPM;
             cols_nuisance=[];
             cols_interest=[];
-            sessnuminspm=1;
             currcol=1;
-            rSPM = coreSPM;
+            
+            sessnuminspm=0;
             
             for sess = aap.acq_details.selected_sessions
+                sessnuminspm=sessnuminspm+1;
                 
                 rSPM.nscan(sessnuminspm) = size(files{sess},1);
                 rSPM.xX.K(sessnuminspm).HParam = aap.tasklist.currenttask.settings.highpassfilter;
