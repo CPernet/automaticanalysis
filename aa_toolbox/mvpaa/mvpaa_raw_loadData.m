@@ -29,6 +29,7 @@ try
         blockNum = [blockNum, ones(1,size(EPIimg{sess},1))];
     end
 catch mvpaa_error
+    fprintf('No sessions found in stream %s', streamName);
     % Alternatively, we may be dealing with another MVPaa_data format, which is
     % equivalent to raw MVPaa_data, but subject-based...
     EPIimg = cell(1);

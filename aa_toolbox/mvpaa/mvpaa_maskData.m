@@ -1,4 +1,4 @@
-function MVPaa_data = mvpaa_maskData(aap, MVPaa_data)
+function [MVPaa_data, dataMask] = mvpaa_maskData(aap, MVPaa_data)
 
 %% NEXT IMPROVEMENTS:
 % @@@@@ IMPOVE THIS! GET ANY STREAM THAT IS NOT DATA/SETTINGS?
@@ -33,7 +33,7 @@ if ~isempty(SEGimg)
         Mimg = SEGimg(1,:);
     end
     
-    segMask = spm_read_vols(spm_vol(Mimg));
+    segMask = logical(spm_read_vols(spm_vol(Mimg)));
     % If mask is exclusive, invert it...
     if aap.tasklist.currenttask.settings.maskInclusive == 0
         aas_log(aap, 0, sprintf('Using %s image as an exclusive mask for the data, masking out %d voxels', ...
@@ -49,3 +49,6 @@ if ~isempty(SEGimg)
     % Mask all the data, once!
     MVPaa_data(:,segMask) = NaN;
 end
+
+% Mask mask by data locations containing non-finite values or 0s...
+dataMask = squeeze(any(or(~isfinite(MVPaa_data), MVPaa_data==0)));

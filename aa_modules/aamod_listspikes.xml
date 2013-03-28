@@ -21,7 +21,7 @@
             
             
             <tmlimit desc='Threshold (in arbitary units) from baseline after which we count points as spikes'>5</tmlimit>
-            <tmmode desc='Units in which the tmlimit is in [absolute, std]'>rstd</tmmode>
+            <tmmode desc='Units in which the tmlimit is in [absolute, std, rstd]'>rstd</tmmode>
             <tmbaseline desc='Baseline for the mean variance between volumes [zero, mean, median, smooth]'>smooth</tmbaseline>
             
             <xyzlimit desc='Threshold in mm of movement'>0.5</xyzlimit>

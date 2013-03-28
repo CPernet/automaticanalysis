@@ -23,7 +23,7 @@
             </outputstreams>
             
             <Nthreshold desc='Specific threshold for Native masks'
-            > 0.99 </Nthreshold>
+            > 0.95 </Nthreshold>
             <Wthreshold desc='Specific threshold for Warped masks'
             > 0.05 </Wthreshold>
             

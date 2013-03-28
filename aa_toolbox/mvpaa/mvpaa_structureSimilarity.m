@@ -17,7 +17,7 @@ ignoreTriL = logical(tril(ones(length(sessionNum))));
 % Find out the cells that contain our sessions
 [X Y] = meshgrid(sessionNum);
 withinSessionNumbering = round(X .* ...
-    mvpaa_label2cont(sessionNum, 'discrete', []));
+    mvpaa_label2cont(sessionNum, 'discrete', [], 0));
 withinSessionNumbering(withinSessionNumbering < 0) = NaN;
 
 % Find out what is within session and what is across

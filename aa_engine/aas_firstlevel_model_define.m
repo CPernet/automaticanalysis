@@ -73,9 +73,9 @@ if ~isempty(movementRegs)
     SPM.Sess(sessnuminspm).C.name = [SPM.Sess(sessnuminspm).C.name ...
         movementRegs(sess).names];
     
-    cols_nuisance=[cols_nuisance currcol:(currcol + ...
-        length(movementRegs(sess).names))];
-    currcol=currcol ...
+    cols_nuisance = [cols_nuisance currcol:(currcol + ...
+        length(movementRegs(sess).names)) - 1];
+    currcol = currcol ...
         + length(movementRegs(sess).names);
 end
 
@@ -93,14 +93,14 @@ if ~isempty(compartmentRegs)
 end
 
 %% Physiological Regressors?
-if ~isempty(physiologicalRegs)
+if ~isempty(physiologicalRegs(sess).regs)
     SPM.Sess(sessnuminspm).C.C = [SPM.Sess(sessnuminspm).C.C ...
-        pysiologicalRegs(sess).regs];
+        physiologicalRegs(sess).regs];
     SPM.Sess(sessnuminspm).C.name = [SPM.Sess(sessnuminspm).C.name ...
         physiologicalRegs(sess).names];
     
-    cols_nuisance=[cols_nuisance currcol:(currcol+length(physiologicalRegs(sess).names)-1)];
-    currcol = currcol + length(PR{sess}.names);
+    cols_nuisance=[cols_nuisance currcol:(currcol+length(physiologicalRegs(sess).names) - 1)];
+    currcol = currcol + length(physiologicalRegs(sess).names);
 end
 
 %% Spikes and moves, if these exist...
@@ -110,6 +110,6 @@ if ~isempty(spikeRegs)
     SPM.Sess(sessnuminspm).C.name = [SPM.Sess(sessnuminspm).C.name ...
         spikeRegs(sess).names];
     
-    cols_nuisance=[cols_nuisance currcol:(currcol+length(spikeRegs(sess).names)-1)];
+    cols_nuisance=[cols_nuisance currcol:(currcol+length(spikeRegs(sess).names) - 1)];
     currcol = currcol + length(spikeRegs(sess).names);
 end

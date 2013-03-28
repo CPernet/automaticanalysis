@@ -3,8 +3,8 @@
 
 function Pattern = mvpaa_extraction(aap, data, indROI)
 
-% We only want the indices that are not NaN
-indROI = indROI(~isnan(data(1,indROI)));
+% We only want the indices that are finite and not 0
+indROI = indROI(and(isfinite(data(1,indROI)), data(1,indROI) ~= 0));
 voxels = length(indROI);
 
 % Check that it's worth to extract data

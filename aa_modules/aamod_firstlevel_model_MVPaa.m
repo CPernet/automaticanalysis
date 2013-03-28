@@ -180,8 +180,8 @@ switch task
             
             % Turn off masking if requested
             if ~aap.tasklist.currenttask.settings.firstlevelmasking
-                SPMdes.xM.I=0;
-                SPMdes.xM.TH=-inf(size(SPMdes.xM.TH));
+                rSPMdes.xM.I=0;
+                rSPMdes.xM.TH=-inf(size(rSPMdes.xM.TH));
             end
             
             spm_unlink(fullfile('.', 'mask.img')); % avoid overwrite dialog

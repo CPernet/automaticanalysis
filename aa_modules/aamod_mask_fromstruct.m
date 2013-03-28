@@ -73,7 +73,7 @@ switch task
             [pth, fn, ext] = fileparts(SEGimg(a,:));
             V = spm_vol(fullfile(pth, ['r' fn ext]));
             Y = spm_read_vols(V);
-            Y = Y > aap.tasklist.currenttask.settings.Zthreshold;
+            Y(Y < aap.tasklist.currenttask.settings.Zthreshold) = 0;
             spm_write_vol(V,Y);
         end
         
@@ -186,9 +186,9 @@ switch task
         %% Some diagnostic images
         spm_check_registration(strvcat( ...
             mEPIimg, ... % Get mean EPI across sessions
-            Eoutstream(1,:), ... % Get first segmented GM image
-            Eoutstream(2,:), ... % Get first segmented WM image
-            Eoutstream(3,:))); % Get first segmented CSF image
+            Soutstream(1,:), ... % Get first segmented GM image
+            Soutstream(3,:), ... % Get first segmented WM image
+            Soutstream(5,:))); % Get first segmented CSF image
         
         % Outline of structural!
         spm_ov_reorient('context_init', 1)

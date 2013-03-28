@@ -14,6 +14,7 @@ switch task
         %% PREPARATIONS...
         aap.subj = subj;
         mriname = aas_prepare_diagnostic(aap);
+        mvpaa_diagnosticParameters(aap)
         
         fprintf('Working with MVPaa_data from participant %s. \n', mriname)
         
@@ -32,7 +33,7 @@ switch task
         aap.tasklist.currenttask.settings.sessionNum = MVPaa_settings.sessionNum;
         
         % MASK DATA (using segmentation masks, for instance...)
-        MVPaa_data = mvpaa_maskData(aap, MVPaa_data);
+        [MVPaa_data, dataMask] = mvpaa_maskData(aap, MVPaa_data);
         
         %% DENOISING
         % Motion denoising for similarity data cleanup!
@@ -48,7 +49,7 @@ switch task
         aap = mvpaa_structureContrasts(aap);
         
         %% ROI SPHERE (x-y-z indices)
-        [ROIx ROIy ROIz] = mvpaa_makeSphere(aap);
+        [ROIx, ROIy, ROIz] = mvpaa_makeSphere(aap);
         
         brainSize = [size(MVPaa_data, 2) size(MVPaa_data, 3) size(MVPaa_data, 4)];
         ROInum = brainSize(1) .* brainSize(2) .* brainSize(3);            
@@ -67,11 +68,24 @@ switch task
         ROIcheck = round(ROInum/100);
         
         for r = 1:ROInum %#ok<BDSCI>
-            [indROI voxels] = mvpaa_buildROI(r, [ROIx ROIy ROIz], brainSize);
+            % Display the progress at each complete %
+            if rem(r, ROIcheck) == 0
+                reverseStr = aas_progress_text(r, ROInum, reverseStr, sprintf('ROI %d / %d...', r, ROInum));
+            end
             
-            Pattern = mvpaa_extraction(aap, MVPaa_data, indROI);
+            [indROI, voxels] = mvpaa_buildROI(r, [ROIx ROIy ROIz], brainSize);
             
-            if isempty(Pattern); continue; end % Not enough data for MVPaa?
+            % We only want the indices that contain data that is not finite and not 0
+            indROI(dataMask(indROI)==1) = [];
+            voxels = length(indROI);
+            
+            % Check that it's worth to extract data
+            if voxels > aap.tasklist.currenttask.settings.minVoxels
+                % Get all betas quickly
+                Pattern = MVPaa_data(:,indROI);
+            else
+                continue;
+            end
             
             % Compute similarities of the the MVPaa_data
             Similarity = mvpaa_similarity(aap, Pattern);
@@ -85,15 +99,12 @@ switch task
             
             % Get statistics for similarity values
             Statistics(r,:,:) = mvpaa_statistics(aap, Similarity);
-            
-            % Display the progress at each complete %
-            if rem(r, ROIcheck) == 0
-                reverseStr = aas_progress_text(r, ROInum, reverseStr, sprintf('ROI %d / %d...', r, ROInum));
-            end
         end
         
+        clear MVPaa_data
+        
         % DIAGNOSTIC DISPLAY OF T-VALUES FOR EACH CON
-        mvpaa_diagnosticSearchlight(aap, Statistics);
+        try mvpaa_diagnosticSearchlight(aap, Statistics); catch; end
         
         %% DESCRIBE OUTPUTS
         MVPaa_settings = aap.tasklist.currenttask.settings;

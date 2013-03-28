@@ -4,7 +4,6 @@ function [ indROI voxels ] = mvpaa_buildROI( centreROI, subROI, brainSize)
 % - The subROI is by default an array with the base indices of an ROI
 % centred at [0 0 0], making many of them negative
 % - The brainSize is by default a vector with the values for hte 3 dims
-
 if  length(centreROI) == 1
     [x y z] = ind2sub(brainSize, centreROI);
     centreROI = [x y z];
@@ -31,4 +30,4 @@ for a = 1:3 % 3 dims
 end
        
 % Get the indices...
-indROI = sub2ind(brainSize, TsubROI(:,1), TsubROI(:,2), TsubROI(:,3));   
+indROI = sub2ind(brainSize, TsubROI(:,1), TsubROI(:,2), TsubROI(:,3));

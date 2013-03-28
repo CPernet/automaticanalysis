@@ -38,7 +38,7 @@ switch task
             stats_suffix=aap.tasklist.currenttask.extraparameters.stats_suffix;
         else
             stats_suffix=[];
-        end;
+        end
         
         % And make analysis directory
         rfxrootdir = fullfile(aap.acq_details.root,[aap.directory_conventions.rfx stats_suffix]);
@@ -49,32 +49,32 @@ switch task
         % contrast names at first level
         clear flSPM
         clear flSPMfn;
-        for m=1:nsub
-            flSPMfn{m}=aas_getfiles_bystream(aap,m,'firstlevel_spm');
+        for subj = 1:nsub
+            flSPMfn{subj}=aas_getfiles_bystream(aap,subj,'firstlevel_spm');
             
             % Get the confiles in order...
             % try first to get Cons, then Ts, then Fs
-            confiles{m} = aas_findstream(aap,'firslevel_cons', aap.subj);
-            if isempty(confiles{m})
-                confiles{m} = aas_findstream(aap,'firslevel_spmts', aap.subj);
+            confiles{subj} = aas_findstream(aap,'firstlevel_cons', subj);
+            if isempty(confiles{subj})
+                confiles{subj} = aas_findstream(aap,'firstlevel_spmts', subj);
             end
-            if isempty(confiles{m})
-                confiles{m} = aas_findstream(aap,'firslevel_spmfs', aap.subj);
+            if isempty(confiles{subj})
+                confiles{subj} = aas_findstream(aap,'firstlevel_spmfs', subj);
             end
             
-            SPMtemp=load(flSPMfn{m});
-            flSPM{m}.SPM.xCon=SPMtemp.SPM.xCon;
-            if (m~=1)
-                if (length(flSPM{m}.SPM.xCon)~=length(flSPM{1}.SPM.xCon))
-                    aas_log(aap,1,sprintf('Number of contrasts in first level analysis for subject %d different from subject 1. They must be the same for aamod_model_secondlevel to work\n',m));
-                    for n=1:length(flSPM(m).SPM.xCon)
-                        if (flSPM{m}.SPM.xCon(n).name~=flSPM{1}.SPM.xCon(n).name);
-                            aas_log(aap,1,sprintf('Names of contrasts at first level different. Contrast %d has name %s for subject %d but %s for subject 1. They must be the same for aamod_model_secondlevel to work\n',n,flSPM{m}.SPM.xCon(n).name,m,flSPM{1}.xCon(n).name));
-                        end;
-                    end;
-                end;
-            end;
-        end;
+            SPMtemp=load(flSPMfn{subj});
+            flSPM{subj}.SPM.xCon=SPMtemp.SPM.xCon;
+            if (subj~=1)
+                if (length(flSPM{subj}.SPM.xCon)~=length(flSPM{1}.SPM.xCon))
+                    aas_log(aap,1,sprintf('Number of contrasts in first level analysis for subject %d different from subject 1. They must be the same for aamod_model_secondlevel to work\n',subj));
+                    for n=1:length(flSPM(subj).SPM.xCon)
+                        if (flSPM{subj}.SPM.xCon(n).name~=flSPM{1}.SPM.xCon(n).name);
+                            aas_log(aap,1,sprintf('Names of contrasts at first level different. Contrast %d has name %s for subject %d but %s for subject 1. They must be the same for aamod_model_secondlevel to work\n',n,flSPM{subj}.SPM.xCon(n).name,subj,flSPM{1}.xCon(n).name));
+                        end
+                    end
+                end
+            end
+        end
         %                phs = 1; conname='UF_S'
         
         for n=1:length(flSPM{1}.SPM.xCon)
@@ -95,23 +95,23 @@ switch task
             
             SPM.nscan = nsub;
             
-            for s=1:nsub
+            for subj=1:nsub
                 foundit=false;
-                for fileind=1:size(confiles{s},1);
-                    [pth nme ext]=fileparts(confiles{s}(fileind,:));
+                for fileind=1:size(confiles{subj},1);
+                    [pth nme ext]=fileparts(confiles{subj}(fileind,:));
                     % [alevic] Changed this so that it works even if we
                     % change (e.g. warp/smooth) the contrast images before
                     % putting them into the second level...
-                    if ~isempty(strfind(nme,sprintf('con_%04d',n)))
+                    if ~isempty(strfind(nme,sprintf('con_%04d',n))) || ~isempty(strfind(nme,sprintf('spmT_%04d',n)))
                         foundit=true;
-                        break;
-                    end;
-                end;
+                        break
+                    end
+                end
                 if (~foundit)
-                    aas_log(aap,true,sprintf('Contrast %d not found in subject %s',n,aap.acq_details.subjects(s).mriname));
-                end;
-                SPM.xY.P{s}   = confiles{s}(fileind,:);
-                SPM.xY.VY(s)   = spm_vol(SPM.xY.P{s});
+                    aas_log(aap,true,sprintf('Contrast %d not found in subject %s',n,aap.acq_details.subjects(subj).mriname));
+                end
+                SPM.xY.P{subj}   = confiles{subj}(fileind,:);
+                SPM.xY.VY(subj)   = spm_vol(SPM.xY.P{subj});
             end
             
             SPM.xX = struct(	'X',	ones(nsub,1),...
@@ -172,11 +172,11 @@ switch task
             betafns=[];
             for betaind=1:length(allbetas);
                 betafns=strvcat(betafns,fullfile(rfxdir,allbetas(betaind).name));
-            end;
+            end
             otherfiles={'mask.hdr','mask.img','ResMS.hdr','ResMS.img','RPV.hdr','RPV.img'};
             for otherind=1:length(otherfiles)
                 betafns=strvcat(betafns,fullfile(rfxdir,otherfiles{otherind}));
-            end;
+            end
             aap=aas_desc_outputs(aap,'secondlevel_betas',betafns);
             
             %% DIAGNOSTICS (check distribution of T-values in contrasts)
@@ -189,7 +189,7 @@ switch task
         
     otherwise
         aas_log(aap,1,sprintf('Unknown task %s',task));
-end;
+end
 
 
 

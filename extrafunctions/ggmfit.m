@@ -1,4 +1,4 @@
-function [mix] = ggmfit(data,nummix,meth,interv, maxitt);
+function [mix] = ggmfit(data, nummix, meth, interv, maxitt)
 
 % function [mix] = ggmfit(data,nummix,meth,interv, maxitt);
 %	Fits a Gaussian or Gaussian/Gamma mixture model to the histogram of data
@@ -22,25 +22,23 @@ function [mix] = ggmfit(data,nummix,meth,interv, maxitt);
 
 if (nargin<2)
     nummix = 3;
-else
-    nummix = 2;
-end;
+end
 
 if (nargin<3)
     method = 'ggm';
 else
     method = meth;
-end;
+end
 
 if (nargin<4)
     interva=[];
 else
     interva=interv;
-end;
+end
 
 if (nargin<5)
     maxitt=100;
-end;
+end
 
 
 mus = [0.0 1.0 -1.0];
@@ -54,7 +52,7 @@ mus(3)=mean(data)-sqrt(sig(1));
 
 if (nummix<3)
     pis(3)=0.0000001;
-end;
+end
 
 pis=pis./sum(pis);
 
@@ -63,13 +61,12 @@ oldll = 1;
 logpytheta = 2;
 geps = 0.001;
 
-
-while((it_ctr <10) | ((abs(oldll- logpytheta)>geps)&(it_ctr<maxitt)));
+while((it_ctr <10) || ((abs(oldll- logpytheta)>geps) && (it_ctr<maxitt)));
     it_ctr = it_ctr+1;
     pygx = zeros(3,size(data,2));
     pygx(1,:) = normpdf(data,mus(1),max(sqrt(abs(sig(1))),0.0001));
     offset = 0.10;
-    if(method == 'ggm')
+    if strcmp(method, 'ggm')
         const2 = (1.6-pis(1))*sqrt(sqrt(abs(sig(1))))+mus(1);
         mus(2) = max([0.001,mus(2),0.5*(const2+sqrt(const2^2+4*sqrt(abs(sig(2)))))]);
         sig(2) = (max([min([sqrt(abs(sig(2))),(0.5*mus(2).^2)]),0.001])).^2;
@@ -80,7 +77,7 @@ while((it_ctr <10) | ((abs(oldll- logpytheta)>geps)&(it_ctr<maxitt)));
             pygx(2,idx2) = gampdf(mus(2).*mus(2)/sig(2),mus(2)/sig(2)+0.00001,dat2);
         else
             pygx(2,idx2) = 0.0;
-        end;
+        end
         if(nummix>2)
             idx3=data<mus(1)-offset;
             dat3 = -data(idx3)+(mus(1)-offset);
@@ -88,19 +85,18 @@ while((it_ctr <10) | ((abs(oldll- logpytheta)>geps)&(it_ctr<maxitt)));
             mus(3)=-max([-mus(3),-0.5*(const3-sqrt(const3.^2+4*sqrt(abs(sig(3)))))]);
             sig(3)=(max([min([sqrt(abs(sig(3))),(0.5*mus(3).^2)]),0.001])).^2;
             pygx(3,idx3) = gampdf(mus(3).*mus(3)/sig(3),-mus(3)/sig(3)-0.00001,dat3);%
-        end;
+        end
     else
         pygx(2,:) = normpdf(data,mus(2),sqrt(sig(2)));
         if(nummix>2)
             pygx(3,:) = normpdf(data,mus(3),sqrt(sig(3)));
-        end;
-    end;
+        end
+    end
     
     tmp1 = (pis'*ones(1,size(data,2))).*pygx;
     
     [mus; sig; pis];
-    
-    
+        
     %%%%%%%%%%%%%%%%%%  DISPLAY
     if(sum(it_ctr==interva)>0)
         al = [min(data):(max(data)-min(data))./200:max(data)]';
@@ -110,10 +106,10 @@ while((it_ctr <10) | ((abs(oldll- logpytheta)>geps)&(it_ctr<maxitt)));
         hold on;
         if(sig(2)<0.00001)
             sig(2)=0.00001;
-        end;
+        end
         if(sig(3)<0.00001)
             sig(3)=0.00001;
-        end;
+        end
         
         grot1 = zeros(3,size(al,1));
         grot1(1,:) = pis(1)*normpdf(al',mus(1),sqrt(sig(1)));
@@ -124,19 +120,19 @@ while((it_ctr <10) | ((abs(oldll- logpytheta)>geps)&(it_ctr<maxitt)));
                 grot1(2,aidx2) = pis(2)*gampdf(mus(2).*mus(2)/sig(2),mus(2)/sig(2)+0.001,dal2');
             else
                 grot1(2,aidx2) = 0.0;
-            end;
+            end
             if(nummix>2)
                 aidx3=al<mus(1)-offset;
                 dal3 = -al(aidx3)+(mus(1)-offset);
                 grot1(3,aidx3) = pis(3)*gampdf(mus(3).*mus(3)/sig(3),-mus(3)/sig(3)+0.001,dal3');
                 
-            end;
+            end
         else
             grot1(2,:) = pis(2)*normpdf(al',mus(2),sqrt(sig(2)));
             if(nummix>2)
                 grot1(3,:) = pis(3)*normpdf(al',mus(3),sqrt(sig(3)));
-            end;
-        end;
+            end
+        end
         plot(al,grot1'./sum(sum(grot1)),'r','linewidth',2);
         grot2=hs/sum(hs);
         grot3=sum(grot1)'./sum(sum(grot1));
@@ -146,14 +142,14 @@ while((it_ctr <10) | ((abs(oldll- logpytheta)>geps)&(it_ctr<maxitt)));
         [mus;sqrt(sig);pis]
         hold off;
         dummy=input('next');
-    end;
+    end
     
     %%%%%%%%%%%%%%%%%  ESTIMATION
     
     pytheta = sum(tmp1,1);
     if(sum(pytheta==0)>0)
         pytheta(pytheta==0)=0.0000000001;
-    end;
+    end
     oldll = logpytheta;
     logpytheta = -sum(log(pytheta));
     pkytheta = zeros(3,size(data,2));
@@ -175,7 +171,7 @@ while((it_ctr <10) | ((abs(oldll- logpytheta)>geps)&(it_ctr<maxitt)));
     mus=mubar;
     sig = sibar;
     pis = pibar;
-end;
+end
 
 mix.mus=mus;
 mix.sig=sqrt(sig);
@@ -189,5 +185,3 @@ mix.fp=(1-normcdf(tmp2,mus(1),sqrt(abs(sig(1))))).*length(data);
 mix.fpr=mix.fp./[size(data,2):-1:1];
 mix.fp(tmp3)=mix.fp;
 mix.fpr(tmp3)=mix.fpr;
-
-

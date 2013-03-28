@@ -55,7 +55,7 @@ end
 % Get the movement parameters for each session separately...
 moveRegs = cell(size(aap.acq_details.sessions));
 
-for sess = 1:length(aap.acq_details.sessions)
+for sess = aap.acq_details.selected_sessions
         
     % Linear movement parameters text file...
     Mfn = aas_getfiles_bystream(aap,subj,sess,'realignment_parameter');

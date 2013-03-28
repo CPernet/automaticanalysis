@@ -28,7 +28,7 @@ corrTC(~trigon) = NaN;
 % Get the T and P values of the correlations...
 pMR = nan(size(corrTC));
 tMR = nan(size(corrTC));
-dfV = nan(1,size(corrTC));
+dfV = nan(1,length(corrTC));
 
 % Degrees of freedom for T and P values
 for a = 1:length(corrTC);

@@ -27,8 +27,8 @@ for f = 1:length(fileName)
         Y{f} = fileName{f};
     end
     
-    % Linearise
-    Y{f} = Y{f}(:);
+    % Linearise (exclude NaN and zero values)
+    Y{f} = Y{f}(and(~isnan(Y{f}), Y{f} ~= 0));
     
     % Parameters for histogram
     if nargin < 2 || isempty(bins)

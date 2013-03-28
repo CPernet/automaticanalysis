@@ -48,10 +48,13 @@ switch task
         
         cd (anadir)
         
+        %%%%%%%%%%%%%%%%%%%
+        %% DESIGN MATRIX %%
+        %%%%%%%%%%%%%%%%%%%
         SPM.xY.P = allfiles;
         SPMdes = spm_fmri_spm_ui(SPM);
         
-        %% DIAGNOSTIC
+        % DIAGNOSTIC
         mriname = aas_prepare_diagnostic(aap, subj);
         try
             saveas(1, fullfile(aap.acq_details.root, 'diagnostics', ...
@@ -70,6 +73,9 @@ switch task
             SPMdes.xM.TH=-inf(size(SPMdes.xM.TH));
         end
         
+        %%%%%%%%%%%%%%%%%%%
+        %% ESTIMATE MODEL%%
+        %%%%%%%%%%%%%%%%%%%
         spm_unlink(fullfile('.', 'mask.img')); % avoid overwrite dialog
         SPMest = spm_spm(SPMdes);
         

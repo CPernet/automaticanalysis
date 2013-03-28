@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <aap>
     <tasklist>
-        <currenttask domain='session' desc='SPM smooth' modality='MRI'>
+        <currenttask domain='subject' desc='GGMfit to normalise the value (e.g. T-value) distributions in an image' modality='MRI'>
             
             <qsub>
                 <timeBase>0.2</timeBase>
@@ -11,11 +11,19 @@
             <permanenceofoutput>2</permanenceofoutput>
             
             <inputstreams>
+                <!-- -->
                 <stream>firstlevel_spmts</stream>
+               <!--
+                <stream>firstlevel_betas</stream>
+                -->
             </inputstreams>
             
             <outputstreams>
+                <!---->
                 <stream>firstlevel_spmts</stream>
+                <!--
+                <stream>firstlevel_betas</stream>
+                -->
             </outputstreams>    
             
         </currenttask>

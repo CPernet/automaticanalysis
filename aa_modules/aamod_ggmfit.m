@@ -10,6 +10,7 @@ resp='';
 
 switch task
     case 'doit'
+        mriname = aas_prepare_diagnostic(aap);
         
         % Is session specified in task header?
         if (isfield(aap.tasklist.currenttask.settings,'session'))
@@ -33,13 +34,33 @@ switch task
                 Y = spm_read_vols(V);
                 
                 % Only non-zero non-nan values of image...
-                M = and(~isnan(Y), Y~=0);
+                M = and(isfinite(Y), Y~=0);
                 
-                ggmmix = ggmfit(Y(M));
+                % First we try the ggm model (Gaussian/Gamma)
+                ggmmix = ggmfit(Y(M)', 3, 'ggm');
+                
+                % If this does not work, we try with gmm (Gaussian)
+                if ~isfinite(ggmmix.mus(1)) || ggmmix.mus(1) == 0 ...
+                        || ~isfinite(ggmmix.sig(1)) || ggmmix.sig(1) == 0
+                    aas_log(aap,0,'Error in ggm, mu and/or sigma are NaN, trying ggm with 2 mixtures...')
+                    ggmmix = ggmfit(Y(M)', 2, 'ggm');
+                    
+                    if isnan(ggmmix.mus(1)) || isnan(ggmmix.sig(1))
+                        aas_log(aap,1,'Error in ggm, mu and/or sigma are NaN')
+                    end
+                end
+                
                 Y(M) = (Y(M) - ggmmix.mus(1)) ./ ggmmix.sig(1);
                 
+                Y(~M) = 0;      
                 spm_write_vol(V,Y);
             end
+            
+            % DEBUG (uncomment if you have trouble)
+            h = img2hist(P, [], 'Contrast distributions');
+            saveas(h, fullfile(aap.acq_details.root, 'diagnostics', ...
+                [mfilename '_' mriname '.fig']), 'fig');
+            try close(h); catch; end            
             
             % Describe outputs
             if (exist('sess','var'))
