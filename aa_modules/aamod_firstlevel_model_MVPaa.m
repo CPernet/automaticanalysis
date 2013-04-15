@@ -94,6 +94,7 @@ switch task
         
         % Loop over regressors and do Mumford/Poldrack modelling
         
+
         switch aap.tasklist.currenttask.settings.parallel
             case 'none'
                 for numReg = sessRegs
