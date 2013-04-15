@@ -22,7 +22,7 @@ switch task
         fprintf('Working with data from participant %s. \n', mriname)
                 
         % Load the data into a single big structure...
-        [aap MVPaa_data] = mvpaa_loadData(aap);
+        [aap, MVPaa_data] = mvpaa_loadData(aap);
         MVPaa_settings = aap.tasklist.currenttask.settings;
         
         %% DIAGNOSTICS?

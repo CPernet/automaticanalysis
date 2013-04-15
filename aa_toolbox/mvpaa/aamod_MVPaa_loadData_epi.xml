@@ -26,7 +26,14 @@
             <native>1</native>
             
             <!-- Force equal number of conditions across blocks? -->
-            <constantFactors>0</constantFactors>
+            <constantFactors>1</constantFactors>
+            <!-- Force equal number of blocks across sessions? -->
+            <constantBlocks>1</constantBlocks>
+            <!-- Force equal number of conditions across sessions? -->
+            <constantSessions>1</constantSessions>
+            
+            <!-- Consider conditions in different sessions as unique/independent -->
+            <collapseFactors>0</collapseFactors>
             
             <diagnostic>0</diagnostic>
             

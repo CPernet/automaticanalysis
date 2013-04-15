@@ -1,7 +1,7 @@
 % MVPAA Check factors
 % Automatically checks conditions/blocks in each session
 
-function [equalConditions, equalBlocks] = mvpaa_checkFactors(aap, conditionNum, sessionNum, blockNum)
+function [equalConditions, equalBlocks, equalSessions] = mvpaa_checkFactors(aap, conditionNum, sessionNum, blockNum)
 
 % Check if unique number of conditions, sessions and blocks corresponds
 % to the total number of datapoints...
@@ -13,12 +13,12 @@ sessionUnique = unique(sessionNum(sessionNum>0));
 
 %% Check if the design is simple...
 % (i.e. each session has equal number of conditions and blocks)
-% Check examining conditions in each session:
-factorUniqueC = unique(sessionNum * 10^6 + conditionNum);
+% Check examining if number of conditions in each block is contstant
+factorUniqueA = unique(blockNum * 10^6 + conditionNum);
 
-if length(factorUniqueC) ~= (length(sessionUnique) * length(conditionUnique))
-    aas_log(aap, false, ...
-        'Number/identity of conditions is disparate across sessions')
+if length(factorUniqueA) ~= (length(blockUnique) * length(conditionUnique))
+    aas_log(aap, aap.tasklist.currenttask.settings.constantFactors == 1, ...
+        'Number of conditions is disparate across blocks')
     equalConditions = 0;
 else
     equalConditions = 1;
@@ -28,11 +28,22 @@ end
 factorUniqueB = unique(sessionNum * 10^6 + blockNum);
 
 if length(factorUniqueB) ~= (length(sessionUnique) * length(blockUnique))
-    aas_log(aap, false, ...
+    aas_log(aap, aap.tasklist.currenttask.settings.constantBlocks == 1, ...
         'Number of blocks is disparate across sessions')
     equalBlocks = 0;
 else
     equalBlocks = 1;
+end
+
+% Check examining conditions in each session:
+factorUniqueC = unique(sessionNum * 10^6 + conditionNum);
+
+if length(factorUniqueC) ~= (length(sessionUnique) * length(conditionUnique))
+    aas_log(aap, aap.tasklist.currenttask.settings.constantSessions == 1, ...
+        'Number sessions id disparate across conditions (i.e. conditions are disparate across sessions)')
+    equalSessions = 0;
+else
+    equalSessions = 1;
 end
 
 %% Check if the design is valid (where we have no repeated sets of factors)

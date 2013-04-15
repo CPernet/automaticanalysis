@@ -37,7 +37,7 @@ for f = 1:length(fileName)
     end
     if nargin < 3
         name = 'Image';
-    end    
+    end
     
     % Now make a histogram and "normalise" it
     histVals{f} = hist(Y{f}, bins);
@@ -49,7 +49,7 @@ for f = 1:length(fileName)
     B = bar(bins, histVals{f}, 1, 'FaceColor', colorsB{f});
     ch = get(B,'child');
     set(ch, 'faceA', 0.3, 'edgeA', 0.2);
-        
+    
     % T-value of deviation from mean
     [junk,p,ci, Tstats] = ttest(Y{f});
     [p,junk,SRstats] = signrank(Y{f});
@@ -68,9 +68,14 @@ eval(legStr);
 
 %% Difference between 2 distributions
 if length(fileName) == 2
-    [h p dev Tstats] = ttest(Y{1},Y{2});
-    [p,junk,SRstats] = signrank(Y{1},Y{2});
-    
-    title(sprintf('%s: mean %0.2f, median %0.2f, ttest-Tval is: %0.2f, SR-Zval is: %0.2f', ...
-        name, nanmean(Y{1}) - nanmean(Y{2}), nanmedian(Y{1})- nanmedian(Y{2}), Tstats.tstat, SRstats.zval))
+    try
+        [h p dev Tstats] = ttest(Y{1},Y{2});
+        [p,junk,SRstats] = signrank(Y{1},Y{2});
+        title(sprintf('%s: mean %0.2f, median %0.2f, ttest-Tval is: %0.2f, SR-Zval is: %0.2f', ...
+            name, nanmean(Y{1}) - nanmean(Y{2}), nanmedian(Y{1}) - nanmedian(Y{2}), Tstats.tstat, SRstats.zval))
+    catch
+        [h p dev Tstats] = ttest2(Y{1},Y{2});
+        title(sprintf('%s: mean %0.2f, median %0.2f, ttest-Tval is: %0.2f', ...
+            name, nanmean(Y{1}) - nanmean(Y{2}), nanmedian(Y{1}) - nanmedian(Y{2}), Tstats.tstat))
+    end
 end

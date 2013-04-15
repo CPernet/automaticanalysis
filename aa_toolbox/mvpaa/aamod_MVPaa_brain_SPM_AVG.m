@@ -12,13 +12,12 @@ resp='';
 
 switch task
     case 'doit'
-        mriname = aas_prepare_diagnostic(aap);
         
         fprintf('Working with data from participant %s. \n',aap.acq_details.subjects(subj).mriname)
         instreams = aap.tasklist.currenttask.inputstreams.stream;
         
         Statistics = []; MVPaa_settings = [];
-        load(aas_getfiles_bystream(aap,subj,'MVPaa_1st'), 'Statistics', 'MVPaa_settings');
+        load(aas_getfiles_bystream(aap,subj,'MVPaa_1st'));
         
         % get sn mat file from normalisation
         if aap.tasklist.currenttask.settings.normalise == 1
@@ -72,17 +71,8 @@ switch task
                         aas_log(aap,1,'Error in ggm, mu and/or sigma are NaN')
                     end
                 end
-                                
-                P = (Statistics(M,c,2) - ggmmix.mus(1)) ./ ggmmix.sig(1);
                 
-                % Diagnostics
-                h = img2hist({Statistics(M,c,2), P}, [], 'Contrast distributions');
-                saveas(h, fullfile(aap.acq_details.root, 'diagnostics', ...
-                    [mfilename '_' mriname '_' num2str(c) '.fig']), 'fig');
-                try close(h); catch; end
-                
-                % Correct the stats...
-                Statistics(M,c,2) = P;
+                Statistics(M,c,2) = (Statistics(M,c,2) - ggmmix.mus(1)) ./ ggmmix.sig(1);
             end
         end
         

@@ -3,7 +3,7 @@
 % structure, and the names assigned to the conditions during the
 % 1st level modelling/contrasts steps
 
-function [SPM conditionNum sessionNum blockNum conditionNamesUnique nuisanceNum] = mvpaa_SPM_determineFactors(aap)
+function [SPM, conditionNum, sessionNum, blockNum, conditionNamesUnique, nuisanceNum] = mvpaa_SPM_determineFactors(aap)
 
 % Get current subject number...
 subj = aap.subj;

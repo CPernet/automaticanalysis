@@ -93,7 +93,7 @@ if ~isempty(compartmentRegs)
 end
 
 %% Physiological Regressors?
-if ~isempty(physiologicalRegs(sess).regs)
+if ~isempty(physiologicalRegs)
     SPM.Sess(sessnuminspm).C.C = [SPM.Sess(sessnuminspm).C.C ...
         physiologicalRegs(sess).regs];
     SPM.Sess(sessnuminspm).C.name = [SPM.Sess(sessnuminspm).C.name ...

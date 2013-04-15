@@ -24,8 +24,10 @@
                 <stream>MVPaa_1st</stream>
             </outputstreams>
             
-            <!--SETTINGS-->
-        
+            <!--SETTINGS-->            
+            <chunking desc='Number of chunks to split the data into, in each dimension'>1</chunking>
+            <parallelisation desc='How to parallelise [serial, torque]'>linear</parallelisation>
+            
             <!--Is the MVPA performed in native space? (0 - no, 1 - yes)-->
             <native>1</native>
             
@@ -68,11 +70,13 @@
             <maskInclusive>1</maskInclusive>
             
             <!-- DENOISING VARIABLES USED IN THE MODULE -->
+            <temporalDenoising></temporalDenoising>
             <temporalDenoisingMatrix desc='Matrix used for temporal denoising of the similarity data'
             ></temporalDenoisingMatrix>
-            <temporalDenoisingMode desc='session/subject/[distance in temporal matrix by which to exclude]'
+            <temporalDenoisingMode desc='session/subject'
             >10</temporalDenoisingMode>
             
+            <motionDenoising></motionDenoising>
             <motionDenoisingMatrix desc='Matrix used for motion denoising of the similarity data'
             ></motionDenoisingMatrix>
             <motionDenoisingMode desc='session/subject'
