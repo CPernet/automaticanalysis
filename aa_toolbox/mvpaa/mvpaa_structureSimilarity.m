@@ -31,7 +31,7 @@ acrossSessionNumbering(~acrossSession) = NaN;
 
 %% DEAL WITH BLOCKS
 
-% Renumber blockNum to be unique across the 
+% Renumber blockNum to be unique across the
 ind = 0;
 RblockNum = blockNum;
 for sess = unique(sessionNum)
@@ -68,12 +68,17 @@ switch aap.tasklist.currenttask.settings.triangulation
         testedCells = acrossSession;
     case 'withinSessions'
         testedCells = withinSession;
-    case 'all'
+    case {'all' 'none'}
         testedCells = or(withinSession, ...
             acrossSession);
-    case 'none'
-        testedCells = or(withinSession, ...
-            acrossSession);
+end
+% Remove spikes from tested cells, if these exist...
+if ~isempty(aap.tasklist.currenttask.settings.spikeNulling)
+    if any(size(testedCells) ~= size(aap.tasklist.currenttask.settings.spikeNulling))
+        aas_log(aap, 1, 'testedCells and spikeNulling matrices are not the same size!')
+    end
+    
+    testedCells(aap.tasklist.currenttask.settings.spikeNulling) = 0;
 end
 
 % Put everything in aap structure for later use...
@@ -102,40 +107,42 @@ switch aap.tasklist.currenttask.settings.statsType
 end
 
 %% DIAGNOSTIC (very important to see if all makes sense)
-mriname = aas_prepare_diagnostic(aap);
-h = figure;
-
-subplot(2,3,1)
-imagescnan(withinSession)
-axis equal tight
-title('Within sessions')
-
-subplot(2,3,2)
-imagescnan(acrossSession)
-axis equal tight
-title('Across sessions')
-
-subplot(2,3,4)
-imagescnan(withinSessionNumbering)
-axis equal tight
-title('Within session numberings')
-
-subplot(2,3,5)
-imagescnan(acrossSessionNumbering)
-axis equal tight
-title('Across session numberings')
-
-subplot(2,3,3)
-imagescnan(blockNumbering)
-axis equal tight
-title('Block numberings')
-
-subplot(2,3,6)
-imagescnan(conditionNumbering)
-axis equal tight
-title('Condition numberings')
-
-saveas(h, fullfile(aap.acq_details.root, 'diagnostics', ...
-    [mfilename '__' mriname '.fig']));
-
-close(h)
+if aap.tasklist.currenttask.settings.diagnostic > 0
+    mriname = aas_prepare_diagnostic(aap);
+    h = figure;
+    
+    subplot(2,3,1)
+    imagescnan(withinSession)
+    axis equal tight
+    title('Within sessions')
+    
+    subplot(2,3,2)
+    imagescnan(acrossSession)
+    axis equal tight
+    title('Across sessions')
+    
+    subplot(2,3,4)
+    imagescnan(withinSessionNumbering)
+    axis equal tight
+    title('Within session numberings')
+    
+    subplot(2,3,5)
+    imagescnan(acrossSessionNumbering)
+    axis equal tight
+    title('Across session numberings')
+    
+    subplot(2,3,3)
+    imagescnan(blockNumbering)
+    axis equal tight
+    title('Block numberings')
+    
+    subplot(2,3,6)
+    imagescnan(conditionNumbering)
+    axis equal tight
+    title('Condition numberings')
+    
+    saveas(h, fullfile(aap.acq_details.root, 'diagnostics', ...
+        [mfilename '__' mriname '.eps']));
+    
+    close(h)
+end

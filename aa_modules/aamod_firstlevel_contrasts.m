@@ -57,6 +57,7 @@ switch task
         contrasts=aap.tasklist.currenttask.settings.contrasts(contrasts_set);
         
         for conind=1:length(contrasts.con)
+            convec_names  = SPM.xX.name(SPM.xX.iC);
             
             switch(contrasts.con(conind).format)
                 case {'singlesession','sameforallsessions'}
@@ -76,10 +77,12 @@ switch task
                         numcolsinthissess=length(SPM.Sess(sessnuminspm).col);
                         if (sessforcon(sess))
                             if (size(contrasts.con(conind).vector,2) > numcolsinthissess)
-                                aas_log(aap,true,sprintf('Number of columns in contrast matrix for session %d is more than number of columns in model for this session  -  wanted %d columns, got ',sess,numcolsinthissess)); disp(contrasts.con(conind).vector);
+                                aas_log(aap,true,sprintf('Number of columns in contrast matrix for session %d is more than number of columns in model for this session  -  wanted %d columns, got ',sess,numcolsinthissess));
+                                %disp(contrasts.con(conind).vector);
                             elseif (size(contrasts.con(conind).vector,2) < numcolsinthissess)
                                 convec  = [convec contrasts.con(conind).vector zeros(size(contrasts.con(conind).vector,1),numcolsinthissess-size(contrasts.con(conind).vector,2))];
-                                aas_log(aap,false,sprintf('Warning: Number of columns in contrast matrix for session %d is less than number of columns in model for this session  -  wanted %d columns, so padding to ',sess,numcolsinthissess)); disp(convec);
+                                aas_log(aap,false,sprintf('Warning: Number of columns in contrast matrix for session %d is less than number of columns in model for this session  -  wanted %d columns, so padding to ',sess,numcolsinthissess));
+                                %disp(convec);
                             else
                                 convec=[convec contrasts.con(conind).vector];
                             end
@@ -91,7 +94,8 @@ switch task
                 case 'uniquebysession'
                     totnumcolsbarconstants  =  size(SPM.xX.X,2) -  length(aap.acq_details.selected_sessions);
                     if (size(contrasts.con(conind).vector,2) > totnumcolsbarconstants)
-                        aas_log(aap,true,sprintf('Number of columns in contrast matrix for session %d is more than number of columns in model (bar constants) -  wanted %d columns, got ',totnumcolsbarconstants)); disp(contrasts.con(conind).vector);
+                        aas_log(aap,true,sprintf('Number of columns in contrast matrix for session %d is more than number of columns in model (bar constants) -  wanted %d columns, got ',totnumcolsbarconstants));
+                        %disp(contrasts.con(conind).vector);
                     elseif (size(contrasts.con(conind).vector,2) < totnumcolsbarconstants)
                         convec  =  contrasts.con(conind).vector;
                         if (contrasts.automatic_movesandmeans) % moves are the realignment parameters, means the session mean signal
@@ -99,25 +103,24 @@ switch task
                             convec_out  =  zeros(1,totnumcolsbarconstants);
                             convec_out(SPM.xX.iC) =  convec;
                             
-                            convec_names  = {SPM.xX.name(SPM.xX.iC)};
-                            
-                            % DIAGNOSTIC
-                            fprintf('\n%s\n', contrasts.con(conind).name)
-                            for r  =  1:max(size(convec_names{1}))
-                                fprintf('\t%s: %d\n', convec_names{1}{r}, convec(r))
-                            end
-                            
                             convec=convec_out;
                         end;
                         if (size(convec,2) < totnumcolsbarconstants)
-                            aas_log(aap,false,sprintf('Warning: Number of columns in contrast matrix for ''uniquebysession'' option is less than number columns in model (bar constants) = %d, so padding to ',totnumcolsbarconstants)); disp(convec);
+                            aas_log(aap,false,sprintf('Warning: Number of columns in contrast matrix for ''uniquebysession'' option is less than number columns in model (bar constants) = %d, so padding to ',totnumcolsbarconstants));
+                            %disp(convec);
                         end;
                     else
                         convec=contrasts.con(conind).vector;
                     end
                 otherwise
                     aas_log(aap,true,sprintf('Unknown format %s specified for contrast %d',contrasts.con(conind).format,conind));
-            end;
+            end
+            
+            % DIAGNOSTIC
+            fprintf('\n%s\n', contrasts.con(conind).name)
+            for r  =  1:max(size(convec_names))
+                fprintf('\t%s: %d\n', convec_names{r}, convec(SPM.xX.iC(r)))
+            end
             
             cons{conind} = [convec zeros(size(convec,1),length(aap.acq_details.selected_sessions))]; % Add final constant terms
             

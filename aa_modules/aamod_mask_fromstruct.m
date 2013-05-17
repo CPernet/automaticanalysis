@@ -187,8 +187,8 @@ switch task
         spm_check_registration(strvcat( ...
             mEPIimg, ... % Get mean EPI across sessions
             Soutstream(1,:), ... % Get first segmented GM image
-            Soutstream(3,:), ... % Get first segmented WM image
-            Soutstream(5,:))); % Get first segmented CSF image
+            Soutstream(2,:), ... % Get first segmented WM image
+            Soutstream(3,:))); % Get first segmented CSF image
         
         % Outline of structural!
         spm_ov_reorient('context_init', 1)

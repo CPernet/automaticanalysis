@@ -1,7 +1,10 @@
-function Statistics = mvpaa_brain_1st(aap, MVPaa_obj, chunk, segMask)
+function mvpaa_brain_1st(aap, MVPaa_obj, chunk, chunkName, segMask)
+if nargin < 5
+    segMask = [];
+end
 
 % Decide how much of the data to load...
-brainSize = size(MVPaa_obj,'MVPaa_data'); brainSize(1) = [];
+brainSize = aap.tasklist.currenttask.settings.brainSize;
 ROIradius = aap.tasklist.currenttask.settings.ROIradius;
 
 chunkExp = cell(size(chunk));
@@ -29,7 +32,7 @@ ROInum = dataDim(1) .* dataDim(2) .* dataDim(3);
 
 %% ROI SPHERE (x-y-z indices)
 [ROIx, ROIy, ROIz] = mvpaa_makeSphere(aap);
-        
+
 % Create output arrays...
 Statistics = NaN(ROInum, ...
     length(aap.tasklist.currenttask.settings.contrasts), ...
@@ -38,6 +41,8 @@ Statistics = NaN(ROInum, ...
 % Loop the routine over all ROIs
 reverseStr = ''; % for displaying % progress
 ROIcheck = round(ROInum/100);
+
+sumSimilarity = 0;
 
 for r = 1:ROInum %#ok<BDSCI>
     % If voxel is outside chunk, ignore it...
@@ -66,6 +71,7 @@ for r = 1:ROInum %#ok<BDSCI>
     
     % Compute similarities of the the MVPaa_data
     Similarity = mvpaa_similarity(aap, Pattern);
+    sumSimilarity = sumSimilarity + Similarity;
     
     % DENOISING
     % Remove effects related to subject motion (if info available)
@@ -82,3 +88,5 @@ end
 
 % Remove stats that are outside of chunk...
 Statistics = Statistics(chunkMask, :,:);
+
+save(chunkName, 'Statistics', 'sumSimilarity')

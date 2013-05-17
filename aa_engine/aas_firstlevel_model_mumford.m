@@ -1,5 +1,5 @@
 function aas_firstlevel_model_mumford(aap, anadir, coreSPM, files, allfiles, ...
-    model, modelC, sessRegs, numReg, ...
+    model, modelC, eventNumber, sessNumber, numReg, nDest, ...
     movementRegs, compartmentRegs, physiologicalRegs, spikeRegs)
 
 Tmodel = cell(size(model));
@@ -103,9 +103,6 @@ rSPMest = spm_spm(rSPMdes);
 % They contain the string Reg...
 nOrig = find(~cellfun('isempty', strfind(rSPMest.xX.name, 'Reg')));
 
-% determined by the number of regressors per session in SPMest
-nDest = SPMest.xX.iC(eventNumber==numReg);
-
 % Now move the actual files
 for f = 1:length(nOrig)
     unix(['mv ' fullfile(Tanadir, sprintf('beta_%04d.img', nOrig(f))) ...
@@ -113,3 +110,6 @@ for f = 1:length(nOrig)
     unix(['mv ' fullfile(Tanadir, sprintf('beta_%04d.hdr', nOrig(f))) ...
         ' ' fullfile(anadir, sprintf('beta_%04d.hdr', nDest(f)))]);
 end
+
+% Delete the Tanadir
+unix(['rm -rf ' Tanadir]);

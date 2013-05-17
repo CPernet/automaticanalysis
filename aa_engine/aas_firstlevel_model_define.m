@@ -2,24 +2,25 @@ function [SPM, cols_interest, cols_nuisance, currcol] = aas_firstlevel_model_def
     cols_interest, cols_nuisance, currcol, ...
     movementRegs, compartmentRegs, physiologicalRegs, spikeRegs)
 
-
 %% Define model{sess} events
 if ~isempty(model{sess})
     for c = 1:length(model{sess}.event);
         if (isempty(model{sess}.event(c).parametric))
             parametric=struct('name','none');
+            parLen = 0;
         else
             parametric=model{sess}.event(c).parametric;
+            parLen = length(parametric);
         end
         SPM.Sess(sessnuminspm).U(c) = struct(...
             'ons', model{sess}.event(c).ons,...
             'dur', model{sess}.event(c).dur,...
             'name', {{model{sess}.event(c).name}},...
             'P',parametric);
-        cols_interest=[cols_interest currcol];
-        currcol=currcol+1;
+        cols_interest=[cols_interest currcol:(currcol+parLen)];
+                    currcol=currcol+1+parLen;
     end
-end
+end 
 
 %% Define model covariates
 if ~isempty(modelC{sess})

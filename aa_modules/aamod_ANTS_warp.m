@@ -8,7 +8,7 @@ resp='';
 
 switch task
     case 'doit'
-        
+        mriname = aas_prepare_diagnostic(aap,subj);
         
         %% Get ANTs warps
         ANTSimg = aas_getfiles_bystream(aap,subj,'ANTs');
@@ -122,8 +122,8 @@ switch task
                 spm_ov_reorient('context_init', 1)
                 
                 try figure(spm_figure('FindWin', 'Graphics')); catch; figure(1); end;
-                print('-djpeg','-r75',fullfile(aap.acq_details.root, 'diagnostics', ...
-                    [mfilename '__' aap.acq_details.subjects(subj).mriname '_' num2str(c) '.jpeg']));
+                print('-depsc2', fullfile(aap.acq_details.root, 'diagnostics', ...
+                    [mfilename '__' mriname '_' num2str(c) '.eps']));
             end
             warning on
         end

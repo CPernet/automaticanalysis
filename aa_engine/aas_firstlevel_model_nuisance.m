@@ -6,7 +6,9 @@ streamIn = aap.tasklist.currenttask.inputstreams.stream;
 %% Movement regressors (extended!) [AVG]
 movementRegs = [];
 
-if aap.tasklist.currenttask.settings.includemovementpars == 1
+if isfield(aap.tasklist.currenttask.settings, 'includemovementpars') && ...
+        aap.tasklist.currenttask.settings.includemovementpars == 1
+    
     [moves, mnames] = aas_movPars(aap,subj, aap.tasklist.currenttask.settings.moveMat);
     
     for sess = aap.acq_details.selected_sessions

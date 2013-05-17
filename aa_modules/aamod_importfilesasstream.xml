@@ -9,7 +9,7 @@
                 <memoryBase>0.2</memoryBase>
             </qsub>
             
-            <permanenceofoutput>1</permanenceofoutput>
+            <permanenceofoutput>3</permanenceofoutput>
             
             <match></match>
             <!-- For example, if executed at session domain, contains

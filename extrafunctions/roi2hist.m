@@ -13,8 +13,11 @@ if nargin < 4 || isempty(legendExtra)
 end
 
 % Load the data image
-
-Y = spm_read_vols(spm_vol(dataImg));
+if isstr(dataImg)
+    Y = spm_read_vols(spm_vol(dataImg));
+else
+    Y = dataImg;
+end
 
 ROIname = cell(1:size(ROIimg,1));
 ROIvol = cell(1:size(ROIimg,1));
@@ -42,8 +45,8 @@ end
 
 for r = 1:length(ROIimg)
     % Now get the voxels specific to each ROI
-    ROIdata{r} = Y(ROIvol{r}>0);
-    ROIdata{r} = ROIdata{r}(ROIdata{r}>0); % We don't want to include zero values...
+    ROIdata{r} = Y(ROIvol{r});
+    ROIdata{r} = ROIdata{r}(isfinite(ROIdata{r}) & ROIdata{r} ~= 0); % We don't want to include zero values...
 end
 
 %% tSNR results figure!
@@ -67,7 +70,8 @@ try close(2); catch; end
 
 figure(2)
 set(2, 'Position', [0 0 1000 550])
-maxI = 0;
+minI = Inf;
+maxI = -Inf;
 windI = 0;
 maxV = 0;
 hold on
@@ -75,10 +79,11 @@ hold on
 for r = 1:length(ROIimg)
     % What range do the SNR values take?
     maxI = max(max(ROIdata{r}), maxI);
+    minI = min(min(ROIdata{r}), minI);
     % What window do we wish to present?
     windI = max(median(ROIdata{r}) + std(ROIdata{r}) * 3, windI);
 end
-vals = 0:windI/250:ceil(maxI);
+vals = floor(minI):windI/250:ceil(maxI);
 for r = 1:length(ROIimg)
     % Now make a histogram and "normalise" it
     H = hist(ROIdata{r}, vals);
@@ -91,7 +96,7 @@ for r = 1:length(ROIimg)
     ch = get(B,'child');
     set(ch, 'faceA', 0.3, 'edgeA', 0.2);
 end
-vals = 0:windI/100:ceil(windI);
+vals = floor(minI):windI/100:ceil(windI);
 % Set the axis to a good value!
 axis([vals(1), vals(end), 0, maxV*1.05])
 xlabel('Voxel value')

@@ -11,7 +11,7 @@ end
 h = figure;
 hold on
 
-colorsB = aas_colours;
+colorsB = distinguishable_colors(length(fileName));
 histVals = cell(size(fileName));
 Y = cell(size(fileName));
 
@@ -46,7 +46,7 @@ for f = 1:length(fileName)
     maxV = max(max(histVals{f}), maxV);
     
     % Make bars semi-transparent for overlaying
-    B = bar(bins, histVals{f}, 1, 'FaceColor', colorsB{f});
+    B = bar(bins, histVals{f}, 1, 'FaceColor', colorsB(f,:));
     ch = get(B,'child');
     set(ch, 'faceA', 0.3, 'edgeA', 0.2);
     

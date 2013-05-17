@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <aap>
     <tasklist>
-        <currenttask domain='study' desc='SPM second level model' modality='MRI'>
+        <currenttask domain='study' mfile_alias = 'aamod_secondlevel_model' desc='SPM second level model' modality='MRI'>
             
             <qsub>
                 <timeBase>1</timeBase>

@@ -102,6 +102,9 @@ switch task
         end
         aap=aas_desc_outputs(aap,subj,'firstlevel_betas',betafns);
         
+        %% DIAGNOSTICS...
+        firstlevelmodelStats(anadir, [], fullfile(anadir, 'mask.img'))
+        
     case 'checkrequirements'
         
     otherwise

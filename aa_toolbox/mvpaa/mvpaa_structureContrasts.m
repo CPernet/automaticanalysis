@@ -7,12 +7,8 @@ function aap = mvpaa_structureContrasts(aap)
 
 contrasts = aap.tasklist.currenttask.settings.contrasts;
 testedCells = aap.tasklist.currenttask.settings.testedCells;
-blockNumbering = aap.tasklist.currenttask.settings.blockNumbering;
 conditionNumbering = aap.tasklist.currenttask.settings.conditionNumbering;
 conditions = length(unique(aap.tasklist.currenttask.settings.conditionNum));
-
-% Get block numbers linearised
-contrasts.blocks = blockNumbering(testedCells);
 
 for c = 1:length(contrasts)
     %% SANITY CHECKS
@@ -25,7 +21,7 @@ for c = 1:length(contrasts)
        aas_log(aap, 1, 'Your contrast matrix is not the same size as your number of conditions!') 
     end
     % Are contrast matrices symmetric across the leading diagonal?
-    if nanmean(nanmean(abs(contrasts(c).matrix - contrasts(c).matrix'))) ~= 0
+    if nansum(nanmean(abs(contrasts(c).matrix - contrasts(c).matrix'))) ~= 0
         aas_log(aap, 1, 'Your contrast matrix is not symmetric across the leading diagonal!')
     end
     % Do contrast matrices have more than 1 value?

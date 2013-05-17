@@ -21,10 +21,10 @@ if nargin < 3
 end
 % Make image inputs into cells if they are not (@@@ IMPROVE LATER @@@)
 if ~iscell(spmT_images)
-    spmT_images = {spmT_images};
+    spmT_images = strvcat2cell(spmT_images);
 end
 if ~iscell(con_images)
-    con_images = {con_images};
+    con_images = strvcat2cell(con_images);
 end
 % Get df out of cell array
 if iscell(df)

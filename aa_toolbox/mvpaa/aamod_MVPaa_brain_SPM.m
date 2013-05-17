@@ -38,18 +38,7 @@ switch task
         % FWHM in millimetres
         FWHMmm = aap.tasklist.currenttask.settings.FWHM;
         
-        V = spm_vol(Mimg);
-        
-        %% GET MASK
-        mask = spm_read_vols(V);
-        % Remove stuff where we don't do stats!
-        mask(or(~isfinite(Statistics(:,1,2)), Statistics(:,1,2)==0)) = 0;
-        
-        % Write out mask image containing only tested locations...
-        V.fname = fullfile(aas_getsubjpath(aap,subj), 'mask.nii');
-        V.dt(1) = 2;
-        
-        spm_write_vol(V, mask);
+        V = spm_vol(Mimg);        
         
         %% GGM fit correction if necessary...
         
@@ -83,6 +72,7 @@ switch task
                 
                 % Correct the stats...
                 Statistics(M,c,2) = P;
+                Statistics(~M,c,2) = 0;
             end
         end
         
@@ -117,11 +107,22 @@ switch task
             spm_write_sn(Flist, normMAT, normPars);
         end
         
+        %% CREATE MASK
+        % better than normalising original mask...
+        V = spm_vol(Flist(1,:));
+        Y = spm_read_vols(V);
+        mask = Y~=0 & isfinite(Y);
+        
+        %Write out mask image containing only tested locations...
+        V.fname = fullfile(aas_getsubjpath(aap,subj), 'mask.nii');
+        V.dt(1) = 2;
+        spm_write_vol(V, mask);
+        
         %% SMOOTH IMAGES
         if FWHMmm > 0
             
             fprintf('Smoothing images... \n')
-            for f = 2:size(Flist,1);
+            for f = 1:size(Flist,1);
                 Q = Flist(f,:);
                 U = Flist(f,:); % No prefixes!
                 spm_smooth(Q,U,FWHMmm);
@@ -131,17 +132,13 @@ switch task
         %% MASK SMOOTHED IMAGES!
         % Included mask to mask out untested data
         fprintf('NaNing untested voxels... \n')
-        
-        mask = spm_read_vols(spm_vol(Flist(1,:)));
-        mask = mask > 0;
-        
+                
         for f = 2:size(Flist,1)
             V = spm_vol(Flist(f,:));
             Y = spm_read_vols(V);
             if strfind(Flist(f,:), 'spmT')
                 % Zero mask in statistics...
-                Y(~mask) = 0;
-                Y(isnan(Y)) = 0;
+                Y(~mask) = NaN;
             elseif strfind(Flist(f,:), 'con')
                 % NaN mask in statistics...
                 Y(~mask) = NaN;
@@ -152,7 +149,8 @@ switch task
         % Remove spmT images from Clist
         Clist = Flist;
         for f = size(Clist,1):-1:1
-            if ~isempty(strfind(Clist(f,:), 'spmT_')) || ~isempty(strfind(Clist(f,:), 'mask'))
+            [pth, fn] = fileparts(Flist(f,:));
+            if ~isempty(strfind(fn, 'spmT_')) || ~isempty(strfind(fn, 'mask'))
                 Clist(f,:) = [];
             end
         end
@@ -160,7 +158,8 @@ switch task
         % Remove spmT images from Clist
         Slist = Flist;
         for f = size(Slist,1):-1:1
-            if ~isempty(strfind(Slist(f,:), 'con_')) || ~isempty(strfind(Slist(f,:), 'mask'))
+            [pth, fn] = fileparts(Slist(f,:));
+            if ~isempty(strfind(fn, 'con_')) || ~isempty(strfind(fn, 'mask'))
                 Slist(f,:) = [];
             end
         end

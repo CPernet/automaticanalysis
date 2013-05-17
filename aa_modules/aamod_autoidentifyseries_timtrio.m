@@ -135,7 +135,7 @@ switch task
                     
                     if (aap.options.autoidentifyfieldmaps)
                         if (findstr(hdr{1}.ProtocolName,aap.directory_conventions.protocol_fieldmap))
-                            if (length(series_newfieldmap)>2)
+                            if (length(series_newfieldmap)>aap.options.autoidentifyfieldmaps_number)
                                 aas_log(aap,1,['Automatic series id failed - more than a pair of Siemens fieldmap acquisition were found.' sprintf('%d\t',series_newfieldmap)]);
                             end
                             series_newfieldmap=[series_newfieldmap seriesnum];

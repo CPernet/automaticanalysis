@@ -1,6 +1,12 @@
-% This function correlates timecourses and displays a useful figure...
-
-function [sharedVar h] = corrTCs(aggrVars, TCnames, NaNnonsig)
+%% This function correlates timecourses and displays a useful figure...
+% Inputs:
+%   aggrVars = PxC matrix, where P are timepoints across which to
+%       correlate, and C are columns whose correlations with one another
+%       you wish to see
+%   TCnames = names for the columns
+%   NaNnonsig = whether to NaN non-significant correlations (1 by default)
+%   plotTCs = whether to plot the timecourses (1 by default)
+function [sharedVar h] = corrTCs(aggrVars, TCnames, NaNnonsig, plotTCs)
 
 if nargin < 2
     error('Not enough input variables')
@@ -8,16 +14,11 @@ end
 if nargin < 3
     NaNnonsig = 1;
 end
+if nargin < 4
+    plotTCs = 1;
+end
 
 %% SOME DEBUGGING CODE TO SHOW MOVE REGRESSOR INFO...
-
-% Normalise the timecourses for display
-for t = 1:size(aggrVars,2)
-    % Zero based
-    aggrVars(:,t) = aggrVars(:,t) - min(aggrVars(:,t));
-    % Max value is 1
-    aggrVars(:,t) = aggrVars(:,t) ./ max(aggrVars(:,t));
-end
 
 % And correlate the various regressors, as diagnostic
 corrTC = corrcoef(aggrVars, 'rows', 'pairwise');
@@ -55,17 +56,27 @@ MsharedVar = nanmean(abs(sharedVar(:)));
 h = figure;
 set(h, 'Position', [0 0 1200 700])
 
-subplot(1,2,1)
-%imagesc(aggrVars, 'AlphaData',~isnan(aggrVars)) 
-imagescnan(aggrVars)
-set(gca, 'Xtick', 1:length(corrTC), 'Ytick', [1 size(aggrVars,1)], ...
-    'Xticklabel', TCnames, 'Yticklabel', [1 size(aggrVars,1)])
-ylabel('Timepoints')
-colorbar
-title('Variables across ''Timepoints''')
-rotateticklabel(gca,90);
-
-subplot(1,2,2)
+if plotTCs
+    % Normalise the timecourses for display
+    for t = 1:size(aggrVars,2)
+        % Zero based
+        aggrVars(:,t) = aggrVars(:,t) - min(aggrVars(:,t));
+        % Max value is 1
+        aggrVars(:,t) = aggrVars(:,t) ./ max(aggrVars(:,t));
+    end
+    
+    subplot(1,2,1)
+    %imagesc(aggrVars, 'AlphaData',~isnan(aggrVars))
+    imagescnan(aggrVars)
+    set(gca, 'Xtick', 1:length(corrTC), 'Ytick', [1 size(aggrVars,1)], ...
+        'Xticklabel', TCnames, 'Yticklabel', [1 size(aggrVars,1)])
+    ylabel('Timepoints')
+    colorbar
+    title('Variables across ''Timepoints''')
+    rotateticklabel(gca,90);
+    
+    subplot(1,2,2)
+end
 %imagesc(sharedVar, 'AlphaData', ~isnan(sharedVar)) 
 imagescnan(sharedVar)
 set(gca, 'Xtick', 1:length(corrTC), 'Ytick', 1:length(corrTC), ...

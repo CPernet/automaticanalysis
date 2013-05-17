@@ -98,11 +98,12 @@ switch task
         switch aap.tasklist.currenttask.settings.parallel
             case 'none'
                 for numReg = sessRegs
+                    nDest = SPMest.xX.iC(eventNumber==numReg);
                     aas_firstlevel_model_mumford(aap, anadir, coreSPM, files, allfiles, ...
-                        model, modelC, sessRegs, numReg, ...
+                        model, modelC, eventNumber, sessNumber, numReg, nDest, ...
                         movementRegs, compartmentRegs, physiologicalRegs, spikeRegs)
-                end
-            case 'qsub'
+                end                
+            case 'torque'
                 for numReg = sessRegs
                     aapCell{numReg}                = aap;
                     anadirCell{numReg}             = anadir;
@@ -112,8 +113,10 @@ switch task
                     
                     modelCell{numReg}              = model;
                     modelCCell{numReg}             = modelC;
-                    sessRegsCell{numReg}           = sessRegs;
+                    eventNumberCell{numReg}        = eventNumber;
+                    sessNumberCell{numReg}         = sessNumber;
                     numRegCell{numReg}             = numReg;
+                    nDestCell{numReg}              = SPMest.xX.iC(eventNumber==numReg);
                     
                     movementRegsCell{numReg}       = movementRegs;
                     compartmentRegsCell{numReg}    = compartmentRegs;
@@ -123,17 +126,14 @@ switch task
                 
                 qsubcellfun(@aas_firstlevel_model_mumford, ...
                     aapCell, anadirCell, coreSPMCell, filesCell, allfilesCell, ...
-                        modelCell, modelCCell, sessRegsCell, numRegCell, ...
+                        modelCell, modelCCell, eventNumberCell, sessNumberCell, numRegCell, nDestCell, ...
                         movementRegsCell, compartmentRegsCell, physiologicalRegsCell, spikeRegsCell, ...
                     'memreq', 3.7 * (1024^3), ... % NOT DYNAMIC YET!!!
                     'timreq', 1 * (3600), ...
                     'stack', 1 ...
                     );
         end
-        
-        cd(anadir)
-        unix('rm -rf temp_*');
-        
+                
         %% Describe outputs
         cd (cwd);
         
@@ -156,6 +156,9 @@ switch task
             betafns=strvcat(betafns,fullfile(anadir,otherfiles{otherind}));
         end
         aap=aas_desc_outputs(aap,subj,'firstlevel_betas',betafns);
+        
+        %% DIAGNOSTICS...
+        firstlevelmodelStats(anadir, [], fullfile(anadir, 'mask.img'))
         
     case 'checkrequirements'
         

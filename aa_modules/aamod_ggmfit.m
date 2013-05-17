@@ -10,7 +10,7 @@ resp='';
 
 switch task
     case 'doit'
-        mriname = aas_prepare_diagnostic(aap);
+        mriname = aas_prepare_diagnostic(aap, subj);
         
         % Is session specified in task header?
         if (isfield(aap.tasklist.currenttask.settings,'session'))
@@ -51,16 +51,17 @@ switch task
                 end
                 
                 Y(M) = (Y(M) - ggmmix.mus(1)) ./ ggmmix.sig(1);
+                Y(~M) = NaN;
                 
-                Y(~M) = 0;      
                 spm_write_vol(V,Y);
             end
             
-            % DEBUG (uncomment if you have trouble)
+            % DEBUG (uncomment if you have trouble)            
             h = img2hist(P, [], 'Contrast distributions');
-            saveas(h, fullfile(aap.acq_details.root, 'diagnostics', ...
-                [mfilename '_' mriname '.fig']), 'fig');
-            try close(h); catch; end            
+            legend('off')
+            print('-depsc2', fullfile(aap.acq_details.root, 'diagnostics', ...
+                [mfilename '_' mriname '.eps']));
+            try close(h); catch; end
             
             % Describe outputs
             if (exist('sess','var'))
