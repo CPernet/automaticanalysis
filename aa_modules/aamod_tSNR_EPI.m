@@ -135,7 +135,7 @@ switch task
         
         if ~isempty(ROIimg)
             fprintf('\n\tFinalising ROI data')
-            
+
             for r = 1:size(ROIimg,1)
                 % Get a whole ROI signal and noise estimate
                 SNmROI{r} = mean(mROI{r}) ./ std(mROI{r});
