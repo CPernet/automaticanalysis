@@ -132,14 +132,12 @@ switch task
                 
                 % Decide whether to ignore this series [djm 20/3/06]
                 % absolute number rather than index (jc)
-                if ~any(aap.acq_details.subjects(i).ignoreseries == ...
-                        rawdata_allseries(j))
-
+                if ~any(aap.acq_details.subjects(subj).ignoreseries == ...
+                        rawdata_allseries(sess))
                     if (aap.options.autoidentifyfieldmaps)
+                        % Just identify all possible fieldmaps without
+                        % error checking (comes later)
                         if (findstr(hdr{1}.ProtocolName,aap.directory_conventions.protocol_fieldmap))
-                            if (length(series_newfieldmap)>aap.options.autoidentifyfieldmaps_number)
-                                aas_log(aap,1,['Automatic series id failed - more than a pair of Siemens fieldmap acquisition were found.' sprintf('%d\t',series_newfieldmap)]);
-                            end
                             series_newfieldmap=[series_newfieldmap seriesnum];
                         end
                     end
@@ -174,27 +172,46 @@ switch task
         aas_makedir(aap,ais_p);
         aapoptions=aap.options;
         if (exist('alldicomfiles','var'))
-            save(aisfn,'series_newfieldmap','series_spgr','series_tmaps','aapoptions','alldicomfiles','rawdata_allseries');
+            save(aisfn,'series_newfieldmap','series_spgr',...
+                'series_tmaps','aapoptions','alldicomfiles',...
+                'rawdata_allseries');
         else
-            save(aisfn,'series_newfieldmap','series_spgr','series_tmaps','aapoptions');
+            save(aisfn,'series_newfieldmap','series_spgr',...
+                'series_tmaps','aapoptions');
         end
         
         % Make comment
         comment=[];
         if (aap.options.autoidentifyfieldmaps)
+            % Check that we got the expected number of fieldmaps (or that
+            % handling of extra fieldmaps is enabled)
+            nmaps = length(series_newfieldmap);
+            ntarget = aap.options.autoidentifyfieldmaps_number;
+            assert(rem(nmaps,ntarget)==0,'found odd number of fieldmaps');
+            assert(nmaps==ntarget || ...
+                (aap.options.autoidentifyfieldmaps_choosefirst || ...
+                aap.options.autoidentifyfieldmaps_chooselast),...
+                sprintf('found %d fieldmaps, expected %d',nmaps,ntarget));
+            assert(~all([aap.options.autoidentifyfieldmaps_choosefirst ...
+                aap.options.autoidentifyfieldmaps_chooselast]),...
+                'cannot specify both choosefirst and chooselast fieldmap');
             aap.acq_details.subjects(subj).siemensfieldmap={};
-            if (length(series_newfieldmap)==aap.options.autoidentifyfieldmaps_number)
-                comment=[comment ' ' sprintf('gre_fieldmapping found %d',series_newfieldmap(1))];
-                % Generalisation of fieldmap number...
-                for n = 2:aap.options.autoidentifyfieldmaps_number
-                    comment=[comment ' ' sprintf(' and %d',series_newfieldmap(n))];
-                end
-                aap.acq_details.subjects(subj).siemensfieldmap=series_newfieldmap;
-            else
-                aas_log(aap,1,'Automatic series id failed - one of the fieldmap acquisitions was not found.');
+            % pick first / last ntarget fieldmaps
+            if aap.options.autoidentifyfieldmaps_choosefirst
+                series_newfieldmap = series_newfieldmap(1:ntarget);
+            elseif aap.options.autoidentifyfieldmaps_chooselast
+                series_newfieldmap = series_newfieldmap(...
+                    (nmaps+1-ntarget):nmaps);
             end
+            comment=[comment ' ' sprintf('gre_fieldmapping found %d',...
+                series_newfieldmap(1))];
+            % Generalisation of fieldmap number...
+            for n = 2:ntarget
+                comment=[comment ' ' sprintf(' and %d',...
+                    series_newfieldmap(n))];
+            end
+            aap.acq_details.subjects(subj).siemensfieldmap=series_newfieldmap;
         end
-        
         
         if (aap.options.autoidentifystructural)
             if length(series_spgr)>1
@@ -205,14 +222,18 @@ switch task
                 end
             end
             aap.acq_details.subjects(subj).structural=series_spgr;
-            comment=[comment sprintf(' Structural series %d ',series_spgr)];
+            comment=[comment sprintf(' Structural series %d ',...
+                series_spgr)];
         end
         
         if (aap.options.autoidentifytmaps)
             aap.acq_details.subjects(subj).tmaps=series_tmaps;
-            comment=[comment [' T maps series ' sprintf('%d\t',series_tmaps)]];
+            comment=[comment [' T maps series ' sprintf('%d\t',...
+                series_tmaps)]];
         end
-        if (length(comment)>0) aas_log(aap,0,comment); end
+        if (length(comment)>0) 
+            aas_log(aap,0,comment)
+        end
         
         aap=aas_desc_outputs(aap,subj,'autoidentifyseries',aisfn);
     case 'checkrequirements'

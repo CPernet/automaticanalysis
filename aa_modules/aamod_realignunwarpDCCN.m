@@ -68,15 +68,6 @@ switch task
         
         spm_jobman('run',jobs);
         
-        % Save graphical output to common diagnostics directory
-        if ~exist(fullfile(aap.acq_details.root, 'diagnostics'), 'dir')
-            mkdir(fullfile(aap.acq_details.root, 'diagnostics'))
-        end
-        figure(1);
-        [junk, mriname] = fileparts(aas_getsubjpath(aap,subj));
-        print('-djpeg','-r75',fullfile(aap.acq_details.root, 'diagnostics', ...
-            [mfilename '__' mriname '.jpeg']));
-        
         %% Describe outputs
         movPars = {};
         for sess = aap.acq_details.selected_sessions

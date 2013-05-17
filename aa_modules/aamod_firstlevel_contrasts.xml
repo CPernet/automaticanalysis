@@ -9,6 +9,9 @@
             </qsub>
             
             <permanenceofoutput>3</permanenceofoutput>
+            <!-- flag to ignore AA sessions for cases where SPM has been
+                 fitted with more sessions than we have in AA (sub run splits) -->
+            <useaasessions>1</useaasessions>
             
             <!--
 You must specify one or more contrasts here using one of the following formats
@@ -82,8 +85,11 @@ You must specify one or more contrasts here using one of the following formats
 -->
             <contrasts>
                 <subject></subject>
+                <eachagainstbaseline>0</eachagainstbaseline>
+                <oneconperrun>0</oneconperrun>
                 <automatic_movesandmeans></automatic_movesandmeans>
                 <con>
+                    <name/>
                     <format/>
                     <vector/>
                     <session/>
@@ -94,6 +100,7 @@ You must specify one or more contrasts here using one of the following formats
             <inputstreams>
                 <stream>firstlevel_spm</stream>
                 <stream>firstlevel_betas</stream>
+                <stream>firstlevel_residuals</stream>
             </inputstreams>
             <outputstreams>
                 <stream>firstlevel_spm</stream>

@@ -89,7 +89,6 @@ for subdirind=1:length(subdirs)
         while (k<=size(dicomdata_subdir,1))
             
             tmp = spm_dicom_headers(deblank(dicomdata_subdir(k,:)));
-            
             % If the dicoms are EPIs...
             if strcmp(inputstream, 'dicom_epi')
                 % [AVG] Let us use get the TR and sliceorder and save it to the DICOMHEADERS
@@ -100,18 +99,19 @@ for subdirind=1:length(subdirs)
                     xstr = char(str');
                     
                     % Get the TR...
-                    if strcmp(infoD.MRAcquisitionType, '3D')
-                        % In 3D sequence we can find a Private field
-                        % Works for Siemens scanners (not tested elsewhere)
-
+                    % Only attempt to find 3D if field exist AND if
+                    % InversionTime does NOT exist (this field is present in 3D
+                    % MPRAGE acquisitions). 
+                    if strcmp(infoD.MRAcquisitionType, '3D') && ...
+                            ~isfield(infoD,'InversionTime')
                         fi = 'Private_0029_1020';
                         % let's make sure this solution has a chance of
                         % working
                         assert(isfield(infoD,fi),...
                             '3D sequence but TR cannot be recovered');
-                        str =  infoD.(fi);
-                        xstr = char(str');
 
+                        % In 3D sequence we can find a Private field
+                        % Works for Siemens scanners (not tested elsewhere)
                         n = findstr(xstr, 'sWiPMemBlock.adFree[8]');
                         if isempty(n)
                             error('Could not find TR in the DICOM header!')
