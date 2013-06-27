@@ -110,7 +110,7 @@ switch task
         end
         
         Statistics_cell = cell(length(chunks), 1);
-        fprintf('\nSplit data into %d chunks\n', length(chunks));
+        fprintf('\nSplit data into %d (%d) chunks\n', length(chunks), length(chunks2run));
         switch aap.tasklist.currenttask.settings.parallelisation
             case 'serial'
                 % Linear way of doing things...
@@ -129,9 +129,9 @@ switch task
                 end
                 
                 chunkLength = [length(chunks{1}{1}), length(chunks{1}{2}), length(chunks{1}{3})] + ROIradius*2;
-                memReq = 96 * regNum * prod(chunkLength) + ... % For data
-                    96 * regNum.^2; % For similarity matrices
-                timReq = 4*60*60;
+                memReq = 48 * regNum * prod(chunkLength) + ... % For data
+                    48 * regNum.^2; % For similarity matrices
+                timReq = 12*60*60;
                 fprintf('Each job is given %0.0f MB and (at most) %02d:%02d:%02d \n', ...
                     memReq/1024^2, floor(timReq/60^2), floor(mod(timReq/60, 60)), floor(mod(timReq, 60)));
                 

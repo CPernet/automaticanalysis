@@ -5,7 +5,7 @@
             
             <qsub>
                 <timeBase>0.5</timeBase>
-                <memoryBase>1</memoryBase>
+                <memoryBase>2</memoryBase>
             </qsub>
             
             <permanenceofoutput>-2</permanenceofoutput>

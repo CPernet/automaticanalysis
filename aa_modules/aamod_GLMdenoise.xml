@@ -40,6 +40,7 @@
                 <denoisespec></denoisespec>
                 <denoiseddata></denoiseddata>
                 <wantpercentbold></wantpercentbold>
+                <chunknum></chunknum>
             </opt>
             
             <model>
@@ -66,6 +67,7 @@
             ﻿<inputstreams>
                 <stream>epi</stream>
                 <stream>epi_dicom_header</stream>
+                <stream>epiBETmask</stream>
             </inputstreams>
             
             <outputstreams>

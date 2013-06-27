@@ -2,7 +2,7 @@ function filesFound = search_code(snippet, editFile, filters, searchToolbox)
 if nargin < 2
     editFile = 0;
 end
-if nargin < 3;
+if nargin < 3 | isempty(filters)
     filters = {'*.m' '*.xml'};
 end
 if nargin < 4

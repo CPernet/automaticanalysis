@@ -6,7 +6,7 @@
 %   TCnames = names for the columns
 %   NaNnonsig = whether to NaN non-significant correlations (1 by default)
 %   plotTCs = whether to plot the timecourses (1 by default)
-function [sharedVar h] = corrTCs(aggrVars, TCnames, NaNnonsig, plotTCs)
+function [sharedVar, h] = corrTCs(aggrVars, TCnames, NaNnonsig, plotTCs)
 
 if nargin < 2
     error('Not enough input variables')

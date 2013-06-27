@@ -103,8 +103,10 @@ switch task
         aap=aas_desc_outputs(aap,subj,'firstlevel_betas',betafns);
 
         %% DIAGNOSTICS...
-        firstlevelmodelStats(anadir, [], fullfile(anadir, 'mask.img'))
-
+        h = firstlevelmodelStats(anadir, [], fullfile(anadir, 'mask.img'));
+        saveas(h.regs, fullfile(aap.acq_details.root, 'diagnostics', [mfilename '__' mriname '_regs.eps']), 'psc2');
+        saveas(h.betas, fullfile(aap.acq_details.root, 'diagnostics', [mfilename '__' mriname '_betas.eps']), 'psc2');
+        
     case 'checkrequirements'
         
     otherwise

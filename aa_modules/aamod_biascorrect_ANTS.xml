@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <aap>
     <tasklist>
-        <currenttask domain='subject' mfile_alias='aamod_biascorrect_ANTS' desc='Use ANTS to coregister structural to template' modality='MRI'>
+        <currenttask domain='subject' mfile_alias='aamod_biascorrect_ANTS' desc='Use ANTS to bias correct a structural' modality='MRI'>
             
             <qsub>
                 <timeBase>1</timeBase>

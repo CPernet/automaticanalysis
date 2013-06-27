@@ -72,7 +72,7 @@ switch task
         
         contrasts=ts.contrasts(contrasts_set);
         % add contrasts for each task regressor v baseline?
-        if contrasts.eachagainstbaseline
+        if ts.eachagainstbaseline
             basev = zeros(1,length(SPM.Sess(1).col));
             for c = 1:length(basev)
                 newv = basev;
@@ -92,8 +92,9 @@ switch task
         nruns = length(SPM.Sess);
         runI = true(1,nregr);
         noregr = zeros(1,nregr);
+        
         % Do we also want run-specific contrasts?
-        if contrasts.oneconperrun && (nruns > 1)
+        if ts.oneconperrun && (nruns > 1)
             for r = 1:nruns
                 % All zeros
                 runI(r+1,:) = noregr;

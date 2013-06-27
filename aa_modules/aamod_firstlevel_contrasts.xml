@@ -12,6 +12,9 @@
             <!-- flag to ignore AA sessions for cases where SPM has been
                  fitted with more sessions than we have in AA (sub run splits) -->
             <useaasessions>1</useaasessions>
+            <eachagainstbaseline>0</eachagainstbaseline>
+            <oneconperrun>0</oneconperrun>
+            <automatic_movesandmeans>1</automatic_movesandmeans>
             
             <!--
 You must specify one or more contrasts here using one of the following formats
@@ -85,9 +88,6 @@ You must specify one or more contrasts here using one of the following formats
 -->
             <contrasts>
                 <subject></subject>
-                <eachagainstbaseline>0</eachagainstbaseline>
-                <oneconperrun>0</oneconperrun>
-                <automatic_movesandmeans></automatic_movesandmeans>
                 <con>
                     <name/>
                     <format/>

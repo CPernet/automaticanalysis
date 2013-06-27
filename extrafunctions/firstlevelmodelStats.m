@@ -4,7 +4,7 @@
 %   sess = which sessions to examine (all by default
 %   maskVol = which mask to use to mask in your voxels of interest
 %       (defaults to using all voxels that are finite and not 0);
-function firstlevelmodelStats(pth, sess, maskVol)
+function h = firstlevelmodelStats(pth, sess, maskVol)
 if nargin < 1
     pth = pwd;
 end
@@ -14,6 +14,8 @@ end
 if nargin < 3
     maskVol = [];
 end
+
+h = [];
 
 % Get betas, SPM, maskVol
 D = dir(fullfile(pth, 'beta*img'));
@@ -70,7 +72,7 @@ end
 
 %% CORRELATION BETWEEN REGRESSORS...
 SPMmodel = SPM.xX.X(:, SPM.xX.iC);
-corrTCs(SPMmodel, SPMnames(SPM.xX.iC), 1, 0);
+[sharedVar, h.regs] = corrTCs(SPMmodel, SPMnames(SPM.xX.iC), 1, 0);
 
 %% CORRELATIONS BETWEEN BETAS...
 fprintf('Loading beta images into data structure\n')
@@ -79,9 +81,11 @@ for d = 1:length(SPMcols)
     Y = spm_read_vols(V);
     % maskVol things we don't want...
     if ~isempty(maskVol);
-        Y = Y.*maskVol;
+        Y = Y(maskVol);
+    else
+        Y = Y(isfinite(Y) & Y~=0);  
     end
-    Y = Y(isfinite(Y) & Y~=0);    
+    
     if d == 1
         data = nan(length(Y), length(SPMcols));
     end    
@@ -89,4 +93,4 @@ for d = 1:length(SPMcols)
 end
 
 fprintf('Correlating voxel-wise betas across regressors\n')
-corrTCs(data, SPMnames(SPMcols), 1, 0);
+[sharedVar, h.betas] = corrTCs(data, SPMnames(SPMcols), 1, 0);

@@ -79,7 +79,7 @@ switch task
         %% WRITE .nii
         Statistics = reshape(Statistics, [V.dim(1), V.dim(2), V.dim(3), length(MVPaa_settings.contrasts), length(MVPaa_settings.tests)]);
         
-        Flist = V.fname;
+        Flist = '';
         V.dt(1) = 16; % Save in a format that accepts NaNs and negative values...
         
         fprintf('Saving images... \n')
@@ -113,7 +113,7 @@ switch task
         Y = spm_read_vols(V);
         mask = Y~=0 & isfinite(Y);
         
-        %Write out mask image containing only tested locations...
+        % Write out mask image containing only tested locations...
         V.fname = fullfile(aas_getsubjpath(aap,subj), 'mask.nii');
         V.dt(1) = 2;
         spm_write_vol(V, mask);
@@ -133,7 +133,7 @@ switch task
         % Included mask to mask out untested data
         fprintf('NaNing untested voxels... \n')
                 
-        for f = 2:size(Flist,1)
+        for f = 1:size(Flist,1)
             V = spm_vol(Flist(f,:));
             Y = spm_read_vols(V);
             if strfind(Flist(f,:), 'spmT')

@@ -4,7 +4,7 @@
         <currenttask domain='subject' mfile_alias='aamod_ANTS_struc2template' desc='Use ANTS to coregister structural to template' modality='MRI'>
             
             <qsub>
-                <timeBase>1</timeBase>
+                <timeBase>2</timeBase>
                 <memoryBase>1</memoryBase>
             </qsub>
             

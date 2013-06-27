@@ -326,7 +326,12 @@ else
                             aas_makedir(aap,newpth);
                             oldpth=newpth;
                         end;
-                        cmd=['cd ' src '; rsync -t ' fns{ind} ' ' fns_dest_full{ind}];
+                        if aap.directory_conventions.symboliclinks
+                            cmd=['cd ' fileparts(fns_dest_full{ind}) '; ln -fs ' fullfile(src, fns{ind}) ' .'];
+                        else
+                            cmd=['cd ' src '; rsync -t ' fns{ind} ' ' fns_dest_full{ind}];
+                        end
+                        
                         aas_shell(cmd);
                         
                         % Write to stream file

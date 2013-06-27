@@ -100,8 +100,10 @@ switch task
         %% Save graphical output to common diagnostics directory
         mriname = aas_prepare_diagnostic(aap,subj);
 
+        %{
         print('-djpeg','-r150',fullfile(aap.acq_details.root, 'diagnostics', ...
             [mfilename '__' mriname '.jpeg']));
+        %}
         
         aas_realign_graph(movPars)
         print('-djpeg','-r150',fullfile(aap.acq_details.root, 'diagnostics', ...
