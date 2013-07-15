@@ -39,7 +39,7 @@ switch task
                 % First we try the ggm model (Gaussian/Gamma)
                 ggmmix = ggmfit(Y(M)', 3, 'ggm');
                 
-                % If this does not work, we try with gmm (Gaussian)
+                % If this does not work, we try with 2 mixtures
                 if ~isfinite(ggmmix.mus(1)) || ggmmix.mus(1) == 0 ...
                         || ~isfinite(ggmmix.sig(1)) || ggmmix.sig(1) == 0
                     aas_log(aap,0,'Error in ggm, mu and/or sigma are NaN, trying ggm with 2 mixtures...')

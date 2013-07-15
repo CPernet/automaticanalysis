@@ -42,9 +42,9 @@ switch task
         SPM=load(aas_getfiles_bystream(aap,subj,'firstlevel_spm'));
         SPM=SPM.SPM;
         SPM.swd=anadir;
-
+        
         ts = aap.tasklist.currenttask.settings;
-
+        
         if ts.useaasessions
             sessnames = {aap.acq_details.sessions.name};
             selected_sessions = aap.acq_details.selected_sessions;
@@ -57,11 +57,11 @@ switch task
             selected_sessions = 1:nsess;
             nsess_all = nsess;
         end
-
+        
         
         % Load up contrasts from task settings
         [fle subjname ext]=fileparts(subj_dir);
-        contrasts_set=find(strcmp({ts.contrasts.subject},subjname));
+        contrasts_set=find(strcmp({ts.contrasts.subject},[subjname ext]));
         if (isempty(contrasts_set))
             % Try for wildcard
             contrasts_set=find(strcmp({ts.contrasts.subject},'*'));
@@ -104,6 +104,7 @@ switch task
         end
         
         ccount = 0;
+        convec_names  = SPM.xX.name(SPM.xX.iC);
         % Separately for each run config (only one if ~oneconperrun)
         for r = 1:size(runI,1)
             % For each unique contrast
@@ -134,12 +135,11 @@ switch task
                             sessforcon=[strcmp(sessnames,contrasts.con(conind).session)];
                         else
                             % [AVG] To make the selected sessions work...
-                            sessforcon=zeros(1,nsess_all);
-                            for sess=selected_sessions
+                            sessforcon = zeros(1,nsess_all);
+                            for sess = selected_sessions
                                 sessforcon(sess) = 1;
                             end
-                            %sessforcon=ones(1,length(SPM.Sess));
-                        end;
+                        end
                         convec=[];
                         sessnuminspm=1;
                         for sess=selected_sessions
@@ -163,8 +163,16 @@ switch task
                         if (size(contrasts.con(conind).vector,2) > totnumcolsbarconstants)
                             aas_log(aap,true,sprintf('Number of columns in contrast matrix for session %d is more than number of columns in model (bar constants) - wanted %d columns, got ',totnumcolsbarconstants)); disp(contrasts.con(conind).vector);
                         elseif (size(contrasts.con(conind).vector,2) < totnumcolsbarconstants)
-                            convec = [contrasts.con(conind).vector zeros(size(contrasts.con(conind).vector,1),totnumcolsbarconstants-size(contrasts.con(conind).vector,2))];
-                            if (contrasts.automatic_movesandmeans)
+                            convec = contrasts.con(conind).vector;
+                            % [AVG] This bit is not necessary!
+                            % zeros(size(contrasts.con(conind).vector,1), totnumcolsbarconstants - size(contrasts.con(conind).vector,2))];
+                            if ts.automatic_movesandmeans
+                                % AVG! *better* way of specifying the correct columns...
+                                convec_out = zeros(1,totnumcolsbarconstants);
+                                convec_out(SPM.xX.iC) = convec;
+                                
+                                % [AVG] Works poorly for variable nuisance columns...
+                                %{
                                 convec_out=[];
                                 ind=1;
                                 sessnuminspm=1;
@@ -174,44 +182,51 @@ switch task
                                     convec_out=[convec_out convec(:,ind:(newind-1)) zeros(size(convec,1),6)];
                                     ind=newind;
                                     sessnuminspm=sessnuminspm+1;
-                                end;
-                                convec=convec_out;
-                            end;
+                                end
+                                %}
+                                convec = convec_out;
+                            end
                             if (size(convec,2) < totnumcolsbarconstants)
                                 %aas_log(aap,false,sprintf('Warning: Number of columns in contrast matrix for ''uniquebysession'' option is less than number columns in model (bar constants) = %d, so padding to ',totnumcolsbarconstants)); disp(convec);
-                            end;
+                            end
                         else
                             convec=contrasts.con(conind).vector;
                         end
                     otherwise
                         aas_log(aap,true,sprintf('Unknown format %s specified for contrast %d',contrasts.con(conind).format,ccount));
-                end;
+                end
                 cons{ccount} = [convec zeros(size(convec,1),nsess)];  % Add final constant terms
                 
                 % Check not empty
                 if (~any(cons{ccount}(:)))
                     aas_log(aap,true,sprintf('Contrast %d has no non-zero values, not permitted.',contrasts_set(ccount)));
-                end;
+                end
                 
                 % Allow F tests
                 if (isfield(contrasts.con(conind),'type') && isempty(contrasts.con(conind).type))
                     contype{ccount}='T';
                 else
                     contype{ccount}=contrasts.con(conind).type;
-                end;
-
+                end
+                
                 % Zero out run-irrelevant entries
                 % support for multi-row F contrasts
                 nrows = size(cons{ccount},1);
                 inds = repmat(runI(r,:)~=1,[nrows 1]);
                 cons{ccount}(inds) = 0;
-            end;
+                
+                % DIAGNOSTIC
+                fprintf('\n%s\n', contrasts.con(conind).name)
+                for c  =  1:max(size(convec_names))
+                    fprintf('\t%s: %d\n', convec_names{c}, convec(SPM.xX.iC(c)))
+                end
+            end
         end
         
         % Make the con images
         SPM.xCon =[];
         for cc = 1:size(cons,2)
-            % skip empty regressors 
+            % skip empty regressors
             if all(cons{cc}(:) == 0)
                 continue
             end
@@ -244,12 +259,12 @@ switch task
         end
         cd (cwd);
         
-        %% DIAGNOSTICS (check distribution of T-values in contrasts)        
+        %% DIAGNOSTICS (check distribution of T-values in contrasts)
         D = dir(fullfile(anadir, 'spmT_*.img'));
         for d = 1:length(D)
             h = img2hist(fullfile(anadir, D(d).name), [], contrasts.con(d).name);
             saveas(h, fullfile(aap.acq_details.root, 'diagnostics', ...
-            [mfilename '__' mriname '_' contrasts.con(d).name '.fig']), 'fig');
+                [mfilename '__' mriname '_' contrasts.con(d).name '.fig']), 'fig');
             try close(h); catch; end
         end
         
@@ -257,4 +272,4 @@ switch task
         
     otherwise
         aas_log(aap,1,sprintf('Unknown task %s',task));
-end;
+end

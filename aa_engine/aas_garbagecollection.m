@@ -5,6 +5,12 @@
 
 function aap=aas_garbagecollection(aap, actuallydelete, modulestoscan, permanencethreshold )
 
+% Fix this so that it can run from user script
+if ~isfield(aap, 'internal')
+    aap.internal = [];
+    aap.internal.aap_initial = aap;
+end
+
 if (~strcmp(aap.directory_conventions.remotefilesystem,'none'))
     aas_log(aap,true,'Remote file systems not currently supported by garbage collection');
 end

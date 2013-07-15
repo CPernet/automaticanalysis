@@ -1,13 +1,3 @@
-            
-<!-- Collects and deletes unneeded files -->
-<module><name>aamod_garbagecollection</name>
-    <extraparameters>
-        <aap><tasklist><currenttask><settings>
-                        <permanencethreshold>0</permanencethreshold>
-        </settings></currenttask></tasklist></aap>
-    </extraparameters>
-</module>
-
 </main>
 </tasklist>
 </aap>

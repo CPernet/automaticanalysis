@@ -17,7 +17,10 @@
             
             <outputstreams>
                 <stream>secondlevel_spm</stream>
+                <stream>secondlevel_other</stream>
                 <stream>secondlevel_betas</stream>
+                <stream>secondlevel_cons</stream>
+                <stream>secondlevel_spmts</stream>
             </outputstreams>
             
         </currenttask>

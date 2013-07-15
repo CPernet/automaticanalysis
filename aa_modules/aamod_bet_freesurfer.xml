@@ -32,9 +32,9 @@
             >1</gcut>
             
             <jaccart desc='How much overlap should we have between Hybrid Watershed and Graph Cut to combine'
-            >0.7</jaccart>
+            >0.8</jaccart>
             <dominant desc='Which technique is dominant if Jaccart fails? 0 - HW; 1 - GC'
-            >0</dominant>
+            >1</dominant>
             
             <!-- Diagnostic videos? Verbosity? -->
             <diagnostic>0</diagnostic>

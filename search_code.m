@@ -2,7 +2,7 @@ function filesFound = search_code(snippet, editFile, filters, searchToolbox)
 if nargin < 2
     editFile = 0;
 end
-if nargin < 3 | isempty(filters)
+if nargin < 3 || isempty(filters)
     filters = {'*.m' '*.xml'};
 end
 if nargin < 4
@@ -10,9 +10,9 @@ if nargin < 4
 end
 
 if searchToolbox == 1
-% We need to be inside the toolbox to work on it
+    % We need to be inside the toolbox to work on it
     cd(fileparts(mfilename('fullpath')))
-end 
+end
 
 toolboxPath = pwd;
 
@@ -34,7 +34,11 @@ while ~isempty(strtok(fldrDir, ':'))
         for d = 1:length(D)
             T = textread(fullfile(fldrCurr, D(d).name), '%s', 'whitespace', '', 'bufsize', 1024^2);
             
-            n = strfind(T{1}, snippet);
+            if ~isempty(T)
+                n = strfind(T{1}, snippet);
+            else
+                n = [];
+            end
             if ~isempty(n)
                 filesFound = strvcat(filesFound, sprintf('%s\n', fullfile(fldrCurr, D(d).name)));
                 if editFile

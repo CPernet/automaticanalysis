@@ -22,7 +22,6 @@ Pref.ReadAttr=0;
 aap=xml_read(defaultparameters,Pref);
 aap.schema=xml_read(defaultparameters);
 
-
 % And now load up task list
 if (exist('tasklistxml','var'))
     if (~length(which(tasklistxml)))

@@ -56,7 +56,7 @@ switch aap.tasklist.currenttask.settings.statsType
             pos = Similarity(aap.tasklist.currenttask.settings.contrasts(c).vector > 0);
             neg = Similarity(aap.tasklist.currenttask.settings.contrasts(c).vector < 0);
             
-            [p,h,stats] = ranksum(pos(:), neg(:));
+            [p, h, stats] = ranksum(pos(:), neg(:));
             
             Statistics(t,1) = median(pos(:)) - median(neg(:));
             % Rank Sum is for independent samples

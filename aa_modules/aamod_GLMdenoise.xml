@@ -18,6 +18,9 @@
             <highpassfilter>128</highpassfilter>
             
             <!-- GLM denoise parameters -->
+            <!---->
+            <session_split desc='Which sessions should be denoised together? (default=all sessions at once)'
+            ></session_split>
             <stimdur desc='Stimulus duration in GLMdenoise terms'
             ></stimdur>  
             <GDmode desc='Way in which to run GLMdenoise [onsets, GDdesign, SPMdesign]'

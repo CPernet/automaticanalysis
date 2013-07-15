@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <aap>
     <tasklist>
-        <currenttask domain='subject' desc='Unnormalise ROIs from MNI to native and GM mask them' modality='MRI'>
+        <currenttask domain='subject' mfile_alias='aamod_unnormalise_rois' desc='Unnormalise ROIs from MNI to native and GM mask them' modality='MRI'>
             
             <qsub>
                 <timeBase>0.2</timeBase>

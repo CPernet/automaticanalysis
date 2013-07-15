@@ -1,4 +1,4 @@
-function [s w]=aas_runfslcommand(aap,fslcmd)
+function [s, w]=aas_runfslcommand(aap,fslcmd)
 
 setenv('FSLDIR',aap.directory_conventions.fsldir);
 setenv('FSLOUTPUTTYPE', aap.directory_conventions.fsloutputtype)

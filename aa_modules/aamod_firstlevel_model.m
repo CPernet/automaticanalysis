@@ -107,6 +107,9 @@ switch task
         saveas(h.regs, fullfile(aap.acq_details.root, 'diagnostics', [mfilename '__' mriname '_regs.eps']), 'psc2');
         saveas(h.betas, fullfile(aap.acq_details.root, 'diagnostics', [mfilename '__' mriname '_betas.eps']), 'psc2');
         
+        close(h.regs)
+        close(h.betas)
+        
     case 'checkrequirements'
         
     otherwise

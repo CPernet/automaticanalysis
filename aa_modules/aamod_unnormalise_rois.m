@@ -116,6 +116,8 @@ switch task
             
             V = spm_vol(roi_fn);
             Y = spm_read_vols(V);
+            img2mask(V.fname); % Make into mask
+            
             if nansum(Y(:)>0) == 0
                 warning('This ROI contains no voxels')
             end
@@ -129,12 +131,11 @@ switch task
             spm_check_registration(mEPIimg)
             
             % This will only work for 1-7 ROIs
-            OVERcolours = {[1 0 0], [0 1 0], [0 0 1], ...
-                [1 1 0], [1 0 1], [0 1 1], [1 1 1]};
+            OVERcolours = distinguishable_colors(length(ROIlist));
             
             % Add un-normalised ROIs...
             for r = 1:size(outstream,1)
-                spm_orthviews('addcolouredimage',1,outstream(r,:), OVERcolours{r})
+                spm_orthviews('addcolouredimage',1,outstream(r,:), OVERcolours(r,:))
             end
             
             %% Diagnostic VIDEO of segmentations

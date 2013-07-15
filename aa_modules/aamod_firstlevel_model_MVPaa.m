@@ -96,7 +96,7 @@ switch task
 
 
         switch aap.tasklist.currenttask.settings.parallel
-            case 'none'
+            case {'none', 'serial'}
                 for numReg = sessRegs
                     nDest = SPMest.xX.iC(eventNumber==numReg);
                     aas_firstlevel_model_mumford(aap, anadir, coreSPM, files, allfiles, ...

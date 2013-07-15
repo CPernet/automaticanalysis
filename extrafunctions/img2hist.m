@@ -3,8 +3,9 @@ function h = img2hist(fileName, bins, name)
 
 if ischar(fileName)
     fileName = strvcat2cell(fileName);
-elseif ~iscell(fileName);
-    fileName = {fileName};
+end
+if ischar(name)
+    name = strvcat2cell(name);
 end
 
 %% tSNR results figure!
@@ -55,8 +56,8 @@ for f = 1:length(fileName)
     [p,junk,SRstats] = signrank(Y{f});
     
     % Get legend information
-    tmpStr = sprintf('%s: mean %0.2f, median %0.2f, ttest-Tval is: %0.2f, SR-Zval is: %0.2f', ...
-        name, nanmean(Y{f}), nanmedian(Y{f}), Tstats.tstat, SRstats.zval);
+    tmpStr = sprintf('%s: mean %0.2f, median %0.2f, std: %0.2f, ttest-Tval is: %0.2f, SR-Zval is: %0.2f', ...
+        name{f}, nanmean(Y{f}), nanmedian(Y{f}), nanstd(Y{f}), Tstats.tstat, SRstats.zval);
     legStr = [legStr ...
         '''' tmpStr ''','];
 end
@@ -69,13 +70,13 @@ eval(legStr);
 %% Difference between 2 distributions
 if length(fileName) == 2
     try
-        [h p dev Tstats] = ttest(Y{1},Y{2});
+        [nh, p, dev, Tstats] = ttest(Y{1},Y{2});
         [p,junk,SRstats] = signrank(Y{1},Y{2});
         title(sprintf('%s: mean %0.2f, median %0.2f, ttest-Tval is: %0.2f, SR-Zval is: %0.2f', ...
-            name, nanmean(Y{1}) - nanmean(Y{2}), nanmedian(Y{1}) - nanmedian(Y{2}), Tstats.tstat, SRstats.zval))
+            [name{1} '-' name{2}], nanmean(Y{1}) - nanmean(Y{2}), nanmedian(Y{1}) - nanmedian(Y{2}), Tstats.tstat, SRstats.zval))
     catch
-        [h p dev Tstats] = ttest2(Y{1},Y{2});
+        [nh, p, dev, Tstats] = ttest2(Y{1},Y{2});
         title(sprintf('%s: mean %0.2f, median %0.2f, ttest-Tval is: %0.2f', ...
-            name, nanmean(Y{1}) - nanmean(Y{2}), nanmedian(Y{1}) - nanmedian(Y{2}), Tstats.tstat))
+            [name{1} '-' name{2}], nanmean(Y{1}) - nanmean(Y{2}), nanmedian(Y{1}) - nanmedian(Y{2}), Tstats.tstat))
     end
 end

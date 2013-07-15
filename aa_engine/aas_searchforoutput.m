@@ -25,15 +25,15 @@ if (~notthislevelplease)
             if (strcmp(outputtype,outputstreams.stream{i}) || strcmp(outputtype,[stagetag '.' outputstreams.stream{i}]))
                 stagethatoutputs=currentstage;
                 mindepth=depth;
-            end;
-        end;
-    end;
-end;
+            end
+        end
+    end
+end
 
 % If not found, search backwards further
 if (isempty(stagethatoutputs))
     dependenton=aap.internal.dependenton{currentstage};
     for i=1:length(dependenton)
         [aap stagethatoutputs mindepth]=aas_searchforoutput(aap,dependenton(i).stage,outputtype,false,depth,mindepth);
-    end;
-end;
+    end
+end

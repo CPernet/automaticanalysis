@@ -47,7 +47,7 @@ switch task
                             dicom_files_src{ind}),echopath);
                         % allow copyfile failures due to permissions issues
                         % (e.g. if copying from networked system)
-                        assert(success || strfind(msg,'chflags'),...
+                        assert(success | ~isempty(strfind(msg,'chflags')),...
                             'copyfile failed!')
                         [pth nme ext] = fileparts(dicom_files_src{ind});
                         outstream{ind} = fullfile(echopath,[nme ext]);

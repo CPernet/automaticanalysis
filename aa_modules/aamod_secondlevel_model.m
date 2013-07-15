@@ -25,6 +25,14 @@ switch task
     case 'doit'
         aas_prepare_diagnostic(aap);
         
+        % output structures...
+        betafns=[];
+        confns=[];
+        spmtfns=[];
+        spmfns = [];
+        otherfns = [];
+        otherfiles={'mask.hdr','mask.img','ResMS.hdr','ResMS.img','RPV.hdr','RPV.img'};
+        
         global defaults
         global UFp
         UFp=0.001;
@@ -61,6 +69,9 @@ switch task
             if isempty(confiles{subj})
                 confiles{subj} = aas_findstream(aap,'firstlevel_spmfs', subj);
             end
+            
+            % Mask 0s in images to NaN [AVG]
+            mask_img([], confiles{subj}, NaN)
             
             SPMtemp=load(flSPMfn{subj});
             flSPM{subj}.SPM.xCon=SPMtemp.SPM.xCon;
@@ -156,35 +167,44 @@ switch task
             %% Define contrasts
             eval(sprintf('cd %s',rfxrootdir));
             
-            SPM = rmfield(SPM,'xCon'); %just in case 
-
+            SPM = rmfield(SPM,'xCon'); %just in case
+            
             SPM.xCon(1) = spm_FcUtil('Set',sprintf('%s',conname),'T','c',[1],SPM.xX.xKXs);
             SPM.xCon(2) = spm_FcUtil('Set',sprintf('- %s',conname),'T','c',[-1],SPM.xX.xKXs);
-
+            
             spm_contrasts(SPM);
             
-            %% Describe outputs
-            %  secondlevel_spm
-            aap=aas_desc_outputs(aap,'secondlevel_spm',fullfile(rfxdir,'SPM.mat'));
-            
+            spmfns=strvcat(spmfns,fullfile(rfxdir,'SPM.mat'));
             %  secondlevel_betas (includes related statistical files)
             allbetas=dir(fullfile(rfxdir,'beta_*'));
-            betafns=[];
-            for betaind=1:length(allbetas);
-                betafns=strvcat(betafns,fullfile(rfxdir,allbetas(betaind).name));
+            for f=1:length(allbetas);
+                betafns=strvcat(betafns,fullfile(rfxdir,allbetas(f).name));
             end
-            otherfiles={'mask.hdr','mask.img','ResMS.hdr','ResMS.img','RPV.hdr','RPV.img'};
             for otherind=1:length(otherfiles)
-                betafns=strvcat(betafns,fullfile(rfxdir,otherfiles{otherind}));
+                otherfns=strvcat(otherfns,fullfile(rfxdir,otherfiles{otherind}));
             end
-            aap=aas_desc_outputs(aap,'secondlevel_betas',betafns);
+            allcons=dir(fullfile(rfxdir,'con_*'));
+            for f=1:length(allcons);
+                confns=strvcat(confns,fullfile(rfxdir,allcons(f).name));
+            end
+            allspmts=dir(fullfile(rfxdir,'spmT_*'));
+            for f=1:length(allspmts);
+                spmtfns=strvcat(spmtfns,fullfile(rfxdir,allspmts(f).name));
+            end
             
             %% DIAGNOSTICS (check distribution of T-values in contrasts)
             h = img2hist(fullfile(rfxdir, 'spmT_0001.img'), [], conname);
             saveas(h, fullfile(aap.acq_details.root, 'diagnostics', ...
-                [mfilename '_' conname '.fig']), 'fig');
+                [mfilename '_' conname '.eps']), 'eps');
             try close(h); catch; end
         end
+        %% Describe outputs
+        aap=aas_desc_outputs(aap,'secondlevel_spm',spmfns);
+        aap=aas_desc_outputs(aap,'secondlevel_betas',betafns);
+        aap=aas_desc_outputs(aap,'secondlevel_other',otherfns);
+        aap=aas_desc_outputs(aap,'secondlevel_cons',confns);
+        aap=aas_desc_outputs(aap,'secondlevel_spmts',spmtfns);
+        
     case 'checkrequirements'
         
     otherwise
