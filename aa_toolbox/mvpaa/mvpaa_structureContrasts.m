@@ -10,6 +10,18 @@ testedCells = aap.tasklist.currenttask.settings.testedCells;
 conditionNumbering = aap.tasklist.currenttask.settings.conditionNumbering;
 conditions = length(unique(aap.tasklist.currenttask.settings.conditionNum));
 
+% Adjust tested cells in lsqcurvefit
+switch aap.tasklist.currenttask.settings.statsType
+    case {'lsqcurvefit'}
+        % This should only have a single contrast
+        % We ignore cells that have NaNs in the contrast matrix
+        testedCells(~isfinite(contrasts.matrix)) = 0;
+        
+        aap.tasklist.currenttask.settings.testedCells = testedCells;
+    otherwise
+end
+
+
 for c = 1:length(contrasts)
     %% SANITY CHECKS
     % Are the contrasts square matrices?

@@ -15,7 +15,7 @@ stagethatoutputs=[];
 % Search the current level, see if it provides the required output
 if (~notthislevelplease)
     depth=depth+1;
-    [stagepath stagename]=fileparts(aap.tasklist.main.module(currentstage).name);
+    [stagepath, stagename]=fileparts(aap.tasklist.main.module(currentstage).name);
     stagetag=aas_getstagetag(aap,currentstage);
     index=aap.tasklist.main.module(currentstage).index;
     
@@ -34,6 +34,6 @@ end
 if (isempty(stagethatoutputs))
     dependenton=aap.internal.dependenton{currentstage};
     for i=1:length(dependenton)
-        [aap stagethatoutputs mindepth]=aas_searchforoutput(aap,dependenton(i).stage,outputtype,false,depth,mindepth);
+        [aap, stagethatoutputs, mindepth]=aas_searchforoutput(aap,dependenton(i).stage,outputtype,false,depth,mindepth);
     end
 end

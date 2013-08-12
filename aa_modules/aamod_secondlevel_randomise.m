@@ -11,6 +11,7 @@ resp='';
 
 switch task
     case 'doit'
+        aas_prepare_diagnostic(aap);
         
         nsub = length(aap.acq_details.subjects);
         options = aap.tasklist.currenttask.settings.options;
@@ -82,21 +83,21 @@ switch task
         
         switch aap.tasklist.currenttask.settings.parallel
             case {'none', 'serial'}
-                for n = 1:conFn{1}
+                for n = 1:length(conFn{1})
                     fprintf('Running randomise on contrast %d\n', n)
                     
                     [s, w] = aas_runfslcommand(aap, FSLrandomise{n});
                 end
             case 'torque'
-                memreq = 4 * 64 * img_size * length(conFn);
-                timreq = 4 * 3600;
+                memreq = 64 * img_size * length(conFn);
+                timreq = 0.001 * img_size * length(conFn);
                 aas_log(aap, false, sprintf('Submitting jobs with %0.2f MB and %0.2f hours', ...
                     memreq/(1024^2), timreq/3600))
                 
                 [s, w] = qsubcellfun(@aas_runfslcommand, ...
                     aapCell, FSLrandomiseCell, ...
-                    'memreq', memreq, ...
-                    'timreq', timreq, ...
+                    'memreq', int32(memreq), ...
+                    'timreq', int32(timreq), ...
                     'stack', 1 ...
                     );
         end
@@ -108,12 +109,29 @@ switch task
         end
         
         %% DECLARE OUTPUTS
-        fsltfns = '';
-        allfslts=dir(fullfile(pth, 'fslT_*'));
-        for f=1:length(allfslts);
-            fsltfns=strvcat(fsltfns,fullfile(pth, allfslts(f).name));
+        fslt_fns = '';
+        fslp_fns = '';
+        fslcorrp_fns = '';        
+        for n = 1:size(conFn{1}, 1)
+            tmp = dir(fullfile(pth, sprintf('fslT_%04d_*_p_tstat*.nii', n)));
+            fslp_fns = strvcat(fslp_fns, fullfile(pth, tmp.name));
+            
+            tmp = dir(fullfile(pth, sprintf('fslT_%04d_*_corrp_tstat*.nii', n)));
+            fslcorrp_fns = strvcat(fslcorrp_fns, fullfile(pth, tmp.name));       
+            
+            tmp = dir(fullfile(pth, sprintf('fslT_%04d_tstat*.nii', n)));
+            fslt_fns = strvcat(fslt_fns, fullfile(pth, tmp.name));
+            
+            %% DIAGNOSTICS (check distribution of T-values in contrasts)
+            h = img2hist(fullfile(pth, tmp.name), [], sprintf('con%04d', n));
+            saveas(h, fullfile(aap.acq_details.root, 'diagnostics', ...
+                [mfilename '_' sprintf('con%04d', n) '.eps']), 'eps');
+            try close(h); catch; end
         end
-        aap=aas_desc_outputs(aap,'secondlevel_fslts', fsltfns);
+        
+        aap=aas_desc_outputs(aap,'secondlevel_fslts', fslt_fns);
+        aap=aas_desc_outputs(aap,'secondlevel_fslps', fslp_fns);
+        aap=aas_desc_outputs(aap,'secondlevel_fslcorrps', fslcorrp_fns);
         
     case 'checkrequirements'
         

@@ -4,7 +4,7 @@
         <currenttask domain='study' mfile_alias='aamod_secondlevel_randomise' desc='SPM second level model' modality='MRI'>
             
             <qsub>
-                <timeBase>2</timeBase>
+                <timeBase>6</timeBase>
                 <memoryBase>1</memoryBase>
             </qsub>
             

@@ -59,9 +59,21 @@ switch task
         ROIradius = aap.tasklist.currenttask.settings.ROIradius;
         
         aap.tasklist.currenttask.settings.brainSize = brainSize;
-        Statistics = NaN(brainSize(1), brainSize(2), brainSize(3), ...
-            length(aap.tasklist.currenttask.settings.contrasts), ...
-            length(aap.tasklist.currenttask.settings.tests));
+        
+        % Create output arrays...
+        switch aap.tasklist.currenttask.settings.statsType
+            case {'GLM', 'fullGLM', 'ranksum'}
+                Statistics = NaN(brainSize(1), brainSize(2), brainSize(3), ...
+                    length(aap.tasklist.currenttask.settings.contrasts), ...
+                    length(aap.tasklist.currenttask.settings.tests));
+            case {'lsqcurvefit'}
+                Statistics = NaN(brainSize(1), brainSize(2), brainSize(3), ...
+                    length(aap.tasklist.currenttask.settings.lsqcurvefitUB), ...
+                    length(aap.tasklist.currenttask.settings.tests));
+            otherwise
+                aas_log(aap, 1, 'Unknown type of statistics!')
+        end
+       
         sumSimilarity = 0;
         
         % Only use locations where there is data...
@@ -131,7 +143,7 @@ switch task
                 chunkLength = [length(chunks{1}{1}), length(chunks{1}{2}), length(chunks{1}{3})] + ROIradius*2;
                 memReq = 48 * regNum * prod(chunkLength) + ... % For data
                     48 * regNum.^2; % For similarity matrices
-                timReq = 12*60*60;
+                timReq = 23*60*60;
                 fprintf('Each job is given %0.0f MB and (at most) %02d:%02d:%02d \n', ...
                     memReq/1024^2, floor(timReq/60^2), floor(mod(timReq/60, 60)), floor(mod(timReq, 60)));
                 

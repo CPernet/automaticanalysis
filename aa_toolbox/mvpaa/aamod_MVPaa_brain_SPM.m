@@ -77,13 +77,13 @@ switch task
         end
         
         %% WRITE .nii
-        Statistics = reshape(Statistics, [V.dim(1), V.dim(2), V.dim(3), length(MVPaa_settings.contrasts), length(MVPaa_settings.tests)]);
+        Statistics = reshape(Statistics, [V.dim(1), V.dim(2), V.dim(3), size(Statistics,2), size(Statistics,3)]);
         
         Flist = '';
         V.dt(1) = 16; % Save in a format that accepts NaNs and negative values...
         
         fprintf('Saving images... \n')
-        for c = 1:length(MVPaa_settings.contrasts)
+        for c = 1:size(Statistics,4)
             % Mean, median or beta
             V.fname = fullfile(aas_getsubjpath(aap,subj), sprintf('con_%04d.nii', c));
             Flist = strvcat(Flist, V.fname);

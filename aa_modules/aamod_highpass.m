@@ -135,7 +135,7 @@ switch task
                 %disp(tSNR_error)
                 
                 if x > 1 || y > 1 || z > 1
-                    aas_log(aap, true, 'The script broke between chunks, you should probably delete the subject folder for this module and try again...')
+                    aas_log(aap, true, 'The script broke between chunks, you should delete the subject folder for this module and try again...')
                 end
                 
                 if chunkDim > 4

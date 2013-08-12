@@ -102,6 +102,8 @@ switch aap.tasklist.currenttask.settings.statsType
         aap.tasklist.currenttask.settings.tests = {'beta', 't-value', 'p-value', 'SE'};
     case 'ranksum'
         aap.tasklist.currenttask.settings.tests = {'median', 't-value (est)', 'p-value'};
+    case {'lsqcurvefit'}
+        aap.tasklist.currenttask.settings.tests = {'parameter', 't-value (model)', 'p-value (model)'};
     otherwise
         aas_log(aap, 1, 'Unknown type of statistics!')
 end

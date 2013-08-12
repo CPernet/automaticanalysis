@@ -11,7 +11,7 @@ if nargin < 1
     coord = [0 0 0]; % 46.0 64.0 37.0
 end
 if nargin < 2
-    radius = 5; % in millimetres
+    radius = 10; % in millimetres
 end
 if nargin < 3
     ROIname = 'myROI.nii';

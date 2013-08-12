@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <aap>
     <tasklist>
-        <currenttask domain='subject' desc='FSL MELODIC' modality='MRI'>
+        <currenttask domain='session' desc='FSL MELODIC' modality='MRI'>
             
             <qsub>
                 <timeBase>1</timeBase>
@@ -11,15 +11,20 @@
             <permanenceofoutput>2</permanenceofoutput>
             
             ﻿<inputstreams>
+                <stream>epi_dicom_header</stream> 
                 <stream>epi</stream>  
             </inputstreams>
             
             <outputstreams>
                 <stream>melodic</stream>
+                <stream>epi</stream> 
             </outputstreams>
             
             <!-- MELODIC OPTIONS (default - make it verbose) -->
-            <MELODICoptions>-v</MELODICoptions>
+            <MELODICoptions>-v --report --Oall</MELODICoptions>
+            
+            <!-- Only use if you don't have DICOM headers... -->
+            <TR></TR>
             
         </currenttask>
     </tasklist>

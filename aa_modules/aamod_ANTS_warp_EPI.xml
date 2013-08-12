@@ -12,7 +12,7 @@
             
             <inputstreams>
                 <stream>epi</stream>
-                <stream>ANTs</stream>
+                <stream>ANTs</stream>                
             </inputstreams>
             
             <outputstreams>

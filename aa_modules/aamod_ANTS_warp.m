@@ -47,7 +47,7 @@ switch task
             % If there's no reference stream, then use template...
             refimg = aap.directory_conventions.T1template;
         else
-            refimg = aas_getfiles_bystream(aap,subj,Rstreams{:});
+            refimg = aas_getfiles_bystream(aap,Rstreams{:});
         end
         % Use first image of stream as reference...
         refimg = refimg(1,:);

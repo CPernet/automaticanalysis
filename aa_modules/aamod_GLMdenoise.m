@@ -168,10 +168,27 @@ switch task
             end
             
             cd(anadir); % So that figures are printed to the right location
-            [gd_results, gd_data] = ... % gd_denoisedData; DEBUG!
+            
+            % Try without denoising first...
+            optT = opt;
+            optT.numpcstotry = 0;
+            
+            gd_dataORI = gd_data;
+            
+            [gd_resultsALT, gd_dataALT] = ...
+                GLMdenoisedata(gd_design, gd_data, stimdur, TR, hrfmodel, hrfknobs, optT, sprintf('figures%d_ALT', z));
+            
+            % Try with denoising...
+            [gd_results, gd_data] = ...
                 GLMdenoisedata(gd_design, gd_data, stimdur, TR, hrfmodel, hrfknobs, opt, sprintf('figures%d', z));
             
-            %% SAVE DENOISED DATA TO DISC
+            [h, figName] = GLMdenoise_diagnostics(gd_results, gd_data, gd_resultsALT, gd_dataORI);
+            for f = 1:length(h);
+                print(h(f), fullfile(anadir, sprintf('%s_%02d.eps', figName{f}, z)), '-depsc')
+                close(h(f))
+            end
+            
+            %% SAVE DENOISED gd_dataALT TO DISC
             files_denoised = cell(size(files));
             for s = 1:length(session_split{z});
                 sess = session_split{z}(s);

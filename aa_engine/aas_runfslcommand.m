@@ -1,11 +1,11 @@
 function [s, w]=aas_runfslcommand(aap,fslcmd)
 
-setenv('FSLDIR',aap.directory_conventions.fsldir);
+setenv('FSLDIR', aap.directory_conventions.fsldir);
 setenv('FSLOUTPUTTYPE', aap.directory_conventions.fsloutputtype)
 
 pth=getenv('PATH');
 % Check whether ${FSLDIR}/bin is already in there
-fslbin=fullfile(aap.directory_conventions.fsldir,'bin');
+fslbin=fullfile(aap.directory_conventions.fsldir, 'bin');
 % Add colons to beginning and end of path in case fslbin is at beginning or
 % end and not bracketed by them
 sf=strfind([':' pth ':'],[':' fslbin ':']);
@@ -21,10 +21,10 @@ end;
     
 switch (aap.directory_conventions.fslshell)
     case 'none'
-        cmd=[fslsetup fslcmd];
+        cmd=[fslsetup fullfile(fslbin,fslcmd)];
         [s w]=aas_shell(cmd);
     case 'csh'
-        cmd=['csh -c "' fslsetup  fslcmd '"'];
+        cmd=['csh -c "' fslsetup fullfile(fslbin,fslcmd) '"'];
         [s w]=aas_shell(fslcmd);
     otherwise
         error('unknown fslshell setting: %s',...
