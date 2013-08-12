@@ -45,28 +45,30 @@ else
     moduleindex = 1;
 end
 
+% if (length(modulename>6))
+%     moduleindex=str2num(modulename(end-4:end));
+%     if (~strcmp(['_' sprintf('%05d',moduleindex)],modulename(length(modulename)-5:end)))
+%         moduleindex=1;
+%     else
+%         modulename=modulename(1:length(modulename)-6);
+%     end
+% else
+%     moduleindex=1;
+% end
+
 if (~exist('parametric','var'))
     parametric=[];
 end
 
-% Check that the onsets and durations have same length (or that length of
-% duration is 1)...
-if (length(ons) ~= length(dur)) && length(dur) ~= 1
-    aas_log(aap, true, 'Your onset and duration are not of the same length')
-end
-
-% Sort the onsets, and apply same reordering to dur & parametric
+% sort the onsets, and apply same reordering to dur & parametric
+% [AVG] - replacd junk by ons, since we *DO* want to sort the onsets
 [ons ind]=sort(ons);
 if (length(dur)>1)
     dur=dur(ind);
 end;
 if (~isempty(parametric))
-    % Reorder parametric modulator even if there's more than one!
+    % [AVG] reorder parametric modulator even if there's more than one!
     for p = 1:length(parametric)
-        % First check the parametric modulator is as long as onsets
-        if (length(ons) ~= length(parametric(p).P))
-            aas_log(aap, true, 'Your onset and parametric modulator are not of the same length')
-        end
         parametric(p).P = parametric(p).P(ind);
     end
 end

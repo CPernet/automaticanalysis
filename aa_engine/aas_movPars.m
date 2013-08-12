@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-function [moveRegs Rnames] = aas_movPars(aap,subj, moveMat)
-=======
 function [moveRegs Rnames] = aas_movPars(aap, p, moveMat, volterraMovement)
->>>>>>> origin/devel-share
 % Select what type of movement parameters to use, and create them!
 %
 % [moveRegs, Rnames] = aas_movPars(aap, p, moveMat, volterraMovement)
@@ -40,14 +36,10 @@ maxD = size(moveMat,2) - 2; % Maximal derivative you want
 % Get the movement parameters for each session separately...
 moveRegs = cell(size(aap.acq_details.sessions));
 
-for sess = aap.acq_details.selected_sessions
+for s = aap.acq_details.selected_sessions
         
     % Linear movement parameters text file...
-<<<<<<< HEAD
-    Mfn = aas_getfiles_bystream(aap,subj,sess,'realignment_parameter');
-=======
     Mfn = aas_getfiles_bystream(aap, p, s, 'realignment_parameter');
->>>>>>> origin/devel-share
     for f = 1:size(Mfn,1)
         fn = deblank(Mfn(f,:));
         if strcmp(fn(end-2:end), 'txt')
@@ -78,7 +70,7 @@ for sess = aap.acq_details.selected_sessions
     for o = 1:(maxO+1)
         for d = 1:(maxD+2)
             if moveMat(o,d)
-                moveRegs{sess} = [moveRegs{sess}, movesN{o,d}];
+                moveRegs{s} = [moveRegs{s}, movesN{o,d}];
             end
         end
     end

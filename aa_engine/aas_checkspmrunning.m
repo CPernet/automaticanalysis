@@ -1,6 +1,4 @@
 function aap=aas_checkspmrunning(aap)
-% Make sure we get the SPM we really want...
-addpath(aap.directory_conventions.SPMdir)
 try
     if (isempty(spm_figure('FindWin')))
         spm('fmri');

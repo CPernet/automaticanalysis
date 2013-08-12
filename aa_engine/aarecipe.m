@@ -22,6 +22,7 @@ Pref.ReadAttr=0;
 aap=xml_read(defaultparameters,Pref);
 aap.schema=xml_read(defaultparameters);
 
+
 % And now load up task list
 if (exist('tasklistxml','var'))
     if (~length(which(tasklistxml)))
@@ -193,21 +194,12 @@ else
             
             % Get a list of all the branch IDs that exist in the new stuff
             nBranchIDs = [extrastages.module.branchID];
-<<<<<<< HEAD
-            [nLabels nIndex] = unique(nBranchIDs);
-            numNewBranches = length(nLabels);
-            
-            % Number of stages in the new stuff
-            numNewStages = length(extrastages.module);
-            
-=======
             [nLabels nIndex] = unique(nBranchIDs, 'legacy');
             numNewBranches = length(nLabels);
             
             % Number of stages in the new stuff
             numNewStages = length(extrastages.module);
             
->>>>>>> origin/devel-share
             % Basically, we repeat the extrastages and them to each branch that exists in the output.
             for oB = 1 : numOutBranches
                 newStages = extrastages;

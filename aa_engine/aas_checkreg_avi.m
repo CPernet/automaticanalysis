@@ -1,7 +1,6 @@
-% Create a movie of the image inside the spm check registration tool for
-% later viewing...
+% Create a movie
 
-function aas_checkreg_avi(aap, subj, axisDim, suffix)
+function aas_checkreg_avi(aap, p, axisDim, suffix)
 
 if nargin < 3
     axisDim = 2;
@@ -10,11 +9,7 @@ if nargin < 4
     suffix = '';
 end
 
-<<<<<<< HEAD
-mriname = aas_prepare_diagnostic(aap,subj);
-=======
 mriname = strtok(aap.acq_details.subjects(p).mriname, '/');
->>>>>>> origin/devel-share
 
 % Check if we need to make a movie...
 if aap.tasklist.currenttask.settings.diagnostic
@@ -39,8 +34,9 @@ if aap.tasklist.currenttask.settings.diagnostic
         fJframe.fFigureClient.getWindow.setAlwaysOnTop(true)
     catch
     end
+    %windowSize = get(1,'Position');
     % It does not work if it's larger than the window, conservative...
-    windowSize = [1 1 400 600];
+    windowSize = [1 1 400 600]; %windowSize(3) windowSize(4)];
     set(1,'Position', windowSize)    
     
     if axisDim == 1

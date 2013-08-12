@@ -23,19 +23,6 @@ if ~exist('whattoreturn','var')
 end;
 
 
-<<<<<<< HEAD
-% And down the tree, sucking everything along the way
-% [AVG] changed this, since this made everything break...
-%
-tree=aap.directory_conventions.parallel_dependencies;
-for targetind=1:length(targetdomaintree)-1
-    tree=tree.(targetdomaintree{targetind});
-end;
-
-%
-deps=[deps aas_dependencytree_findbranches(aap,tree,deps,indices)];
-
-=======
 [hit resp]=aas_cache_get(aap,mfilename,sourcedomain,targetdomain,indices,whattoreturn,modulenum);
 hit=false;
 
@@ -126,5 +113,11 @@ else
     % also store in the cache indexed by the truncated portion
     aas_cache_put(aap,mfilename,{deps commonind},sourcedomain,targetdomaintree{commonind},cacheindices,whattoreturn,modulenum);
     
->>>>>>> origin/devel-share
 end
+
+
+
+
+
+
+

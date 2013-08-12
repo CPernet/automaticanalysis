@@ -10,7 +10,7 @@ function count = cprintf(style,format,varargin)
 %
 %    CPRINTF then displays the text in the Command Window using the
 %    specified STYLE argument. The accepted styles are those used for
-%    Matlab's syntax highlighting (see: File / Preferences / Colors /
+%    Matlab's syntax highlighting (see: File / Preferences / Colors / 
 %    M-file Syntax Highlighting Colors), and also user-defined colors.
 %
 %    The possible pre-defined STYLE names are:
@@ -81,7 +81,7 @@ function count = cprintf(style,format,varargin)
 %
 %    3. Sometimes, non newline ('\n')-terminated segments display unstyled
 %       (black) when the command prompt chevron ('>>') regains focus on the
-%       continuation of that line (I can't pinpoint when this happens).
+%       continuation of that line (I can't pinpoint when this happens). 
 %       To fix this, simply newline-terminate all command-prompt messages.
 %
 %    4. In R2011b and later, the above errors appear to be fixed. However,
@@ -95,10 +95,6 @@ function count = cprintf(style,format,varargin)
 %    6. Bold style is only supported on R2011b+, and cannot also be underlined.
 %
 % Change log:
-<<<<<<< HEAD
-%    2012-08-09: Graceful degradation support for deployed (compiled) and non-desktop applications; minor bug fixes
-=======
->>>>>>> origin/devel-share
 %    2012-08-06: Fixes for R2012b; added bold style; accept RGB string (non-numeric) style
 %    2011-11-27: Fixes for R2011b
 %    2011-08-29: Fix by Danilo (FEX comment) for non-default text colors
@@ -115,11 +111,7 @@ function count = cprintf(style,format,varargin)
 % referenced and attributed as such. The original author maintains the right to be solely associated with this work.
 
 % Programmed and Copyright by Yair M. Altman: altmany(at)gmail.com
-<<<<<<< HEAD
-% $Revision: 1.08 $  $Date: 2012/10/17 21:41:09 $
-=======
 % $Revision: 1.07 $  $Date: 2012/08/06 13:07:25 $
->>>>>>> origin/devel-share
 
   persistent majorVersion minorVersion
   if isempty(majorVersion)
@@ -147,86 +139,6 @@ function count = cprintf(style,format,varargin)
   %error(nargchk(2, inf, nargin, 'struct'));
   %str = sprintf(format,varargin{:});
 
-<<<<<<< HEAD
-  % In compiled mode
-  try useDesktop = usejava('desktop'); catch, useDesktop = false; end
-  if isdeployed | ~useDesktop %#ok<OR2> - for Matlab 6 compatibility
-      % do not display any formatting - use simple fprintf()
-      % See: http://undocumentedmatlab.com/blog/bold-color-text-in-the-command-window/#comment-103035
-      % Also see: https://mail.google.com/mail/u/0/?ui=2&shva=1#all/1390a26e7ef4aa4d
-      % Also see: https://mail.google.com/mail/u/0/?ui=2&shva=1#all/13a6ed3223333b21
-      count1 = fprintf(format,varargin{:});
-  else
-      % Else (Matlab desktop mode)
-      % Get the normalized style name and underlining flag
-      [underlineFlag, boldFlag, style] = processStyleInfo(style);
-
-      % Set hyperlinking, if so requested
-      if underlineFlag
-          format = ['<a href="">' format '</a>'];
-
-          % Matlab 7.1 R14 (possibly a few newer versions as well?)
-          % have a bug in rendering consecutive hyperlinks
-          % This is fixed by appending a single non-linked space
-          if majorVersion < 7 || (majorVersion==7 && minorVersion <= 1)
-              format(end+1) = ' ';
-          end
-      end
-
-      % Set bold, if requested and supported (R2011b+)
-      if boldFlag
-          if (majorVersion > 7 || minorVersion >= 13)
-              format = ['<strong>' format '</strong>'];
-          else
-              boldFlag = 0;
-          end
-      end
-
-      % Get the current CW position
-      cmdWinDoc = com.mathworks.mde.cmdwin.CmdWinDocument.getInstance;
-      lastPos = cmdWinDoc.getLength;
-
-      % If not beginning of line
-      bolFlag = 0;  %#ok
-      %if docElement.getEndOffset - docElement.getStartOffset > 1
-          % Display a hyperlink element in order to force element separation
-          % (otherwise adjacent elements on the same line will be merged)
-          if majorVersion<7 || (majorVersion==7 && minorVersion<13)
-              if ~underlineFlag
-                  fprintf('<a href=""> </a>');  %fprintf('<a href=""> </a>\b');
-              elseif format(end)~=10  % if no newline at end
-                  fprintf(' ');  %fprintf(' \b');
-              end
-          end
-          %drawnow;
-          bolFlag = 1;
-      %end
-
-      % Get a handle to the Command Window component
-      mde = com.mathworks.mde.desk.MLDesktop.getInstance;
-      cw = mde.getClient('Command Window');
-      xCmdWndView = cw.getComponent(0).getViewport.getComponent(0);
-
-      % Store the CW background color as a special color pref
-      % This way, if the CW bg color changes (via File/Preferences), 
-      % it will also affect existing rendered strs
-      com.mathworks.services.Prefs.setColorPref('CW_BG_Color',xCmdWndView.getBackground);
-
-      % Display the text in the Command Window
-      count1 = fprintf(2,format,varargin{:});
-
-      %awtinvoke(cmdWinDoc,'remove',lastPos,1);   % TODO: find out how to remove the extra '_'
-      drawnow;  % this is necessary for the following to work properly (refer to Evgeny Pr in FEX comment 16/1/2011)
-      docElement = cmdWinDoc.getParagraphElement(lastPos+1);
-      if majorVersion<7 || (majorVersion==7 && minorVersion<13)
-          if bolFlag && ~underlineFlag
-              % Set the leading hyperlink space character ('_') to the bg color, effectively hiding it
-              % Note: old Matlab versions have a bug in hyperlinks that need to be accounted for...
-              %disp(' '); dumpElement(docElement)
-              setElementStyle(docElement,'CW_BG_Color',1+underlineFlag,majorVersion,minorVersion); %+getUrlsFix(docElement));
-              %disp(' '); dumpElement(docElement)
-              el(end+1) = handle(docElement);  %#ok used in debug only
-=======
   % Get the normalized style name and underlining flag
   [underlineFlag, boldFlag, style] = processStyleInfo(style);
 
@@ -265,19 +177,8 @@ function count = cprintf(style,format,varargin)
               fprintf('<a href=""> </a>');  %fprintf('<a href=""> </a>\b');
           elseif format(end)~=10  % if no newline at end
               fprintf(' ');  %fprintf(' \b');
->>>>>>> origin/devel-share
           end
-
-          % Fix a problem with some hidden hyperlinks becoming unhidden...
-          fixHyperlink(docElement);
-          %dumpElement(docElement);
       end
-<<<<<<< HEAD
-
-      % Get the Document Element(s) corresponding to the latest fprintf operation
-      while docElement.getStartOffset < cmdWinDoc.getLength
-          % Set the element style according to the current style
-=======
       %drawnow;
       bolFlag = 1;
   %end
@@ -301,34 +202,17 @@ function count = cprintf(style,format,varargin)
       if bolFlag && ~underlineFlag
           % Set the leading hyperlink space character ('_') to the bg color, effectively hiding it
           % Note: old Matlab versions have a bug in hyperlinks that need to be accounted for...
->>>>>>> origin/devel-share
           %disp(' '); dumpElement(docElement)
-          specialFlag = underlineFlag | boldFlag;
-          setElementStyle(docElement,style,specialFlag,majorVersion,minorVersion);
+          setElementStyle(docElement,'CW_BG_Color',1+underlineFlag,majorVersion,minorVersion); %+getUrlsFix(docElement));
           %disp(' '); dumpElement(docElement)
-          docElement2 = cmdWinDoc.getParagraphElement(docElement.getEndOffset+1);
-          if isequal(docElement,docElement2),  break;  end
-          docElement = docElement2;
-          %disp(' '); dumpElement(docElement)
-<<<<<<< HEAD
-=======
           el(end+1) = handle(docElement);  %#ok used in debug only
->>>>>>> origin/devel-share
       end
 
-      % Force a Command-Window repaint
-      % Note: this is important in case the rendered str was not '\n'-terminated
-      xCmdWndView.repaint;
-
-<<<<<<< HEAD
-      % The following is for debug use only:
-      el(end+1) = handle(docElement);  %#ok used in debug only
-      %elementStart  = docElement.getStartOffset;
-      %elementLength = docElement.getEndOffset - elementStart;
-      %txt = cmdWinDoc.getText(elementStart,elementLength);
+      % Fix a problem with some hidden hyperlinks becoming unhidden...
+      fixHyperlink(docElement);
+      %dumpElement(docElement);
   end
 
-=======
   % Get the Document Element(s) corresponding to the latest fprintf operation
   while docElement.getStartOffset < cmdWinDoc.getLength
       % Set the element style according to the current style
@@ -352,7 +236,6 @@ function count = cprintf(style,format,varargin)
   %elementLength = docElement.getEndOffset - elementStart;
   %txt = cmdWinDoc.getText(elementStart,elementLength);
 
->>>>>>> origin/devel-share
   if nargout
       count = count1;
   end
@@ -450,50 +333,45 @@ function styleName = getColorStyle(rgb)
 % Fix a bug in some Matlab versions, where the number of URL segments
 % is larger than the number of style segments in a doc element
 function delta = getUrlsFix(docElement)  %#ok currently unused
-tokens = docElement.getAttribute('SyntaxTokens');
-links  = docElement.getAttribute('LinkStartTokens');
-if length(links) > length(tokens(1))
-    delta = length(links) > length(tokens(1));
-else
-    delta = 0;
-end
+  tokens = docElement.getAttribute('SyntaxTokens');
+  links  = docElement.getAttribute('LinkStartTokens');
+  if length(links) > length(tokens(1))
+      delta = length(links) > length(tokens(1));
+  else
+      delta = 0;
+  end
 
 % fprintf(2,str) causes all previous '_'s in the line to become red - fix this
 function fixHyperlink(docElement)
-try
-    tokens = docElement.getAttribute('SyntaxTokens');
-    urls   = docElement.getAttribute('HtmlLink');
-    urls   = urls(2);
-    links  = docElement.getAttribute('LinkStartTokens');
-    offsets = tokens(1);
-    styles  = tokens(2);
-    doc = docElement.getDocument;
-    
-    % Loop over all segments in this docElement
-    for idx = 1 : length(offsets)-1
-        % If this is a hyperlink with no URL target and starts with ' ' and is collored as an error (red)...
-        if strcmp(styles(idx).char,'Colors_M_Errors')
-            character = char(doc.getText(offsets(idx)+docElement.getStartOffset,1));
-            if strcmp(character,' ')
-                if isempty(urls(idx)) && links(idx)==0
-                    % Revert the style color to the CW background color (i.e., hide it!)
-                    styles(idx) = java.lang.String('CW_BG_Color');
-                end
-            end
-        end
-    end
-catch
-    % never mind...
-end
+  try
+      tokens = docElement.getAttribute('SyntaxTokens');
+      urls   = docElement.getAttribute('HtmlLink');
+      urls   = urls(2);
+      links  = docElement.getAttribute('LinkStartTokens');
+      offsets = tokens(1);
+      styles  = tokens(2);
+      doc = docElement.getDocument;
+
+      % Loop over all segments in this docElement
+      for idx = 1 : length(offsets)-1
+          % If this is a hyperlink with no URL target and starts with ' ' and is collored as an error (red)...
+          if strcmp(styles(idx).char,'Colors_M_Errors')
+              character = char(doc.getText(offsets(idx)+docElement.getStartOffset,1));
+              if strcmp(character,' ')
+                  if isempty(urls(idx)) && links(idx)==0
+                      % Revert the style color to the CW background color (i.e., hide it!)
+                      styles(idx) = java.lang.String('CW_BG_Color');
+                  end
+              end
+          end
+      end
+  catch
+      % never mind...
+  end
 
 % Set an element to a particular style (color)
 function setElementStyle(docElement,style,specialFlag, majorVersion,minorVersion)
-<<<<<<< HEAD
-
-%global tokens links urls urlTargets  % for debug only
-=======
   %global tokens links urls urlTargets  % for debug only
->>>>>>> origin/devel-share
   global oldStyles
   if nargin<3,  specialFlag=0;  end
   % Set the last Element token to the requested style:
@@ -506,20 +384,12 @@ function setElementStyle(docElement,style,specialFlag, majorVersion,minorVersion
       % Correct edge case problem
       extraInd = double(majorVersion>7 || (majorVersion==7 && minorVersion>=13));  % =0 for R2011a-, =1 for R2011b+
       %{
-<<<<<<< HEAD
-if ~strcmp('CWLink',char(styles(end-hyperlinkFlag))) && ...
-=======
       if ~strcmp('CWLink',char(styles(end-hyperlinkFlag))) && ...
->>>>>>> origin/devel-share
           strcmp('CWLink',char(styles(end-hyperlinkFlag-1)))
          extraInd = 0;%1;
       end
       hyperlinkFlag = ~isempty(strmatch('CWLink',tokens(2)));
       hyperlinkFlag = 0 + any(cellfun(@(c)(~isempty(c)&&strcmp(c,'CWLink')),tokens(2).cell));
-<<<<<<< HEAD
-
-=======
->>>>>>> origin/devel-share
       %}
 
       styles(end-extraInd) = java.lang.String('');
@@ -557,9 +427,6 @@ if ~strcmp('CWLink',char(styles(end-hyperlinkFlag))) && ...
               a=1;  %#ok used for debug breakpoint...
           end
       end
-  else
-      % never mind - ignore...
-      a=1;  %#ok used for debug breakpoint...
   end
   
   % Bold: (currently unused because we cannot modify this immutable int32 numeric array)
@@ -574,22 +441,6 @@ if ~strcmp('CWLink',char(styles(end-hyperlinkFlag))) && ...
       % never mind - ignore...
       a=1;  %#ok used for debug breakpoint...
   end
-<<<<<<< HEAD
-=======
-  
-  % Bold: (currently unused because we cannot modify this immutable int32 numeric array)
-  %{
-  try
-      %hasBold = docElement.isDefined('BoldStartTokens');
-      bolds = docElement.getAttribute('BoldStartTokens');
-      if ~isempty(bolds)
-          %docElement.addAttribute('BoldStartTokens',repmat(int32(1),length(bolds),1));
-      end
-  catch
-      % never mind - ignore...
-      a=1;  %#ok used for debug breakpoint...
-  end
->>>>>>> origin/devel-share
   %}
   
   return;  % debug breakpoint
@@ -649,13 +500,12 @@ function dumpElement(docElements)
 
 % Utility function to convert matrix => cell
 function cells = m2c(data)
-%datasize = size(data);  cells = mat2cell(data,ones(1,datasize(1)),ones(1,datasize(2)));
-cells = num2cell(data);
+  %datasize = size(data);  cells = mat2cell(data,ones(1,datasize(1)),ones(1,datasize(2)));
+  cells = num2cell(data);
 
 % Display the help and demo
 function showDemo(majorVersion,minorVersion)
-
-                   fprintf('cprintf displays formatted text in the Command Window.\n\n');
+  fprintf('cprintf displays formatted text in the Command Window.\n\n');
   fprintf('Syntax: count = cprintf(style,format,...);  click <a href="matlab:help cprintf">here</a> for details.\n\n');
   url = 'http://UndocumentedMatlab.com/blog/cprintf/';
   fprintf(['Technical description: <a href="' url '">' url '</a>\n\n']);

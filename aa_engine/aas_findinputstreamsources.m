@@ -60,47 +60,16 @@ for k1=1:length(aap.tasklist.main.module)
                 else
                     aap.internal.inputstreamsources{k1}.stream(end+1)=stream;
                 end;
-                % [AVG] to make the inputs/outpus more obvious!
-                %aas_log(aap,false,sprintf('Stage %s input %s comes from remote host %s stream %s',stagename,stream.name,stream.host,stream.sourcestagename));
-                % JC - don't use cprintf directly since this causes crashes
-                % if running Matlab from a terminal. aas_log handles this
-                % case much better
-                aas_log(aap,0,'Stage','text');
-                aas_log(aap,0,stagename,[65, 105, 225]/255);
-                aas_log(aap,0,'input','text');
-                aas_log(aap,0,stream.name,[46, 139, 87]/255);
-                aas_log(aap,0,'comes from remote host','text');
-                aas_log(aap,0,stream.host,'-text');
-                aas_log(aap,0,'stream','text');
-                aas_log(aap,0,stream.sourcestagename,'Magenta');
+                aas_log(aap,false,sprintf('Stage %s input %s comes from remote host %s stream %s',stagename,stream.name,stream.host,stream.sourcestagename));
             else
                 
-                [aap stagethatoutputs mindepth]=aas_searchforoutput(aap,k1,inputstreamname,true,0,inf);
+                [aap stagethatoutputs mindepth]=searchforoutput(aap,k1,inputstreamname,true,0,inf);
                 if isempty(stagethatoutputs)
-                    % [AVG] to make the inputs/outpus more obvious!
-                    %aas_log(aap,true,sprintf('Stage %s required input %s is not an output of any stage it is dependent on. You might need to add an aas_addinitialstream command or get the stream from a remote source.',stagename,inputstreamname));
-                    
-                    aas_log(aap,0,'Stage','text');
-                    aas_log(aap,0,stagename,[65, 105, 225]/255);
-                    aas_log(aap,0,'required input','text');
-                    aas_log(aap,0,inputstreamname,[46, 139, 87]/255);
-                    aas_log(aap,0,'is not an output of any stage it is dependent on','text')
-                    aas_log(aap,true,'You might need to add an aas_addinitialstream command or get the stream from a remote source.');
+                    aas_log(aap,true,sprintf('Stage %s required input %s is not an output of any stage it is dependent on. You might need to add an aas_addinitialstream command or get the stream from a remote source.',stagename,inputstreamname));
                 else
                     [sourcestagepath sourcestagename]=fileparts(aap.tasklist.main.module(stagethatoutputs).name);
                     sourceindex=aap.tasklist.main.module(stagethatoutputs).index;
-                    % [AVG] to make the inputs/outpus more obvious!
-                    %aas_log(aap,false,sprintf('Stage %s input %s comes from %s which is %d dependencies prior',stagename,inputstreamname,sourcestagename,mindepth));
-                    aas_log(aap,0,'Stage','text');
-                    aas_log(aap,0,stagename,[65, 105, 225]/255);
-                    aas_log(aap,0,'input','text');
-                    aas_log(aap,0,inputstreamname,[46, 139, 87]/255);
-                    aas_log(aap,0,'comes from','text');
-                    aas_log(aap,0,sourcestagename,'Magenta');
-                    aas_log(aap,0,'which is','text');
-                    aas_log(aap,0, num2str(mindepth),'-text');
-                    aas_log(aap,0,'dependencies prior.\n','text')
-                    
+                    aas_log(aap,false,sprintf('Stage %s input %s comes from %s which is %d dependencies prior',stagename,inputstreamname,sourcestagename,mindepth));
                     stream=[];
                     stream.name=inputstreamname;
                     stream.sourcenumber=stagethatoutputs;
@@ -131,5 +100,45 @@ for k1=1:length(aap.tasklist.main.module)
                 end;
             end;
         end;
+    end;
+end;
+
+
+% RECURSIVELY SEARCH DEPENDENCIES
+%  to see which will have outputted each
+%  input required for this stage
+%  note that inputs can be affected by dependency map
+function [aap,stagethatoutputs,mindepth]=searchforoutput(aap,currentstage,outputtype,notthislevelplease,depth,mindepth)
+
+% is this branch ever going to do better than we already have?
+if (depth>=mindepth)
+    return;
+end;
+
+stagethatoutputs=[];
+
+% Search the current level, see if it provides the required output
+if (~notthislevelplease)
+    depth=depth+1;
+    [stagepath stagename]=fileparts(aap.tasklist.main.module(currentstage).name);
+    stagetag=aas_getstagetag(aap,currentstage);
+    index=aap.tasklist.main.module(currentstage).index;
+    
+    if (isfield(aap.schema.tasksettings.(stagename)(index),'outputstreams'))
+        outputstreams=aap.schema.tasksettings.(stagename)(index).outputstreams;
+        for i=1:length(outputstreams.stream)
+            if (strcmp(outputtype,outputstreams.stream{i}) || strcmp(outputtype,[stagetag '.' outputstreams.stream{i}]))
+                stagethatoutputs=currentstage;
+                mindepth=depth;
+            end;
+        end;
+    end;
+end;
+
+% If not found, search backwards further
+if (isempty(stagethatoutputs))
+    dependenton=aap.internal.dependenton{currentstage};
+    for i=1:length(dependenton)
+        [aap stagethatoutputs mindepth]=searchforoutput(aap,dependenton(i).stage,outputtype,false,depth,mindepth);
     end;
 end;

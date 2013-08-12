@@ -7,7 +7,7 @@ function aas_log(aap,iserr,msg,style)
 
 try
     % don't attempt html tags if running outside of Matlab desktop
-    if ~exist('style','var') || ~aap.gui_controls.usecolouroutput
+    if (~exist('style','var') || ~aap.gui_controls.usecolouroutput)
         style='text';
     end;
 catch
@@ -18,16 +18,12 @@ if (iserr)
     try
         logitem(aap,'\n\n**** automatic analysis failed - see reason and line numbers below\n','red');
         
-        try
-            if ~isempty(aap.options.email)
-                % In case the server is broken...
-                try
-                    aas_finishedMail(aap.options.email, aap.acq_details.root, msg)
-                catch
-                end
+        if ~isempty(aap.options.email)
+            % In case the server is broken...
+            try
+                aas_finishedMail(aap.options.email, aap.acq_details.root, msg)
+            catch
             end
-        catch
-            logitem(aap, '\nCould not send email\n');
         end
     catch
         error('internal aa error fatal -1');

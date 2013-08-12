@@ -99,7 +99,7 @@ switch task
         ROIradius = aap.tasklist.currenttask.settings.ROIradius;
         
         %% GET fMRI DATA & MASK IT
-        MVPaa_data = MVPaa_obj.MVPaa_data(:, chunkExp{:});
+        MVPaa_data = MVPaa_obj.MVPaa_data;
         
         % MASK DATA (using segmentation masks, for instance...)
         [MVPaa_data, dataMask] = mvpaa_maskData(MVPaa_data, segMask);
