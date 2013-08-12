@@ -95,7 +95,10 @@ function count = cprintf(style,format,varargin)
 %    6. Bold style is only supported on R2011b+, and cannot also be underlined.
 %
 % Change log:
+<<<<<<< HEAD
 %    2012-08-09: Graceful degradation support for deployed (compiled) and non-desktop applications; minor bug fixes
+=======
+>>>>>>> origin/devel-share
 %    2012-08-06: Fixes for R2012b; added bold style; accept RGB string (non-numeric) style
 %    2011-11-27: Fixes for R2011b
 %    2011-08-29: Fix by Danilo (FEX comment) for non-default text colors
@@ -112,7 +115,11 @@ function count = cprintf(style,format,varargin)
 % referenced and attributed as such. The original author maintains the right to be solely associated with this work.
 
 % Programmed and Copyright by Yair M. Altman: altmany(at)gmail.com
+<<<<<<< HEAD
 % $Revision: 1.08 $  $Date: 2012/10/17 21:41:09 $
+=======
+% $Revision: 1.07 $  $Date: 2012/08/06 13:07:25 $
+>>>>>>> origin/devel-share
 
   persistent majorVersion minorVersion
   if isempty(majorVersion)
@@ -140,6 +147,7 @@ function count = cprintf(style,format,varargin)
   %error(nargchk(2, inf, nargin, 'struct'));
   %str = sprintf(format,varargin{:});
 
+<<<<<<< HEAD
   % In compiled mode
   try useDesktop = usejava('desktop'); catch, useDesktop = false; end
   if isdeployed | ~useDesktop %#ok<OR2> - for Matlab 6 compatibility
@@ -218,16 +226,82 @@ function count = cprintf(style,format,varargin)
               setElementStyle(docElement,'CW_BG_Color',1+underlineFlag,majorVersion,minorVersion); %+getUrlsFix(docElement));
               %disp(' '); dumpElement(docElement)
               el(end+1) = handle(docElement);  %#ok used in debug only
+=======
+  % Get the normalized style name and underlining flag
+  [underlineFlag, boldFlag, style] = processStyleInfo(style);
+
+  % Set hyperlinking, if so requested
+  if underlineFlag
+      format = ['<a href="">' format '</a>'];
+      
+      % Matlab 7.1 R14 (possibly a few newer versions as well?)
+      % have a bug in rendering consecutive hyperlinks
+      % This is fixed by appending a single non-linked space
+      if majorVersion < 7 || (majorVersion==7 && minorVersion <= 1)
+          format(end+1) = ' ';
+      end
+  end
+  
+  % Set bold, if requested and supported (R2011b+)
+  if boldFlag
+      if (majorVersion > 7 || minorVersion >= 13)
+          format = ['<strong>' format '</strong>'];
+      else
+          boldFlag = 0;
+      end
+  end
+
+  % Get the current CW position
+  cmdWinDoc = com.mathworks.mde.cmdwin.CmdWinDocument.getInstance;
+  lastPos = cmdWinDoc.getLength;
+
+  % If not beginning of line
+  bolFlag = 0;  %#ok
+  %if docElement.getEndOffset - docElement.getStartOffset > 1
+      % Display a hyperlink element in order to force element separation
+      % (otherwise adjacent elements on the same line will be merged)
+      if majorVersion<7 || (majorVersion==7 && minorVersion<13)
+          if ~underlineFlag
+              fprintf('<a href=""> </a>');  %fprintf('<a href=""> </a>\b');
+          elseif format(end)~=10  % if no newline at end
+              fprintf(' ');  %fprintf(' \b');
+>>>>>>> origin/devel-share
           end
 
           % Fix a problem with some hidden hyperlinks becoming unhidden...
           fixHyperlink(docElement);
           %dumpElement(docElement);
       end
+<<<<<<< HEAD
 
       % Get the Document Element(s) corresponding to the latest fprintf operation
       while docElement.getStartOffset < cmdWinDoc.getLength
           % Set the element style according to the current style
+=======
+      %drawnow;
+      bolFlag = 1;
+  %end
+
+  % Get a handle to the Command Window component
+  mde = com.mathworks.mde.desk.MLDesktop.getInstance;
+  cw = mde.getClient('Command Window');
+  xCmdWndView = cw.getComponent(0).getViewport.getComponent(0);
+
+  % Store the CW background color as a special color pref
+  % This way, if the CW bg color changes (via File/Preferences), 
+  % it will also affect existing rendered strs
+  com.mathworks.services.Prefs.setColorPref('CW_BG_Color',xCmdWndView.getBackground);
+
+  % Display the text in the Command Window
+  count1 = fprintf(2,format,varargin{:});
+  %awtinvoke(cmdWinDoc,'remove',lastPos,1);   % TODO: find out how to remove the extra '_'
+  drawnow;
+  docElement = cmdWinDoc.getParagraphElement(lastPos+1);
+  if majorVersion<7 || (majorVersion==7 && minorVersion<13)
+      if bolFlag && ~underlineFlag
+          % Set the leading hyperlink space character ('_') to the bg color, effectively hiding it
+          % Note: old Matlab versions have a bug in hyperlinks that need to be accounted for...
+>>>>>>> origin/devel-share
           %disp(' '); dumpElement(docElement)
           specialFlag = underlineFlag | boldFlag;
           setElementStyle(docElement,style,specialFlag,majorVersion,minorVersion);
@@ -236,12 +310,17 @@ function count = cprintf(style,format,varargin)
           if isequal(docElement,docElement2),  break;  end
           docElement = docElement2;
           %disp(' '); dumpElement(docElement)
+<<<<<<< HEAD
+=======
+          el(end+1) = handle(docElement);  %#ok used in debug only
+>>>>>>> origin/devel-share
       end
 
       % Force a Command-Window repaint
       % Note: this is important in case the rendered str was not '\n'-terminated
       xCmdWndView.repaint;
 
+<<<<<<< HEAD
       % The following is for debug use only:
       el(end+1) = handle(docElement);  %#ok used in debug only
       %elementStart  = docElement.getStartOffset;
@@ -249,6 +328,31 @@ function count = cprintf(style,format,varargin)
       %txt = cmdWinDoc.getText(elementStart,elementLength);
   end
 
+=======
+  % Get the Document Element(s) corresponding to the latest fprintf operation
+  while docElement.getStartOffset < cmdWinDoc.getLength
+      % Set the element style according to the current style
+      %disp(' '); dumpElement(docElement)
+      specialFlag = underlineFlag | boldFlag;
+      setElementStyle(docElement,style,specialFlag,majorVersion,minorVersion);
+      %disp(' '); dumpElement(docElement)
+      docElement2 = cmdWinDoc.getParagraphElement(docElement.getEndOffset+1);
+      if isequal(docElement,docElement2),  break;  end
+      docElement = docElement2;
+      %disp(' '); dumpElement(docElement)
+  end
+
+  % Force a Command-Window repaint
+  % Note: this is important in case the rendered str was not '\n'-terminated
+  xCmdWndView.repaint;
+
+  % The following is for debug use only:
+  el(end+1) = handle(docElement);  %#ok used in debug only
+  %elementStart  = docElement.getStartOffset;
+  %elementLength = docElement.getEndOffset - elementStart;
+  %txt = cmdWinDoc.getText(elementStart,elementLength);
+
+>>>>>>> origin/devel-share
   if nargout
       count = count1;
   end
@@ -384,8 +488,12 @@ end
 
 % Set an element to a particular style (color)
 function setElementStyle(docElement,style,specialFlag, majorVersion,minorVersion)
+<<<<<<< HEAD
 
 %global tokens links urls urlTargets  % for debug only
+=======
+  %global tokens links urls urlTargets  % for debug only
+>>>>>>> origin/devel-share
   global oldStyles
   if nargin<3,  specialFlag=0;  end
   % Set the last Element token to the requested style:
@@ -398,13 +506,20 @@ function setElementStyle(docElement,style,specialFlag, majorVersion,minorVersion
       % Correct edge case problem
       extraInd = double(majorVersion>7 || (majorVersion==7 && minorVersion>=13));  % =0 for R2011a-, =1 for R2011b+
       %{
+<<<<<<< HEAD
 if ~strcmp('CWLink',char(styles(end-hyperlinkFlag))) && ...
+=======
+      if ~strcmp('CWLink',char(styles(end-hyperlinkFlag))) && ...
+>>>>>>> origin/devel-share
           strcmp('CWLink',char(styles(end-hyperlinkFlag-1)))
          extraInd = 0;%1;
       end
       hyperlinkFlag = ~isempty(strmatch('CWLink',tokens(2)));
       hyperlinkFlag = 0 + any(cellfun(@(c)(~isempty(c)&&strcmp(c,'CWLink')),tokens(2).cell));
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/devel-share
       %}
 
       styles(end-extraInd) = java.lang.String('');
@@ -459,6 +574,22 @@ if ~strcmp('CWLink',char(styles(end-hyperlinkFlag))) && ...
       % never mind - ignore...
       a=1;  %#ok used for debug breakpoint...
   end
+<<<<<<< HEAD
+=======
+  
+  % Bold: (currently unused because we cannot modify this immutable int32 numeric array)
+  %{
+  try
+      %hasBold = docElement.isDefined('BoldStartTokens');
+      bolds = docElement.getAttribute('BoldStartTokens');
+      if ~isempty(bolds)
+          %docElement.addAttribute('BoldStartTokens',repmat(int32(1),length(bolds),1));
+      end
+  catch
+      % never mind - ignore...
+      a=1;  %#ok used for debug breakpoint...
+  end
+>>>>>>> origin/devel-share
   %}
   
   return;  % debug breakpoint

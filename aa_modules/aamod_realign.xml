@@ -13,7 +13,15 @@
             <writemean>1</writemean>
             <reslicewhich>2</reslicewhich>
             
+<<<<<<< HEAD
             <inputstreams>
+=======
+            <specialrequirements>
+                <jobtype>fMRI</jobtype>
+            </specialrequirements>
+            
+            ﻿<inputstreams>
+>>>>>>> origin/devel-share
                 <stream>epi</stream>  
             </inputstreams>
             

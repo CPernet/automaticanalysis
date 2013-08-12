@@ -10,13 +10,15 @@
             
             <permanenceofoutput>2</permanenceofoutput>
             
+            <vox desc='voxel size of normalised images'>2 2 2</vox>
+            
             <inputstreams>
-                <stream>normalisation_seg_sn</stream>  
+                <stream>normalisation_seg_sn</stream>                  
                 <stream>epi</stream>
             </inputstreams>
             
             <outputstreams>
-                <stream>epi</stream>
+                <stream>epi</stream>                
             </outputstreams>
             
         </currenttask>

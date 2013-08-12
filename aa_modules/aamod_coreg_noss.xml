@@ -10,9 +10,12 @@
             
             <permanenceofoutput>2</permanenceofoutput>
             
+            <!-- NB. The order of the streams is important; the first stream
+            name is used as the input stream (e.g., 'structural' or 't1'). -->
+            
             <inputstreams>
-                <stream>meanepi</stream>  
-                <stream>structural</stream>  
+                <stream>structural</stream>
+                <stream>meanepi</stream>                    
             </inputstreams>
             
             <outputstreams>

@@ -15,8 +15,16 @@ function [aap,resp]=aamod_norm_noss(aap,task,subj)
 resp='';
 
 switch task
-    case 'report'
-        
+    case 'report' % [TA]
+        if ~exist(fullfile(aas_getsubjpath(aap,subj),['diagnostic_' aap.tasklist.main.module(aap.tasklist.currenttask.modulenumber).name '.jpg']),'file')
+            diag(aap,subj);
+        end
+        fdiag = dir(fullfile(aas_getsubjpath(aap,subj),'diagnostic_*.jpg'));
+        for d = 1:numel(fdiag)
+            aap = aas_report_add(aap,subj,'<table><tr><td>');
+            aap=aas_report_addimage(aap,subj,fullfile(aas_getsubjpath(aap,subj),fdiag(d).name));
+            aap = aas_report_add(aap,subj,'</td></tr></table>');
+        end
     case 'doit'
         
         defs =aap.spm.defaults.normalise;
@@ -24,6 +32,9 @@ switch task
         
         % Template image
         temp_imgs = aap.directory_conventions.T1template;
+        if (~exist(temp_imgs,'file')) % try in SPM
+            if temp_imgs(1) ~= '/', temp_imgs = fullfile(fileparts(which('spm')),temp_imgs); end
+        end
         if ~exist(temp_imgs, 'file')
             aas_log(aap, true, sprintf('Couldn''t find template T1 image %s.', temp_imgs));
         end
@@ -58,6 +69,7 @@ switch task
         % call the SPM segment or normalize function to do the work
         if aap.tasklist.currenttask.settings.usesegmentnotnormalise
             
+<<<<<<< HEAD
             if aap.tasklist.currenttask.settings.bias1stpass
                 % 2 stage process, as proposed by RH, to increased robustness
                 % [djm 13/03/06]
@@ -80,6 +92,22 @@ switch task
                 mSimg = Simg;
             end
             [mSpth, mSfn, mSext] = fileparts(mSimg);
+=======
+            %%%%%%%% 1st pass:
+            fprintf('Running first pass of norm_noss (get bias corrected structural)\n')
+            estopts.regtype='';    % turn off affine:
+            if ~isfield(estopts,'fudge'), estopts.fudge = 5; end % compatiblity
+            out = spm_preproc(Simg, estopts);
+            [sn,isn]   = spm_prep2sn(out);
+            
+            % only write out attenuation corrected image
+            writeopts.biascor = 1;
+            writeopts.GM  = [0 0 0];
+            writeopts.WM  = [0 0 0];
+            writeopts.CSF = [0 0 0];
+            writeopts.cleanup = [0];
+            spm_preproc_write(sn, writeopts);
+>>>>>>> origin/devel-share
             
             %%%%%%%% 2nd pass using attenuation corrected image
             fprintf('Running second pass of norm_noss (estimate normalisation)\n')
@@ -171,13 +199,25 @@ switch task
             % Make the default normalization parameters file name
             % Turn off template weighting
             % SPM defaults
+<<<<<<< HEAD
             spm_normalise(temp_imgs, Simg, SNmat,...
                 defs.estimate.weight, objMask, ...
                 defs.estimate);
+=======
+            SNmat = fullfile(Spth, [Sfn '_sn.mat']);
+            spm_normalise(temp_imgs, Simg, SNmat,...
+                defs.estimate.weight, objMask, ...
+                defs.estimate);
+            aap=aas_desc_outputs(aap,subj,'normalisation_seg_sn',SNmat);
+            % SPM2 normalization doesn't generate the inverse transformation
+            %             invSNmat = fullfile(Spth, [Sfn '_seg_inv_sn.mat']);
+            % aap=aas_desc_outputs(aap,subj,'normalisation_seg_inv_sn',invSNmat);
+>>>>>>> origin/devel-share
         end
         
         if ~all(cellfun('isempty', strfind(aap.tasklist.currenttask.outputstreams.stream, 'normalisation')))
             
+<<<<<<< HEAD
             aap=aas_desc_outputs(aap,subj,'normalisation_seg_sn',SNmat);
             % SPM2 normalization doesn't generate the inverse transformation
             try
@@ -198,8 +238,21 @@ switch task
             else
                 aap=aas_desc_outputs(aap,subj,streams, fullfile(Spth,['w' Sfn Sext]));
             end
+=======
+            ann1=annotation('textbox',[.05 .96 .9 .03],'HorizontalAlignment','center','Color','r','String',strcat('Subject:...',Simg,',  processed on:...',date));
+            ann2=annotation('textbox',[.1 .891 .3 .025],'HorizontalAlignment','center','Color','r','String','T1 template');
+            ann3=annotation('textbox',[.6 .89T1file1 .3 .025],'HorizontalAlignment','center','Color','r','String','Native T1');
+            ann4=annotation('textbox',[.1 .413 .3 .025],'HorizontalAlignment','center','Color','r','String','Normalised T1');
+            ann5=annotation('textbox',[.6 .413 .3 .025],'HorizontalAlignment','center','Color','r','String','Native segmented grey matter');
+            print('-djpeg',fullfile(subj_dir,'diagnostic_aamod_norm_noss'));
+        end
+        print('-djpeg',fullfile(subj_dir,'diagnostic_aamod_norm_noss'));
+        if (aap.tasklist.currenttask.settings.usesegmentnotnormalise)
+            delete(ann1); delete(ann2); delete(ann3);delete(ann4);delete(ann5);
+>>>>>>> origin/devel-share
         end
         
+<<<<<<< HEAD
         %% Save graphical output to common diagnostics directory
         mriname = aas_prepare_diagnostic(aap,subj);
         
@@ -287,15 +340,19 @@ switch task
                 end
             end
         end
+=======
+>>>>>>> origin/devel-share
     case 'checkrequirements'
         % Template image; here template image not skull stripped
         T1file = aap.directory_conventions.T1template;
-        
+        if (~exist(T1file,'file')) % try in SPM
+            if T1file(1) ~= '/', T1file = fullfile(fileparts(which('spm')),T1file); end
+        end
         if (~exist(T1file,'file'))
             aas_log(aap,true,sprintf('T1 template file %s not found, check aap.directory_conventions.T1template\n',T1file));
         end
 end
-
+end
 %------------------------------------------------------------------------
 function savefields(fnam,p)
 if length(p)>1, error('Can''t save fields.'); end
@@ -309,6 +366,84 @@ if str2double(version('-release'))>=14,
 else
     save(fnam,fn{:});
 end
-
-return;
+end
 %------------------------------------------------------------------------
+function diag(aap,subj) % [TA]
+% SPM, AA
+Simg = aas_getfiles_bystream(aap,subj,'structural');
+[Spth, Sfn, Sext] = fileparts(Simg);
+outSeg = aas_getfiles_bystream(aap,subj,'segmentation');
+try
+    % This will only work for 1-7 segmentations
+    OVERcolours = {[1 0 0], [0 1 0], [0 0 1], ...
+        [1 1 0], [1 0 1], [0 1 1], [1 1 1]};
+    
+    %% Draw native template
+    spm_check_registration(fullfile(Spth,['mm' Sfn Sext]))
+    % Add normalised segmentations...
+    for r = 1:(size(outSeg,1)/2)
+        spm_orthviews('addcolouredimage',1,fullfile(Spth,sprintf('c%d%s',r, ['m' Sfn Sext])), OVERcolours{r})
+    end
+    %% Diagnostic VIDEO of segmentations
+    aas_checkreg_avi(aap, subj, 2)
+    
+    spm_orthviews('reposition', [0 0 0])
+    
+    try figure(spm_figure('FindWin', 'Graphics')); catch; figure(1); end;
+    print('-djpeg','-r75',...
+        fullfile(aas_getsubjpath(aap,subj),['diagnostic_' aap.tasklist.main.module(aap.tasklist.currenttask.modulenumber).name '_N.jpg']));
+    
+    %% Draw warped template
+    tmpfile = aap.directory_conventions.T1template;
+    if ~exist(tmpfile,'file') && (tmpfile(1) ~= '/'), tmpfile = fullfile(fileparts(which('spm')),tmpfile); end
+    spm_check_registration(tmpfile)
+    % Add normalised segmentations...
+    for r = 1:(size(outSeg,1)/2)
+        spm_orthviews('addcolouredimage',1,fullfile(Spth,sprintf('wc%d%s',r,['m' Sfn Sext])), OVERcolours{r})
+    end
+    spm_orthviews('reposition', [0 0 0])
+    
+    try figure(spm_figure('FindWin', 'Graphics')); catch; figure(1); end;
+    print('-djpeg','-r75',...
+        fullfile(aas_getsubjpath(aap,subj),['diagnostic_' aap.tasklist.main.module(aap.tasklist.currenttask.modulenumber).name '_W.jpg']));
+catch
+    fprintf('\n\tFailed display diagnostic image - Displaying template & segmentation 1');
+    try
+        %% Draw native template
+        spm_check_registration(char({fullfile(Spth,sprintf('c1%s',['m' Sfn Sext])); fullfile(Spth,['mm' Sfn Sext])}))
+        
+        try figure(spm_figure('FindWin', 'Graphics')); catch; figure(1); end;
+        print('-djpeg','-r75',...
+            fullfile(aas_getsubjpath(aap,subj),['diagnostic_' aap.tasklist.main.module(aap.tasklist.currenttask.modulenumber).name '_N.jpg']));
+        
+        %% Draw warped template
+        tmpfile = aap.directory_conventions.T1template;
+        if ~exist(tmpfile,'file') && (tmpfile(1) ~= '/'), tmpfile = fullfile(fileparts(which('spm')),tmpfile); end
+        spm_check_registration(char({fullfile(Spth,sprintf('wc1%s',['m' Sfn Sext])); tmpfile}))
+        
+        try figure(spm_figure('FindWin', 'Graphics')); catch; figure(1); end;
+        set(gcf,'PaperPositionMode','auto')
+        print('-djpeg','-r75',...
+            fullfile(aas_getsubjpath(aap,subj),['diagnostic_' aap.tasklist.main.module(aap.tasklist.currenttask.modulenumber).name '_W.jpg']));
+    catch
+        fprintf('\n\tFailed display backup diagnostic image!');
+    end
+end
+
+% FSL
+% Obtain FSL T1 template
+tP = fullfile(getenv('FSLDIR'),'data','standard','MNI152_T1_2mm_brain.nii.gz');
+
+% Obtain normalized GM segmentation
+subj_dir=aas_getsubjpath(aap,subj);
+segdir=fullfile(subj_dir,aap.directory_conventions.structdirname);
+sP = dir( fullfile(segdir,['wc1' aap.acq_details.subjects(subj).structuralfn '*.nii']));
+sP = fullfile(segdir,sP(1).name);
+
+% Create FSL-like overview
+iP = fullfile(subj_dir,['diagnostic_' aap.tasklist.main.module(aap.tasklist.currenttask.modulenumber).name]);
+aas_runfslcommand(aap,sprintf('slices %s %s -s 2 -o %s.gif',tP,sP,iP));
+[img,map] = imread([iP '.gif']); s3 = size(img,1)/3;
+img = horzcat(img(1:s3,:,:),img(s3+1:2*s3,:,:),img(s3*2+1:end,:,:));
+imwrite(img,map,[iP '.jpg']); delete([iP '.gif']);
+end

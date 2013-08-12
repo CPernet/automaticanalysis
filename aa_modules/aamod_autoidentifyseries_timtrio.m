@@ -94,6 +94,8 @@ switch task
         
         tmpdir=aas_gettempfilename();
         
+        protocolnames=[];
+        
         % Go through each series, and examine type
         for sess=1:length(rawdata_allseries)
             % Get the path to a single dicom file from series "sess", downloading from S3 first if necessary

@@ -7,6 +7,18 @@ function [aap,resp] = aamod_unnormalise_rois( aap, task, subj)
 resp='';
 
 switch task
+    case 'checkrequirements'
+        ROIlist=getROIlist(aap);
+        for r = 1:length(ROIlist)
+            if ~exist(ROIlist{r}, 'file')
+                error(sprintf('The ROI %s file does not exist', ...
+                    ROIlist{r}))
+            end
+            [junk, fn, ext] = fileparts(ROIlist{r});
+            if strcmp(ext,'.img')
+                aas_log(aap,true,sprintf('ROIs of analyze format are not supported - convert following to .nii\n  %s',ROIlist{r}));
+            end;
+        end;
     case 'doit'
         
         % Structural directory...

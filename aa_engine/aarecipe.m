@@ -165,7 +165,7 @@ else
                         extrastages_added.module(noDependI) = arrayfun(@(x) setfield(x, 'tobecompletedfirst', 0), extrastages_added.module(noDependI));
                         
                         % Update the branchIDs in the current branch to account for the number in the previous branch number of branches in the previous branch
-                        numPrevBranches = length(unique([extrastages.module.branchID]));
+                        numPrevBranches = length(unique([extrastages.module.branchID], 'legacy'));
                         extrastages_added.module = arrayfun(@(x) setfield(x, 'branchID', x.branchID + numPrevBranches), extrastages_added.module);
                         
                         extrastages.module=[extrastages.module extrastages_added.module];
@@ -188,17 +188,26 @@ else
             
             % Get a list of all the branch IDs that exist in the output
             oBranchIDs = [outstages.module.branchID];
-            [oLabels oIndex] = unique(oBranchIDs);
+            [oLabels oIndex] = unique(oBranchIDs, 'legacy');
             numOutBranches = length(oLabels);
             
             % Get a list of all the branch IDs that exist in the new stuff
             nBranchIDs = [extrastages.module.branchID];
+<<<<<<< HEAD
             [nLabels nIndex] = unique(nBranchIDs);
             numNewBranches = length(nLabels);
             
             % Number of stages in the new stuff
             numNewStages = length(extrastages.module);
             
+=======
+            [nLabels nIndex] = unique(nBranchIDs, 'legacy');
+            numNewBranches = length(nLabels);
+            
+            % Number of stages in the new stuff
+            numNewStages = length(extrastages.module);
+            
+>>>>>>> origin/devel-share
             % Basically, we repeat the extrastages and them to each branch that exists in the output.
             for oB = 1 : numOutBranches
                 newStages = extrastages;

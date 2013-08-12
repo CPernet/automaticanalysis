@@ -10,21 +10,29 @@ if nargin < 4
     suffix = '';
 end
 
+<<<<<<< HEAD
 mriname = aas_prepare_diagnostic(aap,subj);
+=======
+mriname = strtok(aap.acq_details.subjects(p).mriname, '/');
+>>>>>>> origin/devel-share
 
 % Check if we need to make a movie...
 if aap.tasklist.currenttask.settings.diagnostic
     
     % Make a movie from whichever image is on SPM figure 1    
-    movieFilename = fullfile(aap.acq_details.root, 'diagnostics', ...
-        [mfilename '__' mriname suffix '.avi']);
+    movieFilename = fullfile(aas_getsubjpath(aap,p), ...
+        ['diagnostic_' strrep(mfilename,'_avi','') suffix '.avi']);
     
     % Create movie file by defining aviObject
-    if ~exist(movieFilename,'file')
+    if exist(movieFilename,'file')
         delete(movieFilename);
     end
-    
-    aviObject = avifile(movieFilename,'compression','none');
+    if checkmatlabreq([7;11]) % From Matlab 7.11 use VideoWriter
+        aviObject = VideoWriter(movieFilename);
+        open(aviObject);
+    else
+        aviObject = avifile(movieFilename,'compression','none');
+    end
     try
         % Try to set figure 1 to be on top!
         fJframe = get(1, 'JavaFrame');
@@ -51,12 +59,15 @@ if aap.tasklist.currenttask.settings.diagnostic
         elseif axisDim == 3
             spm_orthviews('reposition', [0 0 d])
         end        
-        pause(0.01)
         
         % Capture frame and store in aviObject
         F = getframe(1,windowSize);
-        %figure(5); imagesc(F.cdata) % DEBUG CODE TO SEE IMAGE...
-        aviObject = addframe(aviObject,F);
+%         figure(5); imagesc(F.cdata) % DEBUG CODE TO SEE IMAGE...
+        if checkmatlabreq([7;11]) % From Matlab 7.11 use VideoWriter
+            writeVideo(aviObject,F);
+        else
+            aviObject = addframe(aviObject,F);
+        end
     end
     
     try
@@ -64,6 +75,6 @@ if aap.tasklist.currenttask.settings.diagnostic
         fJframe.fFigureClient.getWindow.setAlwaysOnTop(false)
     catch
     end
-    aviObject = close(aviObject);
+    close(aviObject);
 end
 end

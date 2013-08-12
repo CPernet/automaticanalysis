@@ -89,6 +89,7 @@ switch task
         if ~exist('optimNn', 'file')
             aas_log(aap, true, 'optimNn is not in your Matlab path but needs to be.');
         end
+<<<<<<< HEAD
         
         
         % get the structural image
@@ -96,6 +97,18 @@ switch task
         
         if isempty(aap.tasklist.currenttask.settings.structural)
             aap.tasklist.currenttask.settings.structural = 1:size(Simg,1);
+=======
+
+
+        % get the structural image        
+        %img = aas_getfiles_bystream(aap, subjind, 'structural');
+        inStream = aap.tasklist.currenttask.inputstreams.stream{1};
+        img = aas_getfiles_bystream(aap, subjind, inStream);
+        
+
+        if isempty(img) || strcmp(img,'/')
+            aas_log(aap, true, 'Did not find a structural image.');
+>>>>>>> origin/devel-share
         end
         
         if isempty(Simg) || strcmp(Simg,'/')
@@ -173,6 +186,14 @@ switch task
         
         %% describe outputs
         % the bias-corrected structural image replaces the input image in the stream
+<<<<<<< HEAD
         aap = aas_desc_outputs(aap, subj, 'structural', mimgfn);
         aap = aas_desc_outputs(aap, subj, 'seg8', seg8fn);
+=======
+        aap = aas_desc_outputs(aap, subjind, inStream, mimgfn);
+
+        % get file name for *seg8.mat file
+        seg8fn = fullfile(pth, sprintf('%s_seg8.mat', nm));
+        aap = aas_desc_outputs(aap, subjind, 'seg8', seg8fn);
+>>>>>>> origin/devel-share
 end
