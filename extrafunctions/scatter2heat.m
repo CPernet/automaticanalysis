@@ -8,11 +8,15 @@
 % C: how to colour the points (if empty, the heatmap will contain number of
 % points in that bin)
 % bins: how many bins in each direction...
-function scatterMatrix = scatter2heat(X, Y, C, bins)
+function scatterMatrix = scatter2heat(X, Y, C, bins, transform)
 
 if nargin < 4
     % Group into bins of 0.05
     bins = 20;
+end
+if nargin < 5
+    % Group into bins of 0.05
+    transform = '';
 end
 if length(bins) == 1
     bins = [bins, bins];
@@ -31,6 +35,10 @@ if nargin < 3 || isempty(C);
     scatterMatrix = accumarray([idxy idxx], ones(size(X))', [], @sum);
 else
     scatterMatrix = accumarray([idxy idxx], C', [], @mean);
+end
+
+if ~isempty(transform)
+    eval(['scatterMatrix = ' transform '(scatterMatrix);']);
 end
 
 % PLOT

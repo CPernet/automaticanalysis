@@ -32,21 +32,22 @@ switch task
         aap.tasklist.currenttask.settings.conditionNum = MVPaa_settings.conditionNum;
         aap.tasklist.currenttask.settings.blockNum = MVPaa_settings.blockNum;
         aap.tasklist.currenttask.settings.sessionNum = MVPaa_settings.sessionNum;
+           
+        %% DATA STRUCTURING...
+        % Spike nulling of volumes that contain spikes (if working with raw data!)!
+        aap.tasklist.currenttask.settings.spikeNulling = mvpaa_spikeNulling_prepare(aap);
+        
+        % Label the similarity matrix according to condition, block, session comparisons
+        % This "structures" similarity data to allow us to test hypotheses on observation similiarity values
+        aap = mvpaa_structureSimilarity(aap);
+        % Structure the contrast matrices based on the above
+        aap = mvpaa_structureContrasts(aap);
         
         %% DENOISING
         % Motion denoising for similarity data cleanup!
         aap.tasklist.currenttask.settings.motionDenoising = mvpaa_motionDenoising_prepare(aap);
         % Temporal denoising for similarity data cleanup!
         aap.tasklist.currenttask.settings.temporalDenoising = mvpaa_temporalDenoising_prepare(aap);
-        % Spike nulling of volumes that contain spikes (if working with raw data!)!
-        aap.tasklist.currenttask.settings.spikeNulling = mvpaa_spikeNulling_prepare(aap);
-        
-        %% DATA STRUCTURING...
-        % Label the similarity matrix according to condition, block, session comparisons
-        % This "structures" similarity data to allow us to test hypotheses on observation similiarity values
-        aap = mvpaa_structureSimilarity(aap);
-        % Structure the contrast matrices based on the above
-        aap = mvpaa_structureContrasts(aap);
         
         %% GET MASK
         segMask = mvpaa_getMask(aap);

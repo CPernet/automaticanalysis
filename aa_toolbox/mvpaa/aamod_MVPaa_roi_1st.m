@@ -40,21 +40,22 @@ switch task
         aap.tasklist.currenttask.settings.blockNum = MVPaa_settings.blockNum;
         aap.tasklist.currenttask.settings.sessionNum = MVPaa_settings.sessionNum;
         
-        %% DENOISING
-        % Motion denoising for similarity data cleanup!
-        aap.tasklist.currenttask.settings.motionDenoising = mvpaa_motionDenoising_prepare(aap);
-        % Temporal denoising for similarity data cleanup!
-        aap.tasklist.currenttask.settings.temporalDenoising = mvpaa_temporalDenoising_prepare(aap);
+        %% DATA STRUCTURING...
         % Spike nulling of volumes that contain spikes (if working with raw data!)!
         aap.tasklist.currenttask.settings.spikeNulling = mvpaa_spikeNulling_prepare(aap);
         
-        %% DATA STRUCTURING...
         % Label the similarity matrix according to condition, block, session comparisons
         % This "structures" similarity data to allow us to test hypotheses on observation similiarity values
         aap = mvpaa_structureSimilarity(aap);
         % Structure the contrast matrices based on the above
         aap = mvpaa_structureContrasts(aap);
         
+        %% DENOISING
+        % Motion denoising for similarity data cleanup!
+        aap.tasklist.currenttask.settings.motionDenoising = mvpaa_motionDenoising_prepare(aap);
+        % Temporal denoising for similarity data cleanup!
+        aap.tasklist.currenttask.settings.temporalDenoising = mvpaa_temporalDenoising_prepare(aap);
+                
         %% GET MASK
         segMask = mvpaa_getMask(aap);
         
@@ -89,8 +90,7 @@ switch task
             segMask = ~isfinite(segMask) || segMask == 0;
         end
         
-        brainLimit = matrixLimits(~segMask, ...
-            aap.tasklist.currenttask.settings.ROIradius);
+        brainLimit = matrixLimits(~segMask, 0);
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
@@ -99,10 +99,15 @@ switch task
         ROIradius = aap.tasklist.currenttask.settings.ROIradius;
         
         %% GET fMRI DATA & MASK IT
-        MVPaa_data = MVPaa_obj.MVPaa_data;
+        MVPaa_data = MVPaa_obj.MVPaa_data(:, ...
+            brainLimit{1}(1):brainLimit{1}(2), ...
+            brainLimit{2}(1):brainLimit{2}(2), ...
+            brainLimit{3}(1):brainLimit{3}(2));
         
         % MASK DATA (using segmentation masks, for instance...)
-        [MVPaa_data, dataMask] = mvpaa_maskData(MVPaa_data, segMask);
+        [MVPaa_data, dataMask] = mvpaa_maskData(MVPaa_data, segMask(brainLimit{1}(1):brainLimit{1}(2), ...
+            brainLimit{2}(1):brainLimit{2}(2), ...
+            brainLimit{3}(1):brainLimit{3}(2)));
                 
         % Create output arrays...
         switch aap.tasklist.currenttask.settings.statsType
@@ -118,7 +123,7 @@ switch task
                 aas_log(aap, 1, 'Unknown type of statistics!')
         end
         
-        
+        ROIname = {};
         for r = 1:ROInum
             [Rpth Rfn Rext] = fileparts(deblank(ROIimg(r,:)));
             ROIname = [ROIname Rfn];
@@ -127,9 +132,13 @@ switch task
             ROI = uint8(spm_read_vols(spm_vol(fullfile(Rpth, [Rfn Rext]))));
             
             % Check that the ROI size is equal to the data size
-            if any(size(ROI) ~= size(data{1,1,1}));
+            if any(size(ROI) ~= size(segMask));
                 aas_log(aap, true, 'Your ROI size is different from your data size!');
             end
+            
+            ROI = ROI(brainLimit{1}(1):brainLimit{1}(2), ...
+            brainLimit{2}(1):brainLimit{2}(2), ...
+            brainLimit{3}(1):brainLimit{3}(2));
             
             % Trick for non-binary ROIs...
             if length(unique(ROI))>2
