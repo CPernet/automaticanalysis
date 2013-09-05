@@ -11,6 +11,7 @@ function [aap,resp]=aamod_listspikes(aap,task,subj)
 resp='';
 
 switch task
+    case 'report'
     case 'doit'
         
         mriname = aas_prepare_diagnostic(aap,subj);
@@ -37,11 +38,13 @@ switch task
             end
             
             xyzlimit = aap.tasklist.currenttask.settings.xyzlimit;
-            rotlimit_radians=aap.tasklist.currenttask.settings.rotlimit_degrees*pi/180;
+            rotlimit_radians = aap.tasklist.currenttask.settings.rotlimit_degrees*pi/180;
+            FDlimit = aap.tasklist.currenttask.settings.FDlimit;
             
             %% Now find big changes from one image to the next
             %  td = mean (across voxels) of square difference between one volume and the next
             %  globals = mean global value across an image
+            % Similar to DVARS in Power et al., 2012
             
             tm = td/(mean(globals).^2); % RC/KM added .^2 16/6/2008
             
@@ -71,51 +74,75 @@ switch task
                     tmlimit = aap.tasklist.currenttask.settings.tmlimit * std(oRtm);
             end
             
-            badimages=[false; (Rtm > tmlimit)];
-                
-            TSspikes=[find(badimages),tm(badimages(2:end)),slicediff(badimages(2:end))];
+            badTSspikes = [false; (Rtm > tmlimit)];
+            
+            TSspikes=[find(badTSspikes),tm(badTSspikes(2:end)),slicediff(badTSspikes(2:end))];
             
             %% Now find big movements
             % shift to sync with scan number
             rpdiff = [zeros(1,6); diff(rp{sess})];
             absrpdiff = abs(rpdiff);
             
-            badTspikes = any(absrpdiff(:,1:3) > xyzlimit,2);
-            badRspikes = any(absrpdiff(:,4:6) > rotlimit_radians,2);
-            badMspikes= badTspikes | badRspikes;
+            if ~isempty(xyzlimit) && ~isempty(rotlimit_radians) && isempty(FDlimit)
+                diagnosticSubplots = 4;
+                
+                badTspikes = any(absrpdiff(:,1:3) > xyzlimit,2);
+                badRspikes = any(absrpdiff(:,4:6) > rotlimit_radians,2);
+                badMspikes= badTspikes | badRspikes;
+                
+            elseif ~isempty(FDlimit)
+                diagnosticSubplots = 3;
+                
+                % Transform rotations into displacement on a sphere of radius R
+                absrpdiff(:, 4:6) = absrpdiff(:, 4:6) * aap.tasklist.currenttask.settings.radiuscortex;
+                frameDelta = sum(absrpdiff, 2);
+                
+                % Thresholding
+                badMspikes = frameDelta > FDlimit;
+            else
+                aas_log('Wrong setup of limit parameters, either [xyzlimit and rotlimit] or FDlimit')
+            end
             
             Mspikes=[find(badMspikes), rpdiff(badMspikes,:)];
             
             %% DIAGNOSTIC
             
-            subplot(nsess,4, (sess - 1) * 4 + 1)
+            subplot(nsess, diagnosticSubplots, (sess - 1) * diagnosticSubplots + 1)
             hold off
             plot(tm, 'b.')
             hold on
             plot(TSspikes(:,1), TSspikes(:,2), 'ko')
             title(sprintf('Sess %d \t Spikes: %d\n', sess, size(TSspikes,1)))
             
-            subplot(nsess,4, (sess - 1) * 4 + 2)
+            subplot(nsess, diagnosticSubplots, (sess - 1) * diagnosticSubplots + 2)
             hist(Rtm,50)
             title(sprintf('Distribution of the tm data underlying spikes'))
             
-            subplot(nsess,4, (sess - 1) * 4 + 3)
-            hold off
-            plot(rpdiff(:,1:3))
-            hold on
-            plot(find(badTspikes), rpdiff(badTspikes,1:3), 'ko')
-            title(sprintf('Sess %d \t Translations: %d\n', sess, sum(badTspikes,1)))
-            
-            subplot(nsess,4, (sess - 1) * 4 + 4)
-            hold off
-            plot(rpdiff(:,4:6))
-            hold on
-            plot(find(badRspikes), rpdiff(badRspikes,4:6), 'ko')
-            title(sprintf('Sess %d \t Rotations: %d\n', sess, sum(badRspikes,1)))
-            
+            if ~isempty(xyzlimit) && ~isempty(rotlimit_radians) && isempty(FDlimit)
+                subplot(nsess, diagnosticSubplots, (sess - 1) * diagnosticSubplots + 3)
+                hold off
+                plot(rpdiff(:,1:3))
+                hold on
+                plot(find(badTspikes), rpdiff(badTspikes,1:3), 'ko')
+                title(sprintf('Sess %d \t Translations: %d\n', sess, sum(badTspikes,1)))
+                
+                subplot(nsess, diagnosticSubplots, (sess - 1) * diagnosticSubplots + 4)
+                hold off
+                plot(rpdiff(:,4:6))
+                hold on
+                plot(find(badRspikes), rpdiff(badRspikes,4:6), 'ko')
+                title(sprintf('Sess %d \t Rotations: %d\n', sess, sum(badRspikes,1)))
+            elseif ~isempty(FDlimit)
+                subplot(nsess, diagnosticSubplots, (sess - 1) * diagnosticSubplots + 3)
+                hold off
+                plot(frameDelta)
+                hold on
+                plot(find(badMspikes), frameDelta(badMspikes), 'ko')
+                title(sprintf('Sess %d \t Framewise Displacements: %d\n', sess, sum(badMspikes,1)))
+            end
             
             %% Save things
-            fprintf('Sess %d \t Spikes: %d; Moves: %d\n', sess, size(TSspikes,1), size(Mspikes,1))
+            fprintf('Sess %d \t Spikes: %d; Motion: %d; Bad: %d\n', sess, size(TSspikes,1), size(Mspikes,1), sum(or(badTSspikes, badMspikes))) 
             
             SPfn = fullfile(aas_getsesspath(aap,subj,sess),sprintf('spikesandMspikes.mat'));
             save(SPfn, 'TSspikes', 'Mspikes');

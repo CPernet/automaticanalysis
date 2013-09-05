@@ -41,14 +41,14 @@ for sess = unique(sessionNum)
     end
 end
 
-[X Y] = meshgrid(RblockNum);
+[X, Y] = meshgrid(RblockNum);
 
 blockNumbering =  Y + (X.^2 - X)/2;
 
 %% DEAL WITH CONDITIONS
 % This numbering system is implemented to cope easily with simple
 % condition*condition contrast matrices!
-[X Y] = meshgrid(conditionNum);
+[X, Y] = meshgrid(conditionNum);
 
 % Find out the cells that contain across session comparisons
 conditionNumbering = Y + (X.^2 - X)/2;

@@ -154,7 +154,6 @@ switch task
         
         %% Diagnostic VIDEO
         if aap.tasklist.currenttask.settings.diagnostic
-<<<<<<< HEAD
             % Realignment params
             defs = aap.spm.defaults.realign;
             
@@ -171,85 +170,22 @@ switch task
             [mEPIpth, mEPIfn, mEPIext] = fileparts(deblank(mEPIimg(aap.tasklist.currenttask.settings.structural,:)));
             spm_reslice(strvcat(Simg, mEPIimg), resFlags);
             
-            Ydims = {'X', 'Y', 'Z'};
-            for d = 1:length(Ydims)
-                aas_image_avi( fullfile(mEPIpth, ['r' mEPIfn mEPIext]), ...
-                Simg, ...
-                fullfile(aap.acq_details.root, 'diagnostics', [mfilename '__' mriname '_' Ydims{d} '.avi']), ...
-                d, ... % Axis
-                [800 600], ...
-                2); % Rotations
-            end
-            try close(2); catch; end
-            delete(fullfile(mEPIpth, ['r' mEPIfn mEPIext]))
-=======
             if isempty(which('edge'))
                 aas_log(aap,false,'Can''t find "edge" function - perhaps because you don''t have the image processing toolbox. Skipping diagnostic video');
             else
                 Ydims = {'X', 'Y', 'Z'};
-                
-                % Get mean EPI
-                Y = spm_read_vols(spm_vol(mEPIimg));
-                
-                % Get resliced structural
-                warning off
-                spm_reslice(strvcat(mEPIimg, Simg), resFlags);
-                sY = spm_read_vols(spm_vol(fullfile(Spth, ['r' Sfn Sext])));
-                warning on
-                
-                EPIlims = [min(Y(:)) max(Y(:))];
-                
                 for d = 1:length(Ydims)
-                    movieFilename = fullfile(aap.acq_details.root, 'diagnostics', ...
-                        [mfilename '__' mriname '_' Ydims{d} '.avi']);
-                    % Create movie file by defining aviObject
-                    try delete(movieFilename); catch; end
-                    aviObject = avifile(movieFilename,'compression','none');
-                    
-                    try close(2); catch; end
-                    figure(2)
-                    set(2, 'Position', [0 0 1000 800])
-                    windowSize = get(2,'Position');
-                    
-                    for n = 1:size(sY,d)
-                        % Get outline of structural slice
-                        h = subplot(1,1,1);
-                        if d == 1
-                            sOutline = edge(rot90(squeeze(sY(n,:,:))));
-                        elseif d == 2
-                            sOutline = edge(rot90(squeeze(sY(:,n,:))));
-                        elseif d == 3
-                            sOutline = edge(rot90(squeeze(sY(:,:,n))));
-                        end
-                        
-                        % Get image of EPI slice
-                        if d == 1
-                            sImage = rot90(squeeze(Y(n,:,:)));
-                        elseif d == 2
-                            sImage = rot90(squeeze(Y(:,n,:)));
-                        elseif d == 3
-                            sImage = rot90(squeeze(Y(:,:,n)));
-                        end
-                        
-                        % Overlay structural outline on EPI image
-                        sImage(logical(sOutline)) = EPIlims(2) * 2;
-                        imagesc(sImage)
-                        
-                        caxis(EPIlims)
-                        axis equal off
-                        zoomSubplot(h, 1.2)
-                        
-                        % Capture frame and store in aviObject
-                        pause(0.01)
-                        aviObject = addframe(aviObject,getframe(2,windowSize));
-                    end
-                    
-                    aviObject = close(aviObject);
+                    aas_image_avi( fullfile(mEPIpth, ['r' mEPIfn mEPIext]), ...
+                        Simg, ...
+                        fullfile(aap.acq_details.root, 'diagnostics', [mfilename '__' mriname '_' Ydims{d} '.avi']), ...
+                        d, ... % Axis
+                        [800 600], ...
+                        2); % Rotations
                 end
-                try close(2); catch; end
-                
-            end;
->>>>>>> origin/devel-share
+            end
+            
+            try close(2); catch; end
+            delete(fullfile(mEPIpth, ['r' mEPIfn mEPIext]))
         end
         
         %% Describe the outputs

@@ -48,30 +48,17 @@ switch task
         end
         
         for streamind=1:length(streams)
-<<<<<<< HEAD
             imgs = [];
-            
-=======
-            subj.imgs = [];
-                        
->>>>>>> origin/devel-share
             % Image to reslice
             if (exist('sess','var'))
                 P = aas_getfiles_bystream(aap,subj,sess,streams{streamind});
             else
-<<<<<<< HEAD
+
                 P = aas_getfiles_bystream(aap,subj,streams{streamind});
             end            
             
             imgs = strvcat(imgs, P);
             
-=======
-                P = aas_getfiles_bystream(aap,i,streams{streamind});
-            end
-            
-            
-            subj.imgs = strvcat(subj.imgs, P);
->>>>>>> origin/devel-share
             % delete previous because otherwise nifti write routine doesn't
             % save disc space when you reslice to a coarser voxel            
             for c=1:size(P,1)
@@ -85,7 +72,6 @@ switch task
             flags.vox = voxelSize; 
             
             % now write normalised
-<<<<<<< HEAD
             if ~isempty(imgs)
                 % Ignore .hdr files from this list...
                 imgsGood = imgs;
@@ -96,16 +82,12 @@ switch task
                 end
                 spm_write_sn(imgsGood,matname,aap.spm.defaults.normalise.write);
             end
-=======
-            if (length(subj.imgs)>0)
-                spm_write_sn(subj.imgs,subj.matname, flags);
-            end;
->>>>>>> origin/devel-share
+
             wimgs=[];
             
             % describe outputs
             for fileind=1:size(imgs,1)
-                [pth nme ext] = fileparts(imgs(fileind,:));
+                [pth, nme, ext] = fileparts(imgs(fileind,:));
                 wimgs = strvcat(wimgs,fullfile(pth,['w' nme ext]));
             end
             if (exist('sess','var'))
@@ -139,13 +121,15 @@ fP = fullfile(pP,[aap.spm.defaults.normalise.write.prefix fP eP]);
 
 % Overlays
 iP = fullfile(sess_dir,['diagnostic_' aap.tasklist.main.module(aap.tasklist.currenttask.modulenumber).name '_epi2MNI']);
-aas_runfslcommand(aap,sprintf('slices %s %s -s 2 -o %s.gif',sP,fP,iP));
+aas_runfslcommand(aap,sprintf('slices %s %s -s 2 -a %s.gif',sP,fP,iP));
 [img,map] = imread([iP '.gif']); s3 = size(img,1)/3;
 img = horzcat(img(1:s3,:,:),img(s3+1:2*s3,:,:),img(s3*2+1:end,:,:));
-imwrite(img,map,[iP '.jpg']); delete([iP '.gif']);
+imwrite(img, [iP '.jpg']); delete([iP '.gif']);
+
 iP = fullfile(sess_dir,['diagnostic_' aap.tasklist.main.module(aap.tasklist.currenttask.modulenumber).name '_MNI2epi']);
-aas_runfslcommand(aap,sprintf('slices %s %s -s 2 -o %s.gif',fP,sP,iP));
+aas_runfslcommand(aap,sprintf('slices %s %s -s 2 -a %s.gif',fP,sP,iP));
 [img,map] = imread([iP '.gif']); s3 = size(img,1)/3;
 img = horzcat(img(1:s3,:,:),img(s3+1:2*s3,:,:),img(s3*2+1:end,:,:));
-imwrite(img,map,[iP '.jpg']); delete([iP '.gif']);
+imwrite(img, [iP '.jpg']); delete([iP '.gif']);
+
 end

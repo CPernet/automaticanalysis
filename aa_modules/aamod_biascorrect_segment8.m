@@ -89,27 +89,12 @@ switch task
         if ~exist('optimNn', 'file')
             aas_log(aap, true, 'optimNn is not in your Matlab path but needs to be.');
         end
-<<<<<<< HEAD
-        
-        
-        % get the structural image
-        Simg = aas_getfiles_bystream(aap, subj, 'structural');
-        
-        if isempty(aap.tasklist.currenttask.settings.structural)
-            aap.tasklist.currenttask.settings.structural = 1:size(Simg,1);
-=======
 
 
         % get the structural image        
-        %img = aas_getfiles_bystream(aap, subjind, 'structural');
+        %img = aas_getfiles_bystream(aap, subj, 'structural');
         inStream = aap.tasklist.currenttask.inputstreams.stream{1};
-        img = aas_getfiles_bystream(aap, subjind, inStream);
-        
-
-        if isempty(img) || strcmp(img,'/')
-            aas_log(aap, true, 'Did not find a structural image.');
->>>>>>> origin/devel-share
-        end
+        Simg = aas_getfiles_bystream(aap, subj, inStream);
         
         if isempty(Simg) || strcmp(Simg,'/')
             aas_log(aap, true, 'Did not find a structural image.');
@@ -121,9 +106,9 @@ switch task
             clear job
             
             % if more than one found, use the first one and hope this is right
-            img = strtok(Simg(d,:));
+            Simg = strtok(Simg(d,:));
             
-            aas_log(aap, false, sprintf('Found structural image: %s\n', img));
+            aas_log(aap, false, sprintf('Found structural image: %s\n', Simg));
             
             
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -139,7 +124,7 @@ switch task
                 tissue(k).warped = cfg.warped;
             end
             
-            job.channel(1).vols{1} = img;
+            job.channel(1).vols{1} = Simg;
             job.channel(1).biasreg = cfg.biasreg;
             job.channel(1).biasfwhm = cfg.biasfwhm;
             job.channel(1).write = cfg.writebiascorrected;
@@ -165,7 +150,7 @@ switch task
             spm_preproc_run(job);
             
             % get the filename for the bias-corrected image (which has 'm' prepended)
-            [pth, nm, ext] = fileparts(img);
+            [pth, nm, ext] = fileparts(Simg);
             mimgfn = strvcat(mimgfn, fullfile(pth, sprintf('m%s%s', nm, ext)));
             
             % get file name for *seg8.mat file
@@ -186,14 +171,10 @@ switch task
         
         %% describe outputs
         % the bias-corrected structural image replaces the input image in the stream
-<<<<<<< HEAD
-        aap = aas_desc_outputs(aap, subj, 'structural', mimgfn);
-        aap = aas_desc_outputs(aap, subj, 'seg8', seg8fn);
-=======
-        aap = aas_desc_outputs(aap, subjind, inStream, mimgfn);
+
+        aap = aas_desc_outputs(aap, subj, inStream, mimgfn);
 
         % get file name for *seg8.mat file
         seg8fn = fullfile(pth, sprintf('%s_seg8.mat', nm));
-        aap = aas_desc_outputs(aap, subjind, 'seg8', seg8fn);
->>>>>>> origin/devel-share
+        aap = aas_desc_outputs(aap, subj, 'seg8', seg8fn);
 end

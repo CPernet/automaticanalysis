@@ -1,3 +1,6 @@
+%% SEARCH_CODE
+% filesFound = search_code(snippet, editFile, filters, searchToolbox)
+
 function filesFound = search_code(snippet, editFile, filters, searchToolbox)
 if nargin < 2
     editFile = 0;

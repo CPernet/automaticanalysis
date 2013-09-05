@@ -6,9 +6,12 @@
 % matrixSize: either a 3x1 EPI matrix dimension vector or a single voxel count
 % numImages: number of EPI images in experiment
 
-function aap = aas_setup_qsub(aap, matrixSize, numImages)
+function aap = aas_setup_qsub(aap, matrixSize, numImages, killJobs)
 
 % Default values for 2D EPI
+if nargin < 4
+    killJobs = 0;
+end
 if nargin < 3
     numImages = 2000;
 end
@@ -24,7 +27,9 @@ end
 addpath(genpath(fullfile(aap.directory_conventions.fieldtripdir, 'qsub')))
 
 % Remove previous jobs
-qsublist('killall')
+if killJobs
+    qsublist('killall')
+end
 
 % Process in torque (qsub) rather than locally
 aap.options.wheretoprocess = 'qsub'; 

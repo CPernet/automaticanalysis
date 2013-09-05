@@ -1,4 +1,4 @@
-function out = spm_dicom_convert_7T(hdr,opts,root_dir,format)
+function out = spm_dicom_convert_7Tsiemens(hdr,opts,root_dir,format)
 % Convert DICOM images into something that SPM can use
 % FORMAT spm_dicom_convert(hdr,opts,root_dir,format)
 % Inputs:

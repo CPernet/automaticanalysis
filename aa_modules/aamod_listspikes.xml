@@ -24,8 +24,10 @@
             <tmmode desc='Units in which the tmlimit is in [absolute, std, rstd]'>rstd</tmmode>
             <tmbaseline desc='Baseline for the mean variance between volumes [zero, mean, median, smooth]'>smooth</tmbaseline>
             
-            <xyzlimit desc='Threshold in mm of movement'>0.5</xyzlimit>
-            <rotlimit_degrees desc='Threshold in degrees of movement'>0.3</rotlimit_degrees>
+            <xyzlimit desc='Threshold in mm of movement'></xyzlimit> <!-- 0.5 -->
+            <rotlimit_degrees desc='Threshold in degrees of movement'></rotlimit_degrees> <!-- 0.3 -->
+            <FDlimit desc='Framewise displacement limit in mm'>0.5</FDlimit>
+            <radiuscortex desc='Approximate radius of the cortex in mm (Power et al, 2012 states this is ~50mm in adults'>50</radiuscortex>
             
         </currenttask>
     </tasklist>

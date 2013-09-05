@@ -1,4 +1,5 @@
 function cont = mvpaa_label2cont(label, mode, balance, demean)
+%% cont = mvpaa_label2cont(label, mode, balance, demean)
 % Label = the labels of the different conditions
 % Mode = are the labels 'discrete', 'continuous', 'binary'
 % Balance = mode in which to balance the contrasts... if it is an empty
@@ -16,7 +17,7 @@ if nargin < 4
     warning(sprintf('Did not select demean mode, defaulting to %d', demean))
 end
 
-[X Y] = meshgrid(label);
+[X, Y] = meshgrid(label);
 
 cont = X - Y;
 cont = abs(cont);

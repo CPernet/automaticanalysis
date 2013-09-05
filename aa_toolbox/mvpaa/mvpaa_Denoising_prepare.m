@@ -39,7 +39,7 @@ switch denoisingMode
         denoisingRegressor = nan(sum(denoisingStructure.affected(:)), size(denoisingVector,2));
         for d = 1:size(denoisingVector,2)
             % Demean and balance
-                denoisingRegressor(:,d) = mvpaa_balanceCont(denoisingMatrix{d}(denoisingStructure(sess).affected), ...
+                denoisingRegressor(:,d) = mvpaa_balanceCont(denoisingMatrix{d}(denoisingStructure.affected), ...
                     'equalIntervals', 1);
         end
         denoisingStructure.matrix = denoisingRegressor;

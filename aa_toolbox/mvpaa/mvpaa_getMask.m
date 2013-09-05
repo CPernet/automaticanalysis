@@ -45,4 +45,6 @@ if ~isempty(SEGimg)
     else
         aas_log(aap, 1, 'Invalid maskInclusive option used [0 - No, 1 - Yes]')
     end
+else
+    segMask = [];
 end

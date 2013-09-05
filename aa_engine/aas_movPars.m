@@ -1,4 +1,4 @@
-function [moveRegs Rnames] = aas_movPars(aap, p, moveMat, volterraMovement)
+function [moveRegs, Rnames] = aas_movPars(aap, p, moveMat, volterraMovement)
 % Select what type of movement parameters to use, and create them!
 %
 % [moveRegs, Rnames] = aas_movPars(aap, p, moveMat, volterraMovement)
@@ -62,9 +62,11 @@ for s = aap.acq_details.selected_sessions
         for d = 2:(maxD+1)
             [junk, movesN{o,d}] = gradient(movesN{o,d-1});
         end
-        % Spin history is difference between current and old...
-        % It is also awfully similar to the gradient...
-        movesN{o, size(moveMat,2)} = [zeros(1,6); movesN{o,1}(2:end, :) - movesN{o,1}(1:end-1,:)];
+        % Corrected [2013/08/21] AVG
+        % "Spin history" parameter is location of old volume...        
+        movesN{o, size(moveMat,2)} = [zeros(1,6); movesN{o,1}(1:end-1,:)];
+        % Before we measured difference between new and old...
+        % movesN{o, size(moveMat,2)} = [zeros(1,6); movesN{o,1}(2:end, :) - movesN{o,1}(1:end-1,:)];
     end
     
     for o = 1:(maxO+1)

@@ -40,7 +40,8 @@ switch task
             % Get the headers from the file, so that we don't have to guess...
             DICOMHEADERS=load(aas_getimages_bystream(aap,subj,sess,'epi_dicom_header'));
             V = spm_vol(deblank(imgs(1,:)));
-            aap = aas_getSliceOrder(aap, V, DICOMHEADERS.DICOMHEADERS{1});
+            %aap = aas_getSliceOrder(aap, V, DICOMHEADERS.DICOMHEADERS{1});
+            aap = aas_getSliceOrder(aap, subj, sess, V);
         end
         if (length(aap.tasklist.currenttask.settings.TRs)==0)
             DICOMHEADERS=load(aas_getimages_bystream(aap,subj,sess,'epi_dicom_header'));

@@ -104,12 +104,7 @@ switch task
         end
 
         % get the structural image
-<<<<<<< HEAD
-        Simg = aas_getfiles_bystream(aap, subj, 'structural');
-=======
-        img = aas_getfiles_bystream(aap, subjind, inStream);
-
->>>>>>> origin/devel-share
+        Simg = aas_getfiles_bystream(aap, subjind, inStream);
 
         if isempty(Simg) || strcmp(Simg,'/')
             aas_log(aap, true, 'Did not find a structural image.');

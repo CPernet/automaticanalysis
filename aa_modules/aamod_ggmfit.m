@@ -50,9 +50,11 @@ switch task
                     end
                 end
                 
+                % Standardise image: subtract mean, divide by stdev
                 Y(M) = (Y(M) - ggmmix.mus(1)) ./ ggmmix.sig(1);
                 Y(~M) = NaN;
                 
+                % Put back into image...
                 spm_write_vol(V,Y);
             end
             

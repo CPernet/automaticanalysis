@@ -6,7 +6,7 @@
 % contrastname = name of the contrast matrix
 % matrix = contrast matrix itself
 
-function aap=mvpaa_addcontrast(aap,modulename,subject,contrastname,matrix)
+function aap = mvpaa_addcontrast(aap,modulename,subject,contrastname,matrix)
 
 % Get number from end of module name if present in format _%05d (e.g, _00001)
 if (length(modulename>6)) %#ok<ISMT>

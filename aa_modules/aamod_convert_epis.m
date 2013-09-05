@@ -44,8 +44,7 @@ switch task
             % Multi-echo
             aas_log(aap,false,sprintf('Session %d has multiple echoes',sess));
             echoweightsmoothing=0; % smoothing applied to weights, in mm - 0 to switch off
-<<<<<<< HEAD
-            
+          
             % PREALLOCATE!
             subfolder=cell(numechoes,1);
             Ymean = cell(numechoes,1);
@@ -59,13 +58,7 @@ switch task
             Ycnr = cell(numechoes,1);
             
             [aap fns DICOMHEADERS]=aas_convertseries_fromstream(aap,subj,sess,'dicom_epi');
-=======
-            % Now taken from XML wrapper
-            %             aap.tasklist.currenttask.settings.echoweightmethod='t2star';%'t2star'; % options -  'cnr', 'equal', 't2star'
-            subfolder=[];
-            [aap fns DICOMHEADERS]=aas_convertseries_fromstream(aap,i,j,'dicom_epi');
->>>>>>> origin/devel-share
-            
+
             for echoind=1:numechoes
                 aap=aas_desc_outputs(aap,subj,sess,sprintf('epi_echo_%d',echoind),fns{echoind});
             end
@@ -386,21 +379,14 @@ switch task
                 end
             end
             
-        else
-            
-<<<<<<< HEAD
+        else            
+
             %% Single echo code            
             % No output stream, so won't save (it is saved below with dummy
             % separation)
+            % Modified for 4D support [TA]
             [aap fns DICOMHEADERS]=aas_convertseries_fromstream(aap,subj,sess,'dicom_epi');
-=======
-            %% Single echo code
-            
-            % No output stream, so won't save (it is saved below with dummy
-            % separation)
-			% Modified for 4D support [TA]
-            [aap fns DICOMHEADERS]=aas_convertseries_fromstream(aap,i,j,'dicom_epi');
->>>>>>> origin/devel-share
+
             finalepis=fns;
             % Find temporal SNR
             for fileind=1:numel(fns)
@@ -483,11 +469,10 @@ switch task
         aap=aas_desc_outputs(aap,subj,sess,'dummyscans',dummylist);
         dcmhdrfn=fullfile(sesspath,'dicom_headers.mat');
         save(dcmhdrfn,'DICOMHEADERS');
-<<<<<<< HEAD
-        aap=aas_desc_outputs(aap,subj,sess,'epi',finalepis(aap.acq_details.numdummies+1:end));
-=======
-        aap=aas_desc_outputs(aap,i,j,'epi',finalepis);
->>>>>>> origin/devel-share
+
+        % [TA modification]
+        %aap=aas_desc_outputs(aap,subj,sess,'epi',finalepis(aap.acq_details.numdummies+1:end));
+        aap=aas_desc_outputs(aap,subj,sess,'epi',finalepis);
         
         if dumpnull
             aap=aas_desc_outputs(aap,subj,sess,'dummy_scans_nulled',finalepis_nulled(1:aap.acq_details.numdummies));

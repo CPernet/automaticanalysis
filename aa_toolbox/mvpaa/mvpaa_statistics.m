@@ -97,6 +97,11 @@ switch aap.tasklist.currenttask.settings.statsType
         eval(['estSimilarity = ' aap.tasklist.currenttask.settings.lsqcurvefitFun ...
             '(x, aap.tasklist.currenttask.settings.contrasts.vector);'])
         
+        %{
+        scatterMatrix = ...
+        scatter2heat(aap.tasklist.currenttask.settings.contrasts.vector, Similarity, [], 100, 'log');
+        %}
+            
         R = corrcoef(estSimilarity, Similarity);
         [p, t] = corr2pt(R(2), length(Similarity));
         

@@ -16,46 +16,30 @@ switch task
         resp='Run tsdiffana';
     case 'summary'
         resp='Check time series variance using tsdiffana\n';
-<<<<<<< HEAD
-    case 'report'
-        aap.report.html=strcat(aap.report.html,'<table><tr><td>');
-        aap=aas_report_addimage(aap,fullfile(aas_getsesspath(aap,subj,sess),'diagnostic_aamod_tsdiffana.jpg'));
-        aap.report.html=strcat(aap.report.html,'</td></tr></table>');
-    case 'doit'
         
-        % get the subdirectories in the main directory
-        Spth = aas_getsesspath(aap,subj,sess);
-        % get files in this directory
-        imgs = aas_getimages_bystream(aap,subj,sess,'epi');
-        
-=======
     case 'report' % Updated [TA]
-        aap = aas_report_add(aap,i,'<table><tr><td>');
-        aap=aas_report_addimage(aap,i,fullfile(aas_getsesspath(aap,i,j),'diagnostic_aamod_tsdiffana.jpg'));     
-        aap = aas_report_add(aap,i,'</td></tr></table>');
+        aap = aas_report_add(aap,subj,'<table><tr><td>');
+        aap=aas_report_addimage(aap,subj,fullfile(aas_getsesspath(aap,subj,sess),'diagnostic_aamod_tsdiffana.jpg'));
+        aap = aas_report_add(aap,subj,'</td></tr></table>');
     case 'doit'
-        sesspath=aas_getsesspath(aap,i,j);
-
+        sesspath=aas_getsesspath(aap,subj,sess);
+        
         aas_makedir(aap,sesspath);
         
-        % imgs=spm_get('files',sesspath,[aap.directory_conventions.subject_filenames{i} '*nii']); % changed img to nii [djm160206]
- 
-        % added in place of previous line [djm 160206]...
-            % get files in this directory
-            imgs=aas_getimages_bystream(aap,i,j,'epi');
-            
->>>>>>> origin/devel-share
+        % get files in this directory
+        imgs=aas_getimages_bystream(aap,subj,sess,'epi');
+        
         tsdiffana(imgs,0);
         
         % Now produce graphical check
         try figure(spm_figure('FindWin', 'Graphics')); catch; figure(1); end;
-        print('-djpeg','-r150',fullfile(Spth,'diagnostic_aamod_tsdiffana'));
+        print('-djpeg','-r150',fullfile(sesspath,'diagnostic_aamod_tsdiffana'));
         
         % Save the time differences
-        aap = aas_desc_outputs(aap,subj,sess, 'tsdiffana', fullfile(Spth, 'timediff.mat'));
+        aap = aas_desc_outputs(aap,subj,sess, 'tsdiffana', fullfile(sesspath, 'timediff.mat'));
         
     case 'checkrequirements'
         
     otherwise
         aas_log(aap,1,sprintf('Unknown task %s',task));
-end;
+end

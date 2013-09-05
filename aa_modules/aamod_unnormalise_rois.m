@@ -8,6 +8,8 @@ resp='';
 
 switch task
     case 'checkrequirements'
+        %% AVG: this does not seem to work...
+        %{
         ROIlist=getROIlist(aap);
         for r = 1:length(ROIlist)
             if ~exist(ROIlist{r}, 'file')
@@ -19,6 +21,7 @@ switch task
                 aas_log(aap,true,sprintf('ROIs of analyze format are not supported - convert following to .nii\n  %s',ROIlist{r}));
             end;
         end;
+        %}
     case 'doit'
         
         % Structural directory...

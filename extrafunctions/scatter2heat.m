@@ -1,4 +1,5 @@
 % SCATTER2HEAT
+% scatterMatrix = scatter2heat(X, Y, C, bins, transform)
 % Plots a memory efficient scatterplot by creating a heatmap
 % Adapted from mathematical.coffee at stackoverflow.com
 %

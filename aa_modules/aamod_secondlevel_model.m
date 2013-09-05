@@ -221,12 +221,6 @@ switch task
         
     otherwise
         aas_log(aap,1,sprintf('Unknown task %s',task));
-<<<<<<< HEAD
+        
 end
-
-
-
-=======
-end;
 end
->>>>>>> origin/devel-share

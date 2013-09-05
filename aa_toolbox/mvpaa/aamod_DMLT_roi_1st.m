@@ -20,7 +20,7 @@ switch task
         %% ANALYSIS
         
         % Load the data into a single big structure...
-        [aap data] = mvpaa_loadData(aap, subj);
+        [aap, data] = mvpaa_loadData(aap, subj);
         
         % Load the ROIs from which to extract the data
         try

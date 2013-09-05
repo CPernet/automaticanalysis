@@ -24,11 +24,7 @@ switch task
             seriesnum = aap.acq_details.subjects(i).seriesnumbers(j);
         end
         % Go through each echo
-<<<<<<< HEAD
-        out = [];
-        for seriesind = 1:length(seriesnum)
-            [aap dicom_files_src] = aas_listdicomfiles(aap,i,seriesnum(seriesind));
-=======
+
         out=[];
         for seriesind=1:length(seriesnum)
             [aap dicom_files_src]=aas_listdicomfiles(aap,i,seriesnum(seriesind));
@@ -40,7 +36,6 @@ switch task
             % and trim according to ignoreafter
             nfiles=min(nfiles,aap.tasklist.currenttask.settings.ignoreafter);
             dicom_files_src=dicom_files_src(1:nfiles);
->>>>>>> origin/devel-share
             
             %    Put this in to accelerate testing - but remove before use!!!
             %        fprintf('Truncating to first 10 DICOMs\n');

@@ -189,7 +189,7 @@ switch task
             % Display outline of mask...
             copyfile(outMask(1,:), fullfile(Spth, 'betOutline.nii'));
             mask2outline(fullfile(Spth, 'betOutline.nii'));
-            spm_orthviews('addcolouredimage',1, fullfile(Spth, 'betOutline.nii'), OVERcolours{1})
+            spm_orthviews('addcolouredimage', 1, fullfile(Spth, 'betOutline.nii'), OVERcolours{1})
         end
         
         spm_orthviews('reposition', [0 0 0])

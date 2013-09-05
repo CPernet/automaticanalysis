@@ -14,14 +14,12 @@
 % vector=vecor containing the contrast
 % conname=cell string label for contrast (if empty, then aamod_firstlevel_contrast will create one)
 % contype="T" or "F" (defaults to "T")
-% automatic_movesandmeans=1 or 0, add means & moves to contrast
-%   automatically?
 %
 % Examples
 %aap=aas_addcontrast(aap,'aamod_firstlevel_contrasts','*','singlesession:avtask',[0 0 1 1 1])
 %aap=aas_addcontrast(aap,'aamod_firstlevel_contrasts','*','singlesession:avtask',[0 0 1 1 1],'stimulus-fixation','T')
 
-function aap=aas_addcontrast(aap,modulename,subject,format,vector,conname,contype,automatic_movesandmeans)
+function aap=aas_addcontrast(aap,modulename,subject,format,vector,conname,contype)
 
 % Regexp for number at the end of a module name, if present in format _%05d (e.g, _00001)
 m1 = regexp(modulename, '_\d{5,5}$');
@@ -69,10 +67,6 @@ if (~exist('contype','var') || isempty(contype))
     contype='T';
 end;
 
-if (~exist('automatic_movesandmeans','var') || isempty(automatic_movesandmeans))
-    automatic_movesandmeans=true;
-end;
-
 [format rem]=strtok(format,':');
 if (strcmp(format,'singlesession'))
     session=strtok(rem,':');
@@ -89,7 +83,6 @@ for m = 1 : length(moduleindex)
     if (~any(whichcontrast))
         emptycon=[];
         emptycon.subject=subject;
-        emptycon.automatic_movesandmeans=automatic_movesandmeans;
         emptycon.con.format=format;
         emptycon.con.vector=vector;
         emptycon.con.session=session;

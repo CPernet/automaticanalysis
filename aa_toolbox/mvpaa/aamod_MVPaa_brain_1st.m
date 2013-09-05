@@ -80,7 +80,7 @@ switch task
         % Only use locations where there is data...
         if isempty(segMask)
             segMask = squeeze(MVPaa_obj.MVPaa_data(1, :,:,:));      
-            segMask = ~isfinite(segMask) || segMask == 0;
+            segMask = ~isfinite(segMask) | segMask == 0;
         end
         
         brainLimit = matrixLimits(~segMask, ...
@@ -152,6 +152,8 @@ switch task
                 cell_aap, cell_MVPaa_obj, chunks(chunks2run), chunkName(chunks2run), cell_segMask, ...
                 'memreq', int64(memReq), ... % Representative chunk size
                 'timreq', int64(timReq)); % Time!
+            otherwise
+                aas_log(aap, true, 'No such parallelisation option!')
         end
         
         % Assign results to macro-structure

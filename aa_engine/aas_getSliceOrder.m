@@ -1,4 +1,4 @@
-function aap = aas_getSliceOrder(aap, p, s, V)
+function aap = aas_getSliceOrder(aap, subj, sess, V)
 
 if nargin<1
     error('We need an aap structure')
@@ -12,14 +12,14 @@ end
 
 
 dicomPath = (fullfile(aap.directory_conventions.rawdatadir, ...
-    aap.acq_details.subjects(p).mriname));
+    aap.acq_details.subjects(subj).mriname));
 
 dicomFold = dir(dicomPath);
 
 try
-    dicomFold = dicomFold(aap.acq_details.subjects(p).seriesnumbers(s) + 2).name;
+    dicomFold = dicomFold(aap.acq_details.subjects(subj).seriesnumbers(sess) + 2).name;
 catch % For multi-echo sequences
-    dicomFold = dicomFold(aap.acq_details.subjects(p).seriesnumbers{s}(1) + 2).name;
+    dicomFold = dicomFold(aap.acq_details.subjects(subj).seriesnumbers{sess}(1) + 2).name;
 end
 
 dicomDir = dir(fullfile(dicomPath, dicomFold));

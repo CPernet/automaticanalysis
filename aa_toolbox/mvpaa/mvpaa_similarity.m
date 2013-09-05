@@ -16,14 +16,26 @@ switch aap.tasklist.currenttask.settings.similarityMetric
         Similarity = corr(Pattern', 'type', 'Spearman');
     case 'Euclid'
         % Get Euclidian distance
-        Similarity = -squareform(pdist_complex(Pattern, 'euclidean'));
+          if all(isreal(Pattern(:)))
+            Similarity = -squareform(pdist(Pattern, 'euclidean'));
+        else
+            Similarity = -squareform(pdist_complex(Pattern, 'euclidean'));
+        end
     case 'sEuclid'
         % Get Euclidian distance (standardised)
-        Similarity = -squareform(pdist_complex(Pattern, 'seuclidean'));
+          if all(isreal(Pattern(:)))
+            Similarity = -squareform(pdist(Pattern, 'seuclidean'));
+        else
+            Similarity = -squareform(pdist_complex(Pattern, 'seuclidean'));
+        end
     case 'Mahalanobis'
         % Get Mahalanobis distance
         dbstop if warning % If matrix is close to singular or badly scaled, we may see NaNs...
-        Similarity = -squareform(pdist_complex(Pattern, 'mahalanobis'));
+        if all(isreal(Pattern(:)))
+            Similarity = -squareform(pdist(Pattern, 'mahalanobis'));
+        else
+            Similarity = -squareform(pdist_complex(Pattern, 'mahalanobis'));
+        end
     otherwise
         error('Incorrect metric of (dis)similarity between patterns');
 end

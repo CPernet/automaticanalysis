@@ -1,27 +1,17 @@
 classdef aaq_qsub<aaq
     properties
-        scheduler = [];
         filestomonitor=[];
-        jobnotrun = [];
+        jobnotrun = []
     end
     methods
         function [obj]=aaq_qsub(aap)
-            global aaworker;
-            global aaparallel;
-            try
-                obj.scheduler=cbu_scheduler('custom',{'compute',aaparallel.numberofworkers,4,4*3600,aaworker.parmpath});
-            catch ME
-                warning('Cluster computing is not supported!\n');
-                warning('\nERROR in %s:\n  line %d: %s\n',ME.stack.file, ME.stack.line, ME.message);
-                obj.scheduler=[];
-            end
             obj.aap=aap;
         end
         %% Queue jobs on Qsub:
         %  Queue job
         %  Watch output files
         
-        % Run all tasks on the queue
+        % Run all tasks on the queue, single threaded
         function [obj]=runall(obj,dontcloseexistingworkers,waitforalljobs)
             global aaworker
             
@@ -33,7 +23,7 @@ classdef aaq_qsub<aaq
             obj.jobnotrun = true(njobs,1);
             obj.jobnotrun(submittedJobs) = false;
             
-            while any(obj.jobnotrun) && ~waitforalljobs
+            while any(obj.jobnotrun) || waitforalljobs
                 
                 % Lets not overload the filesystem
                 pause(10);
@@ -87,9 +77,11 @@ classdef aaq_qsub<aaq
                                 obj.filestomonitor(ftmind).name(1:end-11), moduleName), ...
                                 obj.aap.gui_controls.colours.running)
                             
+                            dateNtime = datestr(now);
+                            
                             aas_log(obj.aap,false,...
-                                sprintf('Job used %0.4f hours. and %0.9f GB', ...
-                                JobLog.optout{2}./(60*60), JobLog.optout{4}./(1024^3)), ...
+                                sprintf('Job used %0.4f hours. and %0.6f GB at %s', ...
+                                JobLog.optout{2}./(60*60), JobLog.optout{4}./(1024^3), dateNtime), ...
                                 obj.aap.gui_controls.colours.running)
                             
                             if obj.aap.options.qsub.verbose
@@ -103,6 +95,7 @@ classdef aaq_qsub<aaq
                             fprintf(fid,'%s\n',moduleName);
                             fprintf(fid,'Job used %0.4f hours. and %0.9f GB\n', ...
                                 JobLog.optout{2}./(60*60), JobLog.optout{4}./(1024^3));
+                            fclose(fid);
                             
                             % Job finished, so no need to monitor
                             donemonitoring(ftmind)=true;
@@ -143,27 +136,49 @@ classdef aaq_qsub<aaq
             cd(qsubpath);
             
             % Submit the job using qsubfeval            
-%             % Check how much memory and time we should assign to the job
-% Not in use [TA]
-%             try
-%                 memReq = obj.aap.tasksettings.(job.stagename).qsub.memoryBase * ... % module specific multiplier
-%                     obj.aap.options.qsub.memoryMult * ... % study specific multiplier
-%                     (1024^3); % GB
-%                 timReq = obj.aap.tasksettings.(job.stagename).qsub.timeBase * ... % module specific multiplier
-%                     obj.aap.options.qsub.timeMult * ... % study specific multiplier
-%                     60*60; % Hours
-%             catch
-%                 aas_log(obj.aap,false,...
-%                     sprintf('%s does not contain information about qsub time/memory requirements!', job.stagename), ...
-%                     [1 0 0])
-%                 memReq = ... % No module specific multiplier
-%                     obj.aap.options.qsub.memoryMult * ... % study specific multiplier
-%                     (1024^3); % GB
-%                 timReq = ... % No module specific multiplier
-%                     obj.aap.options.qsub.timeMult * ... % study specific multiplier
-%                     60*60; % Hours
-%             end
+            % Check how much memory and time we should assign to the job
+            try
+                memReq = obj.aap.tasksettings.(job.stagename).qsub.memoryBase * ... % module specific multiplier
+                    obj.aap.options.qsub.memoryMult * ... % study specific multiplier
+                    (1024^3); % GB
+                timReq = obj.aap.tasksettings.(job.stagename).qsub.timeBase * ... % module specific multiplier
+                    obj.aap.options.qsub.timeMult * ... % study specific multiplier
+                    60*60; % Hours
+            catch
+                aas_log(obj.aap,false,...
+                    sprintf('%s does not contain information about qsub time/memory requirements!', job.stagename), ...
+                    [1 0 0])
+                memReq = ... % No module specific multiplier
+                    obj.aap.options.qsub.memoryMult * ... % study specific multiplier
+                    (1024^3); % GB
+                timReq = ... % No module specific multiplier
+                    obj.aap.options.qsub.timeMult * ... % study specific multiplier
+                    60*60; % Hours
+            end
             
+            % Submit job
+            warning off
+            jobid = qsubfeval('aa_doprocessing_onetask', obj.aap,job.task,job.k,job.indices, ... % qsubfeval
+                'memreq', single(memReq), ...
+                'timreq', single(timReq), ...
+                'diary', 'always');
+            warning on
+            % State what the assigned number of hours and GB is...
+            dateNtime = datestr(now);
+            fprintf('Job %s, assigned %0.4f hours. and %0.9f GB at %s\n\n', ...
+                job.stagename, timReq./(60*60), memReq./(1024^3), dateNtime)
+            
+            % And monitor for files with the job output
+            fles.name=[jobid '_output.mat'];
+            fles.state='queued';
+            if (isempty(obj.filestomonitor))
+                obj.filestomonitor=fles;
+            else
+                obj.filestomonitor(end+1)=fles;
+            end
+            
+            %% TA way...
+            %{
             % Submit job
             if ~isempty(obj.scheduler)
                 J = createJob(obj.scheduler);
@@ -171,24 +186,12 @@ classdef aaq_qsub<aaq
                 nrtn = 0;
                 inparg = {obj.aap,job.task,job.k,job.indices};
                 createTask(J,cj,nrtn,inparg);
-                J.submit;
-%                 % State what the assigned number of hours and GB is...
-% Not in use [TA]
-%                 fprintf('Job %s, assigned %0.4f hours. and %0.9f GB\n\n', ...
-%                     job.stagename, timReq./(60*60), memReq./(1024^3))
-                
-                % And monitor for files with the job output
-                fles.name=sprintf('%04d_output.mat',J.ID);
-                fles.state='queued';
-                if (isempty(obj.filestomonitor))
-                    obj.filestomonitor=fles;
-                else
-                    obj.filestomonitor(end+1)=fles;
-                end
+                J.submit;            
             else
                 aa_doprocessing_onetask(obj.aap,job.task,job.k,job.indices);
             end
+            %}
+            
         end
-        
     end
 end
