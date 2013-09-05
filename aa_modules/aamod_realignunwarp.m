@@ -7,7 +7,7 @@
 % Alejandro Vicente Grabovetsky Jan-2012
 % Tibor Auer MRC CBU Cambridge 2012-2013
 
-function [aap,resp]=aamod_realignunwarpDCCN(aap,task,subj)
+function [aap,resp]=aamod_realignunwarp(aap,task,subj)
 
 resp='';
 
@@ -143,6 +143,7 @@ switch task
         
         try figure(spm_figure('FindWin', 'Graphics')); catch; figure(1); end;
 
+        % printing SPM graphics can work on some parallel's (like qsub)
         print('-djpeg','-r150',fullfile(aas_getsubjpath(aap,subj),'diagnostic_aamod_realignunwarp_FM.jpg'));
         for sess = aap.acq_details.selected_sessions
             aas_plot_realignPars(aap,subj,sess,true);

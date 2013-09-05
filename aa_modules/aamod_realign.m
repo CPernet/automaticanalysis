@@ -53,9 +53,10 @@ switch task
         aap = aas_report_add(aap,subj,'</tr></table>');
         
         aap=aas_report_addimage(aap,subj,fullfile(aas_getsubjpath(aap,subj),'diagnostic_aamod_realign.jpg'));
-        
-        % Summary in case of more subjects [TA]
+
+		% Summary in case of more subjects [TA]
         if (subj > 1) && (subj == numel(aap.acq_details.subjects)) % last subject
+            
             meas = {'Trans - x','Trans - y','Trans - z','Pitch','Roll','Yaw'};
             for sess=1:nsess
                 mvmax = squeeze(aap.report.mvmax(:,sess,:));

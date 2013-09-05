@@ -4,16 +4,26 @@
 %  Rhodri Cusack  www.cusacklab.org  March 2012
 %  Tibor Auer MRC CBU Cambridge 2012-2013
 
-function aap=aas_garbagecollection(aap, actuallydelete, modulestoscan, permanencethreshold )
+function aap=aas_garbagecollection(aap, actuallydelete, modulestoscan, permanencethreshold)
+
+fprintf('Garbage collection started...\n');
+
+% First, load AAP structure
+if exist('studyroot','var')
+    cd(studyroot);
+end;
+if ~exist('aap_parameters.mat','file')
+    error('aap structure not found');    
+else
+    load('aap_parameters');
+end
 
 if ~exist(aas_getstudypath(aap),'dir')
     aas_log(aap,true,sprintf('Study %s not found',aas_getstudypath(aap)));
 end
-
 if ~strcmp(aap.directory_conventions.remotefilesystem,'none')
     aas_log(aap,true,'Remote file systems not currently supported by garbage collection');
 end
-
 if ~strcmp(aap.directory_conventions.outputformat,'splitbymodule')
     aas_log(aap,true,sprintf('No garbage collection as aap.directory_conventions.outputformat is %s',aap.directory_conventions.outputformat));
 end

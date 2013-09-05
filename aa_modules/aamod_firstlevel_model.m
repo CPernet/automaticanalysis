@@ -76,8 +76,8 @@ switch task
 
         % now check real covariates and nuisance variables are
         % specified correctly
-        SPMdes.xX.iG=cols_nuisance;
-        SPMdes.xX.iC=cols_interest;
+        SPMdes.xX.iG = cols_nuisance;
+        SPMdes.xX.iC = cols_interest;
 
         % Turn off masking if requested
         if ~aap.tasklist.currenttask.settings.firstlevelmasking

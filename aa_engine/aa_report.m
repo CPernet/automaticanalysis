@@ -5,14 +5,19 @@
 
 function [aap]=aa_report(studyroot,stages)
 
+fprintf('Fetching report started...\n');
+
+% First, load AAP structure
 if exist('studyroot','var')
     cd(studyroot);
 else
     studyroot=pwd;
 end;
-
-% First, load AAP structure
-load('aap_parameters');
+if ~exist('aap_parameters.mat','file')
+    error('aap structure not found');    
+else
+    load('aap_parameters');
+end
 
 if ~exist('stages','var')
     stages={aap.tasklist.main.module.name};
@@ -20,6 +25,11 @@ end;
 
 if isfield(aap,'report'), aap = rmfield(aap,'report'); end
 aap.report.numdependencies=0;
+aap.report.dependency={};
+
+aap.internal.total=0;
+aap.internal.stagesnotdone=0;
+stage_study_done = false;
 
 % Main HTLMs
 if (isfield(aap.directory_conventions,'reportname'))
@@ -117,4 +127,5 @@ fclose all;
 web(['file://' aap.report.html_main.fname]);
 % Last, save AAP structure
 save('aap_parameters_reported.mat', 'aap');
+
 end
