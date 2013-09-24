@@ -22,6 +22,11 @@ switch task
         
         EPIimg = aas_getfiles_bystream(aap,subj,sess,'epi');
         
+        % Copy with a new prefix 'h'
+        hEPIimg = aas_copy2prefix(EPIimg, 'h');
+        
+        V = spm_vol(hEPIimg);
+                
         %% retrieve TR from DICOM header & set up the HiPass filter
         % if TR is manually specified (not recommended as source of error)
         if (isfield(aap.tasklist.currenttask.settings,'TR'))
@@ -35,7 +40,7 @@ switch task
         % High pass filter or detrend data
         
         % Let's first set up the parameters...
-        K.row = 1:size(EPIimg, 1);
+        K.row = 1:length(V);
         K.HParam = aap.tasklist.currenttask.settings.HParam; % cut-off period in seconds
         
         if K.RT * length(K.row) < K.HParam && ~strcmp(aap.tasklist.currenttask.settings.HFtype, 'detrend')
@@ -48,10 +53,8 @@ switch task
             fprintf('\nWill do linear detrending across time series')
         end
         
-        V = spm_vol(deblank(EPIimg(1,:))); % A typical volume...
-        
         %% If the dataset is too large, we process it by chunks...
-        fprintf('\n\tProcessing data (%d scans)', size(EPIimg,1))
+        fprintf('\n\tProcessing data (%d scans)', length(V))
         
         taskComplete = 0;
         chunkDim = aap.tasklist.currenttask.settings.chunks;
@@ -64,10 +67,12 @@ switch task
                 chunkY = 0;
                 chunkZ = 0;
                 for c = 1:chunkDim
-                    chunkX = [chunkX floor(V.dim(1) * c / chunkDim)];
-                    chunkY = [chunkY floor(V.dim(2) * c / chunkDim)];
-                    chunkZ = [chunkZ floor(V.dim(3) * c / chunkDim)];
+                    chunkX = [chunkX floor(V(1).dim(1) * c / chunkDim)];
+                    chunkY = [chunkY floor(V(1).dim(2) * c / chunkDim)];
+                    chunkZ = [chunkZ floor(V(1).dim(3) * c / chunkDim)];
                 end
+                
+                oldTrend = 0; newTrend = 0;
                 
                 % Chunking...
                 for x = 1:length(chunkX) - 1
@@ -78,14 +83,13 @@ switch task
                             Yind = chunkY(y) + 1 : chunkY(y+1);
                             Zind = chunkZ(z) + 1 : chunkZ(z+1);
                             
-                            EPIdata = zeros(size(EPIimg,1), length(Xind), ...
+                            EPIdata = zeros(length(V), length(Xind), ...
                                 length(Yind), ...
                                 length(Zind));
                             
                             % Load each image into 4-D matrix
-                            for e = 1:size(EPIimg,1)
-                                V = spm_vol(deblank(EPIimg(e,:)));
-                                Y = spm_read_vols(V);
+                            for e = 1:length(V)
+                                Y = spm_read_vols(V(e));
                                 EPIdata(e,:,:,:) = Y(Xind,Yind,Zind);
                             end
                             
@@ -99,8 +103,8 @@ switch task
                                 % Use linear detrending instead (might be slower due to loops)
                                 
                                 szY=size(EPIdata);
-                                Y=reshape(EPIdata,[size(EPIimg,1) prod(szY(2:4))]);
-                                mY = repmat(mean(Y,1), [size(EPIimg,1) 1]);
+                                Y=reshape(EPIdata,[length(V) prod(szY(2:4))]);
+                                mY = repmat(mean(Y,1), [length(V) 1]);
                                 % Add mean back after detrending!
                                 Y=detrend(Y)+mY;
                                 EPIdata = reshape(Y,szY);
@@ -109,22 +113,20 @@ switch task
                                 % Regress out discrete cosine components to do filtering
                                 
                                 szY=size(EPIdata);
-                                Y=reshape(EPIdata,[size(EPIimg,1) prod(szY(2:4))]);
-                                X0 = spm_dctmtx( size(EPIimg,1), ...
-                                    fix(2*(size(EPIimg,1) * K.RT) / aap.tasklist.currenttask.settings.HParam + 1));
+                                Y=reshape(EPIdata,[length(V) prod(szY(2:4))]);
+                                X0 = spm_dctmtx( length(V), ...
+                                    fix(2*(length(V) * K.RT) / aap.tasklist.currenttask.settings.HParam + 1));
                                 X0 = X0(:,2:end);
                                 beta = X0\Y;
                                 Y = Y-X0*beta;
-                                EPIdata = reshape(Y,szY);
-                                
+                                EPIdata = reshape(Y,szY);                                
                             end
-                            
+                                                        
                             % Now save the data back...
-                            for e = 1:size(EPIimg,1)
-                                V = spm_vol(deblank(EPIimg(e,:)));
-                                Y = spm_read_vols(V);
+                            for e = 1:length(V)
+                                Y = spm_read_vols(V(e));
                                 Y(Xind,Yind,Zind) = EPIdata(e,:,:,:);
-                                spm_write_vol(V,Y);
+                                spm_write_vol(V(e),Y);
                             end
                         end
                     end
@@ -145,9 +147,19 @@ switch task
                 chunkDim = chunkDim + 1;
             end
         end
+        clear EPIdata
+        
+        %% DIAGNOSTICS
+        mriname = aas_prepare_diagnostic(aap, subj);
+                
+        h = img2deltaseries(EPIimg, hEPIimg, {'Unfiltered', 'Filtered', 'Delta'});
+        
+        print('-djpeg','-r150',fullfile(aap.acq_details.root, 'diagnostics', ...
+            [mfilename '__' mriname '_' aap.acq_details.sessions(sess).name '.jpeg']));
+        close(h); 
         
         %% DESCRIBE THE OUTPUTS
         
-        aap=aas_desc_outputs(aap,subj, sess, 'epi', EPIimg);
+        aap=aas_desc_outputs(aap,subj, sess, 'epi', hEPIimg);
         
 end

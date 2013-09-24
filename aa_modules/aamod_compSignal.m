@@ -58,6 +58,7 @@ switch task
         % Let us use the native space...
         SMimg = aas_getfiles_bystream(aap,subj,'segmasksStrict');
         EPIimg = aas_getfiles_bystream(aap,subj,sess,'epi');
+        V = spm_vol(EPIimg);
         BETimg = aas_getfiles_bystream(aap,subj,'epiBETmask');
         
         % Sanity checks
@@ -146,9 +147,9 @@ switch task
         fprintf('\nCereberoSpinal Fluid mask comprises %d (%d) voxels', sum(fCSF(:)), nC)
         fprintf('\nOut of Head mask comprises %d (%d) voxels', sum(fOOH(:)), nO)
         
-        compTC = zeros(size(EPIimg,1), 4);
-        for e = 1:size(EPIimg,1)
-            Y = spm_read_vols(spm_vol(EPIimg(e,:)));
+        compTC = zeros(length(V), 4);
+        for e = 1:length(V)
+            Y = spm_read_vols(V(e));
             % Now average the data from each compartment
             compTC(e,1) = mean(Y(fGM));
             compTC(e,2) = mean(Y(fWM));
@@ -175,25 +176,25 @@ switch task
                 sess == aap.acq_details.selected_sessions(end)
             
             % Write the masks...
-            V = spm_vol(BETimg(1,:));
+            mV = spm_vol(BETimg(1,:));
             outSeg = '';
             % GM, WM, CSF, OOH, [Skull]
-            V.fname = fullfile(fileparts(BETimg(1,:)), 'GM.nii');
-            outSeg = strvcat(outSeg, V.fname);
-            spm_write_vol(V, mGM);
-            V.fname = fullfile(fileparts(BETimg(1,:)), 'WM.nii');
-            outSeg = strvcat(outSeg, V.fname);
-            spm_write_vol(V, mWM);
-            V.fname = fullfile(fileparts(BETimg(1,:)), 'CSF.nii');
-            outSeg = strvcat(outSeg, V.fname);
-            spm_write_vol(V, mCSF);
-            V.fname = fullfile(fileparts(BETimg(1,:)), 'OOH.nii');
-            outSeg = strvcat(outSeg, V.fname);
-            spm_write_vol(V, mOOH);
+            mV.fname = fullfile(fileparts(BETimg(1,:)), 'GM.nii');
+            outSeg = strvcat(outSeg, mV.fname);
+            spm_write_vol(mV, mGM);
+            mV.fname = fullfile(fileparts(BETimg(1,:)), 'WM.nii');
+            outSeg = strvcat(outSeg, mV.fname);
+            spm_write_vol(mV, mWM);
+            mV.fname = fullfile(fileparts(BETimg(1,:)), 'CSF.nii');
+            outSeg = strvcat(outSeg, mV.fname);
+            spm_write_vol(mV, mCSF);
+            mV.fname = fullfile(fileparts(BETimg(1,:)), 'OOH.nii');
+            outSeg = strvcat(outSeg, mV.fname);
+            spm_write_vol(mV, mOOH);
             if exist('mSkull', 'var')
-                V.fname = fullfile(fileparts(BETimg(1,:)), 'Skull.nii');
-                outSeg = strvcat(outSeg, V.fname);
-                spm_write_vol(V, mSkull);
+                mV.fname = fullfile(fileparts(BETimg(1,:)), 'Skull.nii');
+                outSeg = strvcat(outSeg, mV.fname);
+                spm_write_vol(mV, mSkull);
             end
             
             Ydims = {'X', 'Y', 'Z'};

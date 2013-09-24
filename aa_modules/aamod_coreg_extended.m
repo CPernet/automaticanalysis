@@ -129,8 +129,8 @@ switch task
         spm_check_registration(strvcat( ...
             sTimg, ... % Get template T1
             deblank(Simg(aap.tasklist.currenttask.settings.structural,:)),... % Get structural
-            mEPIimg, ... % Get mean EPI across sessions
-            EPIimg{sess}(1,:))) % Get first image of last session EPI
+            mEPIimg ... % Get mean EPI across sessions
+            )) % Get first image of last session EPI
         
         % Outline of structural!
         spm_ov_reorient('context_init', 2)

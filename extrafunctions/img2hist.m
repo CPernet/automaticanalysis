@@ -1,11 +1,15 @@
 % This function loads an image (or matrix), and plots a histogram from it
-function h = img2hist(fileName, bins, name)
+function h = img2hist(fileName, bins, plotName)
+
+if nargin < 3
+   plotName = fileName; 
+end
 
 if ischar(fileName)
     fileName = strvcat2cell(fileName);
 end
-if ischar(name)
-    name = strvcat2cell(name);
+if ischar(plotName)
+    plotName = strvcat2cell(plotName);    
 end
 
 %% tSNR results figure!
@@ -36,9 +40,6 @@ for f = 1:length(fileName)
         aMax = ceil(max(abs(Y{f})));
         bins =  -aMax:(aMax/100):aMax;
     end
-    if nargin < 3
-        name = 'Image';
-    end
     
     % Now make a histogram and "normalise" it
     histVals{f} = hist(Y{f}, bins);
@@ -57,7 +58,7 @@ for f = 1:length(fileName)
     
     % Get legend information
     tmpStr = sprintf('%s: mean %0.2f, median %0.2f, std: %0.2f, ttest-Tval is: %0.2f, SR-Zval is: %0.2f', ...
-        name{f}, nanmean(Y{f}), nanmedian(Y{f}), nanstd(Y{f}), Tstats.tstat, SRstats.zval);
+        plotName{f}, nanmean(Y{f}), nanmedian(Y{f}), nanstd(Y{f}), Tstats.tstat, SRstats.zval);
     legStr = [legStr ...
         '''' tmpStr ''','];
 end
@@ -73,10 +74,10 @@ if length(fileName) == 2
         [nh, p, dev, Tstats] = ttest(Y{1},Y{2});
         [p,junk,SRstats] = signrank(Y{1},Y{2});
         title(sprintf('%s: mean %0.2f, median %0.2f, ttest-Tval is: %0.2f, SR-Zval is: %0.2f', ...
-            [name{1} '-' name{2}], nanmean(Y{1}) - nanmean(Y{2}), nanmedian(Y{1}) - nanmedian(Y{2}), Tstats.tstat, SRstats.zval))
+            [plotName{1} '-' plotName{2}], nanmean(Y{1}) - nanmean(Y{2}), nanmedian(Y{1}) - nanmedian(Y{2}), Tstats.tstat, SRstats.zval))
     catch
         [nh, p, dev, Tstats] = ttest2(Y{1},Y{2});
         title(sprintf('%s: mean %0.2f, median %0.2f, ttest-Tval is: %0.2f', ...
-            [name{1} '-' name{2}], nanmean(Y{1}) - nanmean(Y{2}), nanmedian(Y{1}) - nanmedian(Y{2}), Tstats.tstat))
+            [plotName{1} '-' plotName{2}], nanmean(Y{1}) - nanmean(Y{2}), nanmedian(Y{1}) - nanmedian(Y{2}), Tstats.tstat))
     end
 end

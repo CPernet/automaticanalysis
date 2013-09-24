@@ -82,6 +82,8 @@ switch task
                 confiles{subj} = aas_findstream(aap,'firstlevel_spmfs', subj);
             end
             
+            confiles{subj} = aas_ignore_hdr(confiles{subj});
+            
             % Mask 0s in images to NaN [AVG]
             mask_img([], confiles{subj}, NaN)
             

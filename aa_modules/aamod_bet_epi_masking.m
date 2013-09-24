@@ -21,9 +21,12 @@ switch task
         % Only first one
         Mimg = Mimg(1,:);
         
+        % Copy with a new prefix 'b'
+        bEPIimg = aas_copy2prefix(EPIimg, 'b');
+        
         % Mask epis with mask!
-        mask_img(Mimg, EPIimg);
+        mask_img(Mimg, bEPIimg, NaN);
         
         %% DESCRIBE OUTPUTS!
-        aap=aas_desc_outputs(aap,subj,sess,'epi', EPIimg);
+        aap=aas_desc_outputs(aap,subj,sess,'epi', bEPIimg);
 end

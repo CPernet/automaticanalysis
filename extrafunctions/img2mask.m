@@ -1,23 +1,34 @@
-function Mimg = img2mask(Mimg)
+function Mimg = img2mask(Mimg, maskMode, thresh)
+if nargin < 2
+    maskMode = 'pos';
+end
+if nargin < 3
+    thresh = 0.001;
+end
 
 % Load image first
 V = spm_vol(Mimg);
 Y = spm_read_vols(V);
 
-% First round the image...
-Y = round(Y);
+M = zeros(size(Y));
 
-% Anything above 0 is 1
-Y(Y>0) = 1;
-% Anything below 0 is 0
-Y(Y<0) = 0;
-
-% Any NaNs are 0
-Y(isnan(Y)) = 0;
+switch maskMode
+    case 'pos'
+        % Anything above 0 is 1
+        M(Y>thresh) = 1;
+    case 'neg'
+        % Anything below 0 is 1
+        M(Y<thresh) = 0;
+    case 'abs'
+        Y = abs(Y);
+        M(Y>thresh) = 1;
+    otherwise
+        error('Incorrect masking mode used!')
+end
 
 % Adjust V properties to ensure mask works fine...
 V.dt(1) = 2;
 V.pinfo(1) = 0; 
 
 % Write image back...
-spm_write_vol(V,Y);
+spm_write_vol(V,M);

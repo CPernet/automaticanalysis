@@ -87,6 +87,7 @@
             <memoryMult desc='Memory multiplier for qsub' ui='double'>1</memoryMult>
             <timeMult desc='Time multiplier for qsub' ui='double'>1</timeMult>
             <verbose desc='Verbose output for qsub?' ui='yesno'>0</verbose>
+            <matlabVersion desc='Which version of matlab do we use?' ui='text'>matlab2013a</matlabVersion>
         </qsub>
         <searchlight desc='Specification for searchlight' ui='custom'>
             <N desc='Number of searchlights' ui='double'>5124</N>

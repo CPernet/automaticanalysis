@@ -35,7 +35,7 @@ switch task
         
         % Image that we will be using for BET...
         cSimg = deblank(Simg(1,:));
-        [Spth Sfn Sext]=fileparts(cSimg);
+        [Spth, Sfn, Sext]=fileparts(cSimg);
         
         % Structural image (after BETting, if we mask...)
         bSimg=fullfile(Spth,['bet_' Sfn Sext]);

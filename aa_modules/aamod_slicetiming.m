@@ -40,26 +40,26 @@ switch task
             % Get the headers from the file, so that we don't have to guess...
             DICOMHEADERS=load(aas_getimages_bystream(aap,subj,sess,'epi_dicom_header'));
             V = spm_vol(deblank(imgs(1,:)));
-            %aap = aas_getSliceOrder(aap, V, DICOMHEADERS.DICOMHEADERS{1});
-            aap = aas_getSliceOrder(aap, subj, sess, V);
+            aap = aas_getSliceOrder(aap, V(1), DICOMHEADERS.DICOMHEADERS{1});
+            %aap = aas_getSliceOrder(aap, subj, sess, V(1));
         end
         if (length(aap.tasklist.currenttask.settings.TRs)==0)
             DICOMHEADERS=load(aas_getimages_bystream(aap,subj,sess,'epi_dicom_header'));
             aap.tasklist.currenttask.settings.TRs=DICOMHEADERS.DICOMHEADERS{1}.RepetitionTime/1000;
         end
         if (length(aap.tasklist.currenttask.settings.slicetime)==0)
-            aap.tasklist.currenttask.settings.slicetime=aap.tasklist.currenttask.settings.TRs/V.dim(3);
+            aap.tasklist.currenttask.settings.slicetime=aap.tasklist.currenttask.settings.TRs/V(1).dim(3);
         end
         % Sets slice time information
         % value 1 is time to acquire one slice
         % value 2 is time between beginning of last slice
         % and beginning of first slice of next volume
         
-        if (max(aap.tasklist.currenttask.settings.sliceorder)>V.dim(3))
+        if (max(aap.tasklist.currenttask.settings.sliceorder)>V(1).dim(3))
             aas_log(aap,1,'aap.tasklist.currenttask.settings.sliceorder seems to contain values higher than the number of slices!\n');
         end
         
-        sl_times = [aap.tasklist.currenttask.settings.slicetime aap.tasklist.currenttask.settings.slicetime+(aap.tasklist.currenttask.settings.TRs-aap.tasklist.currenttask.settings.slicetime*V.dim(3))];
+        sl_times = [aap.tasklist.currenttask.settings.slicetime aap.tasklist.currenttask.settings.slicetime+(aap.tasklist.currenttask.settings.TRs-aap.tasklist.currenttask.settings.slicetime*V(1).dim(3))];
         
         % do slice timing correction, added refslice [de 200606]
         spm_slice_timing(imgs,aap.tasklist.currenttask.settings.sliceorder,aap.tasklist.currenttask.settings.refslice ,sl_times);

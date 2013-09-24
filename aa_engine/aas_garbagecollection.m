@@ -4,35 +4,25 @@
 %  Rhodri Cusack  www.cusacklab.org  March 2012
 %  Tibor Auer MRC CBU Cambridge 2012-2013
 
-function aap=aas_garbagecollection(aap, actuallydelete, modulestoscan, permanencethreshold)
-
-fprintf('Garbage collection started...\n');
-
-% First, load AAP structure
-if exist('studyroot','var')
-    cd(studyroot);
-end;
-if ~exist('aap_parameters.mat','file')
-    error('aap structure not found');    
-else
-    load('aap_parameters');
-end
+function aap=aas_garbagecollection(aap, actuallydelete, modulestoscan, permanencethreshold )
 
 if ~exist(aas_getstudypath(aap),'dir')
     aas_log(aap,true,sprintf('Study %s not found',aas_getstudypath(aap)));
 end
+
 if ~strcmp(aap.directory_conventions.remotefilesystem,'none')
     aas_log(aap,true,'Remote file systems not currently supported by garbage collection');
 end
+
 if ~strcmp(aap.directory_conventions.outputformat,'splitbymodule')
     aas_log(aap,true,sprintf('No garbage collection as aap.directory_conventions.outputformat is %s',aap.directory_conventions.outputformat));
 end
 
 if ~exist('modulestoscan','var') || isempty(modulestoscan)
     modulestoscan=1:length(aap.tasklist.main.module);
-    %     exclude modelling modules, if any
-    ind = cell_index(strfind({aap.tasklist.main.module.name}, 'level'),'1');
-    if ind, modulestoscan=1:ind-1; end
+    %     exclude modelling modules, if any [what for? AVG]
+    % ind = cell_index(strfind({aap.tasklist.main.module.name}, 'level'),'1');
+    %if ind, modulestoscan=1:ind-1; end
 end
 
 if (~exist('permanencethreshold','var')) || isempty(permanencethreshold)
@@ -124,31 +114,30 @@ for modind=modulestoscan
     
     % Garbage collect outputs
     if (~isempty(outfn) && exist(aas_getstudypath(aap),'file') && delete_outputs)
+        garbagelog=fullfile(aas_getstudypath(aap),sprintf('garbage_collection_outputs.txt'));
         if actuallydelete
+            fid=fopen(garbagelog,'a');
+            fprintf(fid,'Garbage collected: %s\n',datestr(now,31));
             fprintf(fid,'---following files deleted---\n');
         end
         for fn=outfn
             if (exist(fn{1},'file'))
                 if actuallydelete
-                    if exist(fn{1},'file')
+                    % Also check if it is an image...
+                    [Fpth, Fname, Fext] = fileparts(fn{1});
+                    if any(strcmp(Fext, imgCategory)) || delete_onlyImg == 0
+                        delete(fn{1});
                         fprintf(fid,'%s\n',fn{1});
-                        if actuallydelete, delete(fn{1}); end
-                        numdel=numdel+1;
                     end
                 end
                 numdel=numdel+1;
             end
         end
-        if (actuallydelete)
-            fprintf(fid,'---end---');
-        end
     end
-    
-    
 end
 
-fprintf(fid,'---end---\n');
-fclose(fid);
+fprintf(fid,'---end---\n');                                                                                                                                          
+fclose(fid);  
 
 if (~actuallydelete)
     aas_log(aap,false,sprintf('Garbage collection would delete %d files',numdel));
@@ -156,6 +145,7 @@ else
     aas_log(aap,false,sprintf('Garbage collection deleted %d files',numdel));
 end
 end
+
 
 function [streampths]=findstreamfiles(aap,streamfn)
 % Make a list of all the places the stream file might be
@@ -175,6 +165,7 @@ for pthind=1:length(pthstocheck)
 end
 end
 
+
 function [imgfns]=loadstreamfile(aap,streampth)
 fid=fopen(streampth,'r');
 header=fgetl(fid);
@@ -185,7 +176,7 @@ if (~strcmp(header(1:3),'MD5'))
 end
 
 % image files are relative to location of stream
-[pth nme ext]=fileparts(streampth);
+[pth, nme, ext]=fileparts(streampth);
 
 % now list all files
 imgfns={};

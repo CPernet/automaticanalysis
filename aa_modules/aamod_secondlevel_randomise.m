@@ -83,10 +83,10 @@ switch task
         
         switch aap.tasklist.currenttask.settings.parallel
             case {'none', 'serial'}
-                for n = 1:length(conFn{1})
+                for n = 1:size(conFn{1},1)
                     fprintf('Running randomise on contrast %d\n', n)
                     
-                    [s, w] = aas_runfslcommand(aap, FSLrandomise{n});
+                    [s, w] = aas_runfslcommand(aap, FSLrandomiseCell{n});
                 end
             case 'torque'
                 memreq = 64 * img_size * length(conFn);
@@ -100,6 +100,8 @@ switch task
                     'timreq', int32(timreq), ...
                     'stack', 1 ...
                     );
+            otherwise
+                error('Select correct serial/parallel execution mode')
         end
         
         fprintf('Clean up merged data\n')
