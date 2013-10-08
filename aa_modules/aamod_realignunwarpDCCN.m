@@ -100,32 +100,42 @@ switch task
         
         %% Get actual data!
         
+        EPIimg = cell(length(aap.acq_details.sessions), 1);
         for sess = aap.acq_details.selected_sessions
             fprintf('\nGetting EPI images for session %s', aap.acq_details.sessions(sess).name)
             % Get EPIs
-            EPIimg = aas_getimages_bystream(aap,subj,sess,'epi');
+            EPIimg{sess} = aas_getimages_bystream(aap,subj,sess,'epi');
             if sess == aap.acq_details.selected_sessions(1)
                 % Get first image for the diagnostics...
-                diagnosticN = EPIimg(1,:);
+                diagnosticN = EPIimg{sess}(1,:);
             end
             
-            jobs{1}.spatial{1}.realignunwarp.data(sess).scans = cellstr(EPIimg);
+            if isfield(aap.options, 'NIFTI4D') && aap.options.NIFTI4D % 4D
+                V = spm_vol(EPIimg{sess});
+                f0 = EPIimg{sess};
+                EPIimg{sess} = '';
+                for f = 1:numel(V)
+                    EPIimg{sess} = strvcat(EPIimg{sess}, [f0 ',' num2str(V(f).n(1))]);
+                end
+            end
+            
+            jobs{1}.spatial{1}.realignunwarp.data(sess).scans = cellstr(EPIimg{sess});
             
             % Try get VDMs
             try
                 % first try to find a vdm with the session name in it
-                EPIimg   = spm_select('List', ...
+                VDMimg   = spm_select('List', ...
                     fullfile(aas_getsubjpath(aap,subj), aap.directory_conventions.fieldmapsdirname), ...
                     sprintf('^vdm.*%s.nii$', aap.acq_details.sessions(sess).name));
                 
                 % if this fails, try to get a vdm with session%d in it
-                if isempty(EPIimg)
-                    EPIimg   = spm_select('List', ...
+                if isempty(VDMimg)
+                    VDMimg   = spm_select('List', ...
                         fullfile(aas_getsubjpath(aap,subj), aap.directory_conventions.fieldmapsdirname), ...
                         sprintf('^vdm.*session%d.nii$',sess));
                 end
                 jobs{1}.spatial{1}.realignunwarp.data(sess).pmscan = ...
-                    cellstr(fullfile(aas_getsubjpath(aap,subj), aap.directory_conventions.fieldmapsdirname, EPIimg));
+                    cellstr(fullfile(aas_getsubjpath(aap,subj), aap.directory_conventions.fieldmapsdirname, VDMimg));
                 fprintf('\nFound a VDM fieldmap\n')
             catch
                 jobs{1}.spatial{1}.realignunwarp.data(sess).pmscan = ...
@@ -141,9 +151,11 @@ switch task
         %% Describe outputs
         movPars = {};
         for sess = aap.acq_details.selected_sessions
+            EPIimg{sess} = aas_getimages_bystream(aap,subj,sess,'epi');
+            
             uwEPIimg = [];
-            for k=1:length(jobs{1}.spatial{1}.realignunwarp.data(sess).scans);
-                [pth nme ext] = fileparts(jobs{1}.spatial{1}.realignunwarp.data(sess).scans{k});
+            for k=1:size(EPIimg{sess},1);
+                [pth nme ext] = fileparts(EPIimg{sess}(k,:));
                 uwEPIimg = strvcat(uwEPIimg,fullfile(pth,['u' nme ext]));
             end
             aap = aas_desc_outputs(aap,subj,sess,'epi',uwEPIimg);
@@ -183,8 +195,8 @@ switch task
             [mfilename '__' mriname '_MP.jpeg']));
         
         % Let's compare the Native and Unwarped EPI images...
-        spm_check_registration(char({diagnosticN; ...
-            diagnosticU}))
+        % But only include 1st image...
+        spm_check_registration(char({[diagnosticN, ',1']; [diagnosticU, ',1']}))
         
         try figure(spm_figure('FindWin', 'Graphics')); catch; figure(1); end;
         print('-djpeg','-r150',fullfile(aap.acq_details.root, 'diagnostics', ...

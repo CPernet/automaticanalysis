@@ -15,23 +15,28 @@ if nargin < 2
 end
 
 %% plotmatrix
+Y = cell(size(labels));
 for f = 1:length(fileName)
     
     % Get image or matrix...
     if ischar(fileName{f})
-        Y = spm_read_vols(spm_vol(fileName{f}));
+        Y{f} = spm_read_vols(spm_vol(fileName{f}));
     else
-        Y = fileName{f};
+        Y{f} = fileName{f};
+    end
+    
+    if f == 1
+        M = and(~isnan(Y{f}), Y{f} ~= 0);
     end
     
     % Linearise (exclude NaN and zero values)
-    Y = Y(and(~isnan(Y), Y ~= 0));
+    Y{f} = Y{f}(M);
     
     if f == 1
-       data = nan(size(Y), length(fileName)); 
+       data = nan(size(Y{f}), length(fileName)); 
     end
     
-    data(:,f) = Y;
+    data(:,f) = Y{f};
 end
 
 h.Fig = figure;

@@ -1,10 +1,13 @@
 %function [s,w]=aas_shell(cmd)
 % aa subroutine - wrapper for shell call
 % 
-function [s,w]=aas_shell(cmd,quiet)
+function [s,w]=aas_shell(cmd, quiet, todisplay)
 
 if (~exist('quiet','var'))
     quiet=false;
+end;
+if (~exist('todisplay','var'))
+    todisplay=true;
 end;
 
 [s,wshell]=system('echo $0');
@@ -15,7 +18,12 @@ else
     prefix='setenv TERM dumb;'; % stops colours
 end;
 
-[s,w]=system([prefix cmd]);
+% [AVG] I'd like to print what is going on onto the command window...
+if todisplay
+    [s,w]=system([prefix cmd], '-echo');
+else
+    [s,w]=system([prefix cmd]);
+end
 if (~quiet)
     if (strcmp('shell-init: error',w))
         aas_log(aap,false,sprintf('Likely Linux error %s\n',w));

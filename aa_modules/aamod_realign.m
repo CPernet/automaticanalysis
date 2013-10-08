@@ -113,7 +113,7 @@ switch task
         clear imgs;
         for sess = aap.acq_details.selected_sessions %
             % get files from stream
-            imgs(sess) = {aas_getimages_bystream(aap,subj,sess,'epi');};
+            imgs(sess) = {aas_getimages_bystream(aap,subj,sess,'epi')};
         end
         
         % [AVG] This will ensure that any printing commands of SPM are done in the subject directory...

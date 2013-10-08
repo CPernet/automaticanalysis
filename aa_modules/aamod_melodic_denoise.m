@@ -42,7 +42,7 @@ switch task
             % Create mask that ignores everything that is not a number...
             V = spm_vol(EPIimg);
             Y = spm_read_vols(V(1));
-            M = Y == 0 | ~isfinite(Y);
+            M = Y ~= 0 | ~isfinite(Y);
             Mimg = fullfile(sessPth, 'mask.nii');
             V(1).fname = Mimg;
             spm_write_vol(V(1), M);
@@ -199,13 +199,15 @@ switch task
         close(h);
         
         %% DIAGNOSTIC series
-        
-        h = img2deltaseries(EPIimg, dEPIimg, {'Raw', 'Denoised', 'Delta'});
-        
-        print('-djpeg','-r150',fullfile(aap.acq_details.root, 'diagnostics', ...
-            [mfilename '__' mriname '_Series_' aap.acq_details.sessions(sess).name '.jpeg']));
-        close(h);
-        
+        try
+            h = img2deltaseries(EPIimg, dEPIimg, {'Raw', 'Denoised', 'Delta'});
+            
+            print('-djpeg','-r150',fullfile(aap.acq_details.root, 'diagnostics', ...
+                [mfilename '__' mriname '_Series_' aap.acq_details.sessions(sess).name '.jpeg']));
+            close(h);
+        catch
+            aas_log(aap,false, 'Normal calls to spm_read_vols may fail with files greater than 2GB')
+        end
         %% DESCRIBE OUTPUTS!
         %{
         % MAKE A SEPARATE FUNCTION OF THIS SOMETIME?
@@ -228,8 +230,10 @@ switch task
         
         aap=aas_desc_outputs(aap,subj,sess,'melodic', melodicFiles);
         %}
-        % Delete MELODIC folder itself...
-        unix(['rm -rf ' outDir])
+        % Delete MELODIC large files...
+        unix(['rm -rf ' fullfile(outDir, '*.nii')])
+        unix(['rm -rf ' fullfile(outDir, '*', '*.nii')])
+        unix(['rm -rf ' fullfile(outDir, '*', 'IC*png')])
         
         % Delete original 4D file once we finish!
         delete(data4D)

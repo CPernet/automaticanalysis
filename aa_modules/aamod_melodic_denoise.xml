@@ -5,7 +5,7 @@
             
             <qsub>
                 <timeBase>3</timeBase>
-                <memoryBase>1</memoryBase>
+                <memoryBase>2</memoryBase>
             </qsub>
             
             <permanenceofoutput>2</permanenceofoutput>
@@ -14,7 +14,7 @@
                 <stream>epi_dicom_header</stream> 
                 <stream>epi</stream>
                 <!-- Recommended to mask out non-brain stuff for more accurate ICA -->
-                <stream>epiBETmask</stream>  
+                <stream>epiBETmask</stream>
             </inputstreams>
             
             <outputstreams>

@@ -257,16 +257,17 @@ mriname = aas_prepare_diagnostic(aap,subj);
 
 % SPM, AA
 Simg = aas_getfiles_bystream(aap,subj,'structural');
+Simg = Simg(aap.tasklist.currenttask.settings.structural, :);
 [Spth, Sfn, Sext] = fileparts(Simg);
 outSeg = aas_getfiles_bystream(aap,subj,'segmentation');
 try
     OVERcolours = aas_colours(size(outSeg,1)/2);
     
     %% Draw native template
-    spm_check_registration(fullfile(mSpth,['m' mSfn mSext]))
+    spm_check_registration(fullfile(Spth,['m' Sfn Sext]))
     % Add segmentations...
     for t = 1:(size(outSeg,1)/2)
-        spm_orthviews('addcolouredimage',1,fullfile(mSpth,sprintf('c%d%s',t, [mSfn mSext])), OVERcolours{t})
+        spm_orthviews('addcolouredimage',1, outSeg(t*2-1, :), OVERcolours{t})
     end
     
     spm_orthviews('reposition', [0 0 0])
@@ -279,7 +280,7 @@ try
     spm_check_registration(aap.directory_conventions.T1template)
     % Add normalised segmentations...
     for t = 1:(size(outSeg,1)/2)
-        spm_orthviews('addcolouredimage',1,fullfile(mSpth,sprintf('wc%d%s',t,[mSfn mSext])), OVERcolours{t})
+        spm_orthviews('addcolouredimage',1, outSeg(t*2, :), OVERcolours{t})
     end
     spm_orthviews('reposition', [0 0 0])
     
@@ -290,15 +291,15 @@ catch
     fprintf('\n\tFailed display diagnostic image - Displaying template & segmentation 1');
     try
         %% Draw native template
-        spm_check_registration(char({fullfile(Spth,sprintf('c1%s',['m' Sfn Sext])); ...
-            fullfile(Spth,['mm' Sfn Sext])}))
+        spm_check_registration(char({outSeg(1,:); ...
+            fullfile(Spth,['m' Sfn Sext])}))
         
         try figure(spm_figure('FindWin', 'Graphics')); catch; figure(1); end;
         print('-djpeg','-r150',fullfile(aap.acq_details.root, 'diagnostics', ...
             [mfilename '__' mriname '_N.jpeg']));
         
         %% Draw warped template
-        spm_check_registration(char({fullfile(Spth,sprintf('wc1%s',['m' Sfn Sext])); ...
+        spm_check_registration(char({outSeg(2,:); ...
             aap.directory_conventions.T1template}))
         
         try figure(spm_figure('FindWin', 'Graphics')); catch; figure(1); end;
