@@ -1,3 +1,8 @@
+%% img2mas(Mimg, maskMode, thresh)
+% Mimg: which image to convert to a mask?
+% maskMode: how to threshold? ('pos', 'neg', 'abs', 'prop+', 'prop-')
+% thresh: height of threshold
+
 function Mimg = img2mask(Mimg, maskMode, thresh)
 if nargin < 2
     maskMode = 'pos';
@@ -22,6 +27,14 @@ switch maskMode
     case 'abs'
         Y = abs(Y);
         M(Y>thresh) = 1;
+    case 'prop+'
+        % Anything above thresh (p=0.05 means thresh 0.95);
+        S = sort(Y(Y~=0 & isfinite(Y)));
+        M = Y>S(round(thresh*length(S)));
+    case 'prop-'
+        % Anything below thresh (p=0.05 means thresh 0.05);
+        S = sort(Y(Y~=0 & isfinite(Y)));
+        M = Y<S(round(thresh*length(S)));
     otherwise
         error('Incorrect masking mode used!')
 end

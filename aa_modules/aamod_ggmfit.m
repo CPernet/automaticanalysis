@@ -59,7 +59,7 @@ switch task
             end
             
             % DEBUG (uncomment if you have trouble)            
-            h = img2hist(P, [], 'Contrast distributions');
+            h = img2hist(P, [], 'Contrast_distributions');
             legend('off')
             print('-depsc2', fullfile(aap.acq_details.root, 'diagnostics', ...
                 [mfilename '_' mriname '.eps']));

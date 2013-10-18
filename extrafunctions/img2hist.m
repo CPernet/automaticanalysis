@@ -33,7 +33,7 @@ for f = 1:length(fileName)
     end
     
     % Linearise (exclude NaN and zero values)
-    Y{f} = Y{f}(and(~isnan(Y{f}), Y{f} ~= 0));
+    Y{f} = Y{f}(and(isfinite(Y{f}), Y{f} ~= 0));
     
     % Parameters for histogram
     if nargin < 2 || isempty(bins)
@@ -56,9 +56,11 @@ for f = 1:length(fileName)
     [junk,p,ci, Tstats] = ttest(Y{f});
     [p,junk,SRstats] = signrank(Y{f});
     
+    [pth, nme, ext] = fileparts(fileName{f});
+    
     % Get legend information
     tmpStr = sprintf('%s: mean %0.2f, median %0.2f, std: %0.2f, ttest-Tval is: %0.2f, SR-Zval is: %0.2f', ...
-        plotName{f}, nanmean(Y{f}), nanmedian(Y{f}), nanstd(Y{f}), Tstats.tstat, SRstats.zval);
+        nme, nanmean(Y{f}), nanmedian(Y{f}), nanstd(Y{f}), Tstats.tstat, SRstats.zval);
     legStr = [legStr ...
         '''' tmpStr ''','];
 end

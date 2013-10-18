@@ -9,14 +9,34 @@ allfiles='';
 model = cell(size(aap.acq_details.sessions));
 modelC = cell(size(aap.acq_details.sessions));
 
+bigFile = false; % Boolean for 4D files, to cope with 32 bit SPM...
+
 for sess = aap.acq_details.selected_sessions
     files{sess} = aas_getfiles_bystream(aap,subj,sess,'epi');
+    
+    if isfield(aap.options, 'NIFTI4D') && aap.options.NIFTI4D % 4D        
+        info4D = dir(files{sess});
+        if info4D.bytes > 2*10^9
+            bigFile = true;
+        end
+    end
+end
+
+for sess = aap.acq_details.selected_sessions
     if isfield(aap.options, 'NIFTI4D') && aap.options.NIFTI4D % 4D
-        V = spm_vol(files{sess});
-        f0 = files{sess};
-        files{sess} = '';
-        for f = 1:numel(V)
-            files{sess} = strvcat(files{sess}, [f0 ',' num2str(V(f).n(1))]);
+        
+        % Good code, but problematic for very big files > 2GB because of SPM still being 32 bit [AVG]
+        if bigFile == false
+            V = spm_vol(files{sess});
+            f0 = files{sess};
+            files{sess} = '';
+            for f = 1:numel(V)
+                files{sess} = strvcat(files{sess}, [f0 ',' num2str(V(f).n(1))]);
+            end
+        else
+            % ...instead we split them for now
+            Vo = spm_file_split(files{sess});
+            files{sess} = cell2strvcat({Vo.fname});
         end
     end
     allfiles = strvcat(allfiles, files{sess});
@@ -105,8 +125,8 @@ clear SPM
 %% Set up basis functions
 if (isfield(aap.tasklist.currenttask.settings,'xBF'))
     SPM.xBF=aap.tasklist.currenttask.settings.xBF;
-else
-    SPM.xBF.T          = 16; % number of time bins per scan
+else    
+    SPM.xBF.T          = 16; % number of time bins per scan [default = 16]
     SPM.xBF.UNITS      = 'scans';           % OPTIONS: 'scans'|'secs' for onsets
     SPM.xBF.Volterra   = 1;                 % OPTIONS: 1|2 = order of convolution
     SPM.xBF.name       = 'hrf';
@@ -161,11 +181,15 @@ SPM.xVi.form = 'AR(1)';
 %% Adjust time bin T0 according to reference slice & slice order
 %  implements email to CBU from Rik Henson 27/06/07
 %  assumes timings are relative to beginning of scans
-
-if (usesliceorder)
+% Allow specification of refslice...
+if isfield(aap.tasklist.currenttask.settings, 'refslice') && ...
+        ~isempty(aap.tasklist.currenttask.settings.refslice)
+    refwhen = aap.tasklist.currenttask.settings.refslice;    
+elseif (usesliceorder)
     refwhen=(find(sliceorder==refslice)-1)/(length(sliceorder)-1);
 else
     aas_log(aap,false,'No stream sliceorder found, defaulting timing to SPM.xBF.T0=0 in model');
+    % SPM actually recommends the "MIDDLE SLICE" t/2;
     refwhen=0;
 end
 SPM.xBF.T0 = round(SPM.xBF.T*refwhen);

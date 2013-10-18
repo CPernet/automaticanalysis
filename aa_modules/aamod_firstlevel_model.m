@@ -84,7 +84,18 @@ switch task
             SPMdes.xM.I=0;
             SPMdes.xM.TH=-inf(size(SPMdes.xM.TH));
         end
-
+        
+        %% WANTED TO MAKE SPIKE BETAS LOOK LIKE THE IMAGE THEY REMOVE
+        % DOES NOT SEEM TO AFFECT RESULTS...
+        %{
+        for r = 1:length(SPMdes.xX.name);
+           if ~isempty(strfind(SPMdes.xX.name{r}, 'SpikeMov'))
+              SPMdes.xX.X(SPMdes.xX.X(:, r) < 0 , r) = 0;
+              SPMdes.xX.X(SPMdes.xX.X(:, r) > 0 , r) = 1;
+           end
+        end
+        %}
+        
         %%%%%%%%%%%%%%%%%%%
         %% ESTIMATE MODEL%%
         %%%%%%%%%%%%%%%%%%%
@@ -122,6 +133,12 @@ switch task
         close(h.regs)
         close(h.betas)
         
+        % Clean up
+        for sess = aap.acq_details.selected_sessions
+            for f = 1:size(files{sess},1)
+                delete(files{sess}(f,:));
+            end
+        end        
     case 'checkrequirements'
         
     otherwise

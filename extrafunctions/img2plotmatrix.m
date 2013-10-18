@@ -42,7 +42,8 @@ end
 h.Fig = figure;
 h.Xlabel = [];
 h.Ylabel = [];
-[H, AX, BigAx, P] = plotmatrix_aa(data);
+[C, H, AX, BigAx, P] = plotmatrix_aa(data);
+disp(C);
 h.Title = title('');
 
 % Find the handles to all axes. Refer to Axes Properties Section of the

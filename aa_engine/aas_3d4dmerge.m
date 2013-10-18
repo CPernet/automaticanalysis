@@ -16,10 +16,14 @@ else
     
     img4Dfn = fullfile(img4Dpth, sprintf('4Ddata_%s.nii', mriname));
     
+    V4 = spm_file_merge(imgFns, img4Dfn, 0);
+    
+    %{
     matlabbatch{1}.spm.util.cat.vols = imgFns;
     matlabbatch{1}.spm.util.cat.name = img4Dfn;
     matlabbatch{1}.spm.util.cat.dtype = 0;
     spm_jobman('run', matlabbatch)
+    %}
     
     %% OLD FSL WAY...
     %{

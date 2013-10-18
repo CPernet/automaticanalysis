@@ -1,4 +1,4 @@
-function [h,ax,BigAx,patches,pax] = plotmatrix_memspa(varargin)
+function [C, h,ax,BigAx,patches,pax] = plotmatrix_memspa(varargin)
 %PLOTMATRIX Scatter plot matrix.
 %   PLOTMATRIX(X,Y) scatter plots the columns of X against the columns
 %   of Y.  If X is P-by-M and Y is P-by-N, PLOTMATRIX will produce a
@@ -98,6 +98,8 @@ ylim = zeros([rows cols 2]);
 BigAxHV = get(BigAx,'HandleVisibility');
 BigAxParent = get(BigAx,'Parent');
 paxes = findobj(fig,'Type','axes','tag','PlotMatrixScatterAx');
+
+C = nan(rows, cols);
 for i=rows:-1:1,
     for j=cols:-1:1,
         axPos = [pos(1)+(j-1)*width pos(2)+(rows-i)*height ...
@@ -115,6 +117,9 @@ for i=rows:-1:1,
         set(ax(i,j),'xlimmode','auto','ylimmode','auto','xgrid','off','ygrid','off')
         xlim(i,j,:) = get(ax(i,j),'xlim');
         ylim(i,j,:) = get(ax(i,j),'ylim');
+        
+        tmp = corrcoef(x(:,j,:), y(:,i,:));
+        C(i,j) = tmp(2);
     end
 end
 

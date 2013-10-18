@@ -1,6 +1,8 @@
 % AA module - convert 3d analyze to 4d
 % Rhodri Cusack UWO Jun 2011
 % rhodri@cusacklab.org
+%
+% NOTE: we can also use spm_files_merge for a simpler matlab based solution...
 
 function [aap,resp]=aamod_3dto4d(aap,task,varargin)
 

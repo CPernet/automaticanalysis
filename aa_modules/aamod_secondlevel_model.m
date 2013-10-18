@@ -65,36 +65,56 @@ switch task
         if ~exist(rfxrootdir,'file'); mkdir(aap.acq_details.root,[aap.directory_conventions.rfx stats_suffix]);end
         cd(rfxrootdir);
         
+        instreams = aap.tasklist.currenttask.inputstreams.stream;
+        streamSPM = strcmp(instreams, 'firstlevel_spm');
+        if streamSPM ~= 0
+            streamSPM = instreams{streamSPM};
+        else
+            streamSPM = [];
+        end
+        streamCon = instreams{~strcmp(instreams, 'firstlevel_spm')};
+        
         % Now check all subjects have same number of contrasts and same
         % contrast names at first level
         clear flSPM
         clear flSPMfn;
         for subj = 1:nsub
-            flSPMfn{subj}=aas_getfiles_bystream(aap,subj,'firstlevel_spm');
+            if ~isempty(streamSPM)
+                flSPMfn{subj}=aas_getfiles_bystream(aap,subj,steamSPM);
+            end
             
             % Get the confiles in order...
-            % try first to get Cons, then Ts, then Fs
-            confiles{subj} = aas_findstream(aap,'firstlevel_cons', subj);
-            if isempty(confiles{subj})
-                confiles{subj} = aas_findstream(aap,'firstlevel_spmts', subj);
-            end
-            if isempty(confiles{subj})
-                confiles{subj} = aas_findstream(aap,'firstlevel_spmfs', subj);
-            end
+            confiles{subj} = aas_findstream(aap, streamCon, subj);
             
             confiles{subj} = aas_ignore_hdr(confiles{subj});
             
             % Mask 0s in images to NaN [AVG]
             mask_img([], confiles{subj}, NaN)
             
-            SPMtemp=load(flSPMfn{subj});
-            flSPM{subj}.SPM.xCon=SPMtemp.SPM.xCon;
+            if ~isempty(streamSPM)
+                SPMtemp=load(flSPMfn{subj});
+                flSPM{subj}.SPM.xCon = SPMtemp.SPM.xCon;
+            else
+                flSPM{subj}.SPM.xCon = [];
+                
+                for n = 1:size(confiles{subj}, 1)
+                    flSPM{subj}.SPM.xCon(n).name = sprintf('contrast_%04d', n);
+                end
+            end
+            
             if (subj~=1)
                 if (length(flSPM{subj}.SPM.xCon)~=length(flSPM{1}.SPM.xCon))
                     aas_log(aap,1,sprintf('Number of contrasts in first level analysis for subject %d different from subject 1. They must be the same for aamod_model_secondlevel to work\n',subj));
                     for n=1:length(flSPM(subj).SPM.xCon)
                         if (flSPM{subj}.SPM.xCon(n).name~=flSPM{1}.SPM.xCon(n).name);
-                            aas_log(aap,1,sprintf('Names of contrasts at first level different. Contrast %d has name %s for subject %d but %s for subject 1. They must be the same for aamod_model_secondlevel to work\n',n,flSPM{subj}.SPM.xCon(n).name,subj,flSPM{1}.xCon(n).name));
+                            aas_log(aap,1,sprintf('Names of contrasts at first level different. Contrast %d has name %s for subject %d but %s for subject 1. They must be the same for aamod_model_secondlevel to work\n', ...
+                                n,flSPM{subj}.SPM.xCon(n).name,subj,flSPM{1}.xCon(n).name));
+                        end
+                        % Check here that the names of the files are the same
+                        [pth, nme, ext] = fileparts(confiles{subj}(fileind,:));
+                        if isempty(strfind(confiles{1}(fileind, :), nme))
+                            aas_log(aap,1,sprintf('Names of contrasts files at first level different for subjects 1 and %d\nSubject 1: %s\nSubject %d: %s\n They must be the same for aamod_model_secondlevel to work\n', ...
+                                subj, confiles{1}(n,:), subj, confiles{subj}(n,:)));
                         end
                     end
                 end
@@ -102,7 +122,7 @@ switch task
         end
         %                phs = 1; conname='UF_S'
         
-        for n=1:length(flSPM{1}.SPM.xCon)
+        for n = 1:length(flSPM{1}.SPM.xCon)
             conname=flSPM{1}.SPM.xCon(n).name;
             % take out characters that don't go well in filenames...
             conname(conname==':')=[];
@@ -121,21 +141,7 @@ switch task
             SPM.nscan = nsub;
             
             for subj=1:nsub
-                foundit=false;
-                for fileind=1:size(confiles{subj},1);
-                    [pth nme ext]=fileparts(confiles{subj}(fileind,:));
-                    % [alevic] Changed this so that it works even if we
-                    % change (e.g. warp/smooth) the contrast images before
-                    % putting them into the second level...
-                    if ~isempty(strfind(nme,sprintf('con_%04d',n))) || ~isempty(strfind(nme,sprintf('spmT_%04d',n)))
-                        foundit=true;
-                        break
-                    end
-                end
-                if (~foundit)
-                    aas_log(aap,true,sprintf('Contrast %d not found in subject %s',n,aap.acq_details.subjects(subj).mriname));
-                end
-                SPM.xY.P{subj}   = confiles{subj}(fileind,:);
+                SPM.xY.P{subj}    = confiles{subj}(n,:);
                 SPM.xY.VY(subj)   = spm_vol(SPM.xY.P{subj});
             end
             
