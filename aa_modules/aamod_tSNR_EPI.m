@@ -29,8 +29,8 @@ switch task
         
         % Voxel based measures
         V = spm_vol(deblank(EPIimg(1,:))); % A typical volume...
-        EPIsignal = zeros(V.dim(1), V.dim(2), V.dim(3));
-        EPInoise = zeros(V.dim(1), V.dim(2), V.dim(3));
+        EPIsignal = zeros(V(1).dim(1), V(1).dim(2), V(1).dim(3));
+        EPInoise = zeros(V(1).dim(1), V(1).dim(2), V(1).dim(3));
         
         fprintf('\nWorking on session %s', aap.acq_details.sessions(sess).name)
         
@@ -65,9 +65,9 @@ switch task
                 chunkY = 0;
                 chunkZ = 0;
                 for c = 1:chunkDim
-                    chunkX = [chunkX floor(V.dim(1) * c / chunkDim)];
-                    chunkY = [chunkY floor(V.dim(2) * c / chunkDim)];
-                    chunkZ = [chunkZ floor(V.dim(3) * c / chunkDim)];
+                    chunkX = [chunkX floor(V(1).dim(1) * c / chunkDim)];
+                    chunkY = [chunkY floor(V(1).dim(2) * c / chunkDim)];
+                    chunkZ = [chunkZ floor(V(1).dim(3) * c / chunkDim)];
                 end
                 
                 % Chunking...
@@ -84,9 +84,9 @@ switch task
                                 length(Zind));
                             
                             % Load each image into 4-D matrix
-                            for e = 1:size(EPIimg,1)
-                                V = spm_vol(deblank(EPIimg(e,:)));
-                                Y = spm_read_vols(V);
+                            V = spm_vol(EPIimg);
+                            for e = 1:length(V)                        
+                                Y = spm_read_vols(V(e));
                                 EPIdata(e,:,:,:) = Y(Xind,Yind,Zind);
                                 
                                 %% We can do ROIvol{r} processing here...
@@ -128,7 +128,7 @@ switch task
         EPIsnr(isnan(EPIsnr)|isinf(EPIsnr)) = 0;
         
         % Save the SNR image!
-        sV = V;
+        sV = V(1);
         sV.fname = fullfile(aas_getsesspath(aap,subj,sess), ...
             ['tSNR_' aap.acq_details.sessions(sess).name '.nii']);
         spm_write_vol(sV, EPIsnr);
@@ -191,7 +191,7 @@ switch task
                 plot(mROI{r} + sROI{r}, '--k')
             end
             
-            xlim([0 size(EPIimg,1)])
+            xlim([0 length(V)])
             %ylim([mean(mROI{r} - 2*mean(sROI{r})) mean(mROI{r} + 2*mean(sROI{r}))])
             xlabel('Scan')
             ylabel('Mean signal')

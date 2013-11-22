@@ -75,6 +75,25 @@ switch task
                 end
                 Y(subj,:,:,:) = spm_read_vols(V);
             end
+            
+            %% DEBUG DIAGNOSTICS
+            %{
+            h.Fig = figure;
+            scatter(Y(:, 88, 87, 46), BH)
+            h.Line = lsline;
+            
+            % Make figure intelligible
+            axis tight
+            h.Xlabel = xlabel('Activity');
+            h.Ylabel = ylabel('Memory error');
+            set(h.Line, 'color', 'k', 'linewidth', 5)
+            pimpFigure(h);
+            
+            print('-depsc2', '~/Desktop/scatter.eps');
+            close(h.Fig);
+            %}
+            %%
+            
             Y = reshape(Y, [nsub, V.dim(1)*V.dim(2)*V.dim(3)]);
             
             for b = 1:size(BH,2)

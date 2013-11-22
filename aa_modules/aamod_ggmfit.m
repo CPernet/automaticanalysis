@@ -51,7 +51,12 @@ switch task
                 end
                 
                 % Standardise image: subtract mean, divide by stdev
-                Y(M) = (Y(M) - ggmmix.mus(1)) ./ ggmmix.sig(1);
+                if ggmmix.sig(1) ~= 0
+                    Y(M) = (Y(M) - ggmmix.mus(1)) ./ ggmmix.sig(1);
+                else
+                    warning('GGMfit did not work as well as expected...')
+                    Y(M) = (Y(M) - ggmmix.mus(2)) ./ ggmmix.sig(2);
+                end
                 Y(~M) = NaN;
                 
                 % Put back into image...

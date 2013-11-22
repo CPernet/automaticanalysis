@@ -40,7 +40,7 @@ switch task
                 U = fullfile(pth,fn);
                 outputfns=strvcat(outputfns,U);
                 % Ignore .hdr files from this list...
-                if isempty(strfind(P(n,:), '.hdr'))
+                if isempty(strfind(P(imnum,:), '.hdr'))
                     spm_smooth(Q,U,s);
                     spm_progress_bar('Set',imnum);
                 end

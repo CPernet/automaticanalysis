@@ -6,10 +6,10 @@ function [SPM, cols_interest, cols_nuisance, currcol] = aas_firstlevel_model_def
 if ~isempty(model{sess})
     for c = 1:length(model{sess}.event);
         if (isempty(model{sess}.event(c).parametric))
-            parametric=struct('name','none');
+            parametric = struct('name','none');
             parLen = 0;
         else
-            parametric=model{sess}.event(c).parametric;
+            parametric = model{sess}.event(c).parametric;
             parLen = length(parametric);
         end
         SPM.Sess(sessnuminspm).U(c) = struct(...
@@ -20,10 +20,17 @@ if ~isempty(model{sess})
         cols_interest=[cols_interest currcol:(currcol+parLen)];
                     currcol=currcol+1+parLen;
     end
-end 
+else
+    SPM.Sess(sessnuminspm).U = [];
+end
+
+%% Nuisance regressors
+SPM.Sess(sessnuminspm).C.C = [];
+SPM.Sess(sessnuminspm).C.name = {};
 
 %% Define model covariates
 if ~isempty(modelC{sess})
+    
     %% Set up the convolution vector...
     % xBF.dt      - time bin length {seconds}
     % xBF.name    - description of basis functions specified
@@ -54,18 +61,14 @@ if ~isempty(modelC{sess})
             modelC{sess}.covariate(c).name];
         
         % Is the covariate of interest or nuisance
-        if modelC.covariate(c).interest > 0
+        if modelC{sess}.covariate(c).interest > 0
             cols_interest=[cols_interest currcol];
         else
             cols_nuisance=[cols_nuisance currcol];
         end
-        currcol=currcol + 1;
+        currcol = currcol + 1;
     end
 end
-
-%% Nuisance regressors
-SPM.Sess(sessnuminspm).C.C = [];
-SPM.Sess(sessnuminspm).C.name = {};
 
 %% Movement regressors
 if ~isempty(movementRegs)

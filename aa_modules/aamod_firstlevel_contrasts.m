@@ -262,7 +262,7 @@ switch task
         for d = 1:length(D)
             h = img2hist(fullfile(anadir, D(d).name), [], contrasts.con(d).name);
             saveas(h, fullfile(aap.acq_details.root, 'diagnostics', ...
-                [mfilename '__' mriname '_' contrasts.con(d).name '.fig']), 'fig');
+                [mfilename '__' mriname '_' contrasts.con(d).name '.eps']), 'psc2');
             try close(h); catch; end
         end
         
@@ -321,7 +321,6 @@ end
 ylim([-0.5 numel(cons)+1])
 xlabel('Log Efficiency')
 
-set(h,'PaperPosition',get(h,'PaperPosition').*[1 1 1 0.2]+[-10 0 0 0]);
-print(h,'-djpeg','-r150',fullfile(aas_getsubjpath(aap,subj),'diagnostic_aamod_firstlevel_contrast'));
+saveas(h, fullfile(aas_getsubjpath(aap,subj),'diagnostic_aamod_firstlevel_contrast.eps'), 'psc2');
 close(h);
 end

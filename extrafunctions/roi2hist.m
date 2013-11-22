@@ -45,7 +45,7 @@ end
 
 for r = 1:length(ROIimg)
     % Now get the voxels specific to each ROI
-    ROIdata{r} = Y(ROIvol{r});
+    ROIdata{r} = Y(logical(ROIvol{r}));
     ROIdata{r} = ROIdata{r}(isfinite(ROIdata{r}) & ROIdata{r} ~= 0); % We don't want to include zero values...
 end
 

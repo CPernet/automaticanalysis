@@ -30,8 +30,15 @@ switch task
         end
         
         % Get segmentation masks we wish to use
-        try
-            SEGimg = aas_getfiles_bystream(aap,subj,'segmasksExclusive');
+        
+        SEGimg = aas_findstream(aap, 'mask', subj);
+        if isempty(SEGimg)
+            fprintf('No segmentation mask will be applied...\n');
+        end
+        
+        %{
+        try     
+            aas_getfiles_bystream(aap,subj,'segmasksExclusive');
         catch
             try
                 SEGimg = aas_getfiles_bystream(aap,subj,'segmasksStrict');
@@ -44,7 +51,7 @@ switch task
                 end
             end
         end
-        
+        %}
         if ~isempty(SEGimg)
             % Select the Segmentation mask we wish to reslice to/use...
             for m = 1:size(SEGimg,1)

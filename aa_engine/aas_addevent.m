@@ -62,7 +62,7 @@ end
 
 % sort the onsets, and apply same reordering to dur & parametric
 % [AVG] - replacd junk by ons, since we *DO* want to sort the onsets
-[ons ind]=sort(ons);
+[ons, ind]=sort(ons);
 if (length(dur)>1)
     dur=dur(ind);
 end;
@@ -70,6 +70,8 @@ if (~isempty(parametric))
     % [AVG] reorder parametric modulator even if there's more than one!
     for p = 1:length(parametric)
         parametric(p).P = parametric(p).P(ind);
+        % Order them up to down...
+        parametric(p).P = parametric(p).P(:);
     end
 end
 

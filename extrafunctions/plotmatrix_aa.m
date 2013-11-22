@@ -1,4 +1,14 @@
-function [C, h,ax,BigAx,patches,pax] = plotmatrix_memspa(varargin)
+function [C, h,ax,BigAx,patches,pax] = plotmatrix_aa(varargin)
+%PLOTMATRIX_AA Modified heat-scatter plot + histogram
+% [C, h, ax,BigAx,patches,pax] = plotmatrix_aa(varargin)
+%
+% Original help is as follows, but is not fully correct, since first ouput
+% argument is C, the correlation matrix for the heatmaps...
+% Also, h corresponds to the figure, not the separate elements of the
+% plotmatrix...
+% 
+%
+%
 %PLOTMATRIX Scatter plot matrix.
 %   PLOTMATRIX(X,Y) scatter plots the columns of X against the columns
 %   of Y.  If X is P-by-M and Y is P-by-N, PLOTMATRIX will produce a
@@ -93,8 +103,6 @@ space = .02; % 2 percent space between axes
 pos(1:2) = pos(1:2) + space*[width height];
 m = size(y,1);
 k = size(y,3);
-xlim = zeros([rows cols 2]);
-ylim = zeros([rows cols 2]);
 BigAxHV = get(BigAx,'HandleVisibility');
 BigAxParent = get(BigAx,'Parent');
 paxes = findobj(fig,'Type','axes','tag','PlotMatrixScatterAx');
@@ -111,35 +119,20 @@ for i=rows:-1:1,
         else
             ax(i,j) = findax(1);
         end
-        hh(i,j,:) = plot(reshape(x(:,j,:),[m k]), ...
-            reshape(y(:,i,:),[m k]),sym,'parent',ax(i,j))';
-        set(hh(i,j,:),'markersize',markersize);
-        set(ax(i,j),'xlimmode','auto','ylimmode','auto','xgrid','off','ygrid','off')
-        xlim(i,j,:) = get(ax(i,j),'xlim');
-        ylim(i,j,:) = get(ax(i,j),'ylim');
         
+        scatter2heat(reshape(x(:,j,:),[m k]), ...
+            reshape(y(:,i,:),[m k]), ...
+            [], 100, 'log');
+        colorbar off
+        axis tight
+        
+        % Get correlation cofficient for each scatterplot
         tmp = corrcoef(x(:,j,:), y(:,i,:));
         C(i,j) = tmp(2);
     end
 end
 
-xlimmin = min(xlim(:,:,1),[],1); xlimmax = max(xlim(:,:,2),[],1);
-ylimmin = min(ylim(:,:,1),[],2); ylimmax = max(ylim(:,:,2),[],2);
-
-% Try to be smart about axes limits and labels.  Set all the limits of a
-% row or column to be the same and inset the tick marks by 10 percent.
-inset = .15;
-for i=1:rows,
-    set(ax(i,1),'ylim',[ylimmin(i,1) ylimmax(i,1)])
-    dy = diff(get(ax(i,1),'ylim'))*inset;
-    set(ax(i,:),'ylim',[ylimmin(i,1)-dy ylimmax(i,1)+dy])
-end
-dx = zeros(1,cols);
-for j=1:cols,
-    set(ax(1,j),'xlim',[xlimmin(1,j) xlimmax(1,j)])
-    dx(j) = diff(get(ax(1,j),'xlim'))*inset;
-    set(ax(:,j),'xlim',[xlimmin(1,j)-dx(j) xlimmax(1,j)+dx(j)])
-end
+% Deleted axis modifications... [AVG]
 
 set(ax(1:rows-1,:),'xticklabel','')
 set(ax(:,2:cols),'yticklabel','')
@@ -159,10 +152,13 @@ if dohist, % Put a histogram on the diagonal for plotmatrix(y) case
         else
             histax = findax(1);
         end
+        
         [nn,xx] = hist(reshape(y(:,i,:),[m k]), 100);
         patches(i,:) = bar(histax,xx,nn,'hist');
         set(histax,'xtick',[],'ytick',[],'xgrid','off','ygrid','off');
-        set(histax,'xlim',[xlimmin(1,i)-dx(i) xlimmax(1,i)+dx(i)])
+        % Better way... [AVG]
+        set(histax,'xlim',[min(xx) max(xx)])
+        set(histax,'ylim',[0 max(nn)])
         set(histax,'tag','PlotMatrixHistAx');
         pax(i) = histax;  % ax handles for histograms
     end
@@ -179,11 +175,7 @@ end
 set([get(BigAx,'Title'); get(BigAx,'XLabel'); get(BigAx,'YLabel')], ...
     'String','','Visible','on')
 
-if nargout~=0,
-    h = hh;
-end
-
-
+h = fig;
 
 function findax = findaxpos(ax, axpos)
 tol = eps;

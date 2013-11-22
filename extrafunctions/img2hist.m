@@ -56,7 +56,15 @@ for f = 1:length(fileName)
     [junk,p,ci, Tstats] = ttest(Y{f});
     [p,junk,SRstats] = signrank(Y{f});
     
-    [pth, nme, ext] = fileparts(fileName{f});
+    if ischar(fileName{f})
+        [pth, nme, ext] = fileparts(fileName{f});
+    else
+        try
+            nme = plotName{f};
+        catch
+            nme = plotName{1};
+        end
+    end
     
     % Get legend information
     tmpStr = sprintf('%s: mean %0.2f, median %0.2f, std: %0.2f, ttest-Tval is: %0.2f, SR-Zval is: %0.2f', ...

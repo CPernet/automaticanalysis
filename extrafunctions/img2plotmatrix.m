@@ -46,15 +46,6 @@ h.Ylabel = [];
 disp(C);
 h.Title = title('');
 
-% Find the handles to all axes. Refer to Axes Properties Section of the
-% documentation for more detials on what each properties do.
-axes_posns = get(AX(:),'Position');
-axes_posns_mat = cell2mat(axes_posns);
-xposns = sort(axes_posns_mat(:,1));
-yposns = sort(axes_posns_mat(:,2));
-xreq = [];
-yreq = [];
-
 % Insert label or title
 for f = 1:length(AX)
     set(gcf,'CurrentAxes', AX(1,f));

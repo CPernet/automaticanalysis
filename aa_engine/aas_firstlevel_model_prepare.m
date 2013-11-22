@@ -110,7 +110,7 @@ for sess = aap.acq_details.selected_sessions
         model{sess} = [];
     end
     if ~isempty(modelCnum)
-        modelC{sess} = aap.tasklist.currenttask.settings.modelC(modelnum);
+        modelC{sess} = aap.tasklist.currenttask.settings.modelC(modelCnum);
     else
         modelC{sess} = [];
     end
@@ -186,11 +186,12 @@ if isfield(aap.tasklist.currenttask.settings, 'refslice') && ...
         ~isempty(aap.tasklist.currenttask.settings.refslice)
     refwhen = aap.tasklist.currenttask.settings.refslice;    
 elseif (usesliceorder)
-    refwhen=(find(sliceorder==refslice)-1)/(length(sliceorder)-1);
+    warning('Corrected after github issue #52...')
+    refwhen=(find(sliceorder==refslice))/(length(sliceorder));
 else
-    aas_log(aap,false,'No stream sliceorder found, defaulting timing to SPM.xBF.T0=0 in model');
+    aas_log(aap,false,'No stream sliceorder found, defaulting timing to SPM.xBF.T0=1 in model');
     % SPM actually recommends the "MIDDLE SLICE" t/2;
-    refwhen=0;
+    refwhen=1/SPM.xBF.T;
 end
 SPM.xBF.T0 = round(SPM.xBF.T*refwhen);
 
