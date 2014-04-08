@@ -9,7 +9,7 @@
 % C: how to colour the points (if empty, the heatmap will contain number of
 % points in that bin)
 % bins: how many bins in each direction...
-function scatterMatrix = scatter2heat(X, Y, C, bins, transform)
+function [scatterMatrix, bins]= scatter2heat(X, Y, C, bins, transform)
 
 if nargin < 4
     % Group into bins of 0.05
@@ -20,16 +20,26 @@ if nargin < 5
     transform = '';
 end
 if length(bins) == 1
-    bins = [bins, bins];
+    bins = {bins, bins};
+elseif length(bins) == 2
+    if ~iscell(bins)
+        bins = mat2cell(bins);
+    end
+else
+    error('Not the right length of bins...')
 end
 
 % Create the bins
-xbins = linspace(min(X), max(X), bins(1));
-ybins = linspace(min(Y), max(Y), bins(2));
+if length(bins{1}) == 1;
+    bins{1} = linspace(min(X), max(X), bins{1});
+end
+if length(bins{2}) == 1; 
+    bins{2} = linspace(min(Y), max(Y), bins{2});
+end
 
 % Work out which bin each X and Y is in (idxx, idxy)
-[nx, idxx] = histc(X, xbins);
-[ny, idxy] = histc(Y, ybins);
+[nx, idxx] = histc(X, bins{1});
+[ny, idxy] = histc(Y, bins{2});
 
 % Calculate mean (or number of points) in each direction
 if nargin < 3 || isempty(C);
@@ -43,6 +53,6 @@ if ~isempty(transform)
 end
 
 % PLOT
-imagesc(xbins, ybins, scatterMatrix)
+imagesc(bins{1}, bins{2}, scatterMatrix)
 set(gca, 'YDir', 'normal') % flip Y axis back to normal
 colorbar

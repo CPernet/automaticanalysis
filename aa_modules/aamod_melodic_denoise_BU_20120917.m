@@ -84,7 +84,7 @@ switch task
         
         %% Find filtered components...
         % Get all probability maps and frequencies
-        C = dir(fullfile(sessPth, 'MELODIC', 'stats', 'probmap_*.nii'));
+        C = aa_dir(fullfile(sessPth, 'MELODIC', 'stats', 'probmap_*.nii'));
         
         % Read output and get components that are filtered
         compStart = strfind(w, 'Calculating filtered data') + 25;
@@ -194,12 +194,12 @@ switch task
             % Get each of the directories made by gendir
             [fldrCurr fldrDir] = strtok(fldrDir, ':');
             % Check it's not a .svn folder
-            D = dir(fldrCurr);
+            D = aa_dir(fldrCurr);
             for d = 1:length(D)
-                if ~D(d).isdir && isempty(strfind(D(d).name(1), '.'))
+                if ~D(d).isdir
                     melodicFiles = strvcat(melodicFiles, fullfile(fldrCurr, D(d).name));
                 else
-                    % It is one of the . or .. folders
+                    % It an invisible file/folder
                 end
             end
         end

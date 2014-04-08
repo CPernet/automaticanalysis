@@ -46,7 +46,7 @@ switch task
                
         %% FIND OUTPUT
         % Get the segmented images
-        D = dir(fullfile(Spth, '*pve_*'));
+        D = aa_dir(fullfile(Spth, '*pve_*'));
         % Move these images to something that looks like the SPM output
         outSeg = cell(1,length(segMapping));
         

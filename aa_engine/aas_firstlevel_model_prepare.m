@@ -15,7 +15,7 @@ for sess = aap.acq_details.selected_sessions
     files{sess} = aas_getfiles_bystream(aap,subj,sess,'epi');
     
     if isfield(aap.options, 'NIFTI4D') && aap.options.NIFTI4D % 4D        
-        info4D = dir(files{sess});
+        info4D = aa_dir(files{sess});
         if info4D.bytes > 2*10^9
             bigFile = true;
         end

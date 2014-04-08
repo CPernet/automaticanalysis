@@ -18,7 +18,7 @@ end
 h = [];
 
 % Get betas, SPM, maskVol
-D = dir(fullfile(pth, 'beta*img'));
+D = aa_dir(fullfile(pth, 'beta*img'));
 load(fullfile(pth, 'SPM.mat'));
 SPMcols = SPM.xX.iC;
 if ~isempty(sess)

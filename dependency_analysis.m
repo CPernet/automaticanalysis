@@ -25,7 +25,7 @@ while ~isempty(strtok(fldrDir, ':'))
     
     % Get all .m files in this folder
     
-    D = dir(fullfile(fldrCurr, '*.m'));
+    D = aa_dir(fullfile(fldrCurr, '*.m'));
     for d = 1:length(D)
         if ~strcmp(D(d).name, [mfilename '.m'])
             ind = ind + 1;

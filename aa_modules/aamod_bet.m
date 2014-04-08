@@ -35,7 +35,7 @@ switch task
         
         % Image that we will be using for BET...
         cSimg = deblank(Simg(1,:));
-        [Spth, Sfn, Sext]=fileparts(cSimg);
+        [Spth, Sfn, Sext] = fileparts(cSimg);
         
         % Structural image (after BETting, if we mask...)
         bSimg=fullfile(Spth,['bet_' Sfn Sext]);
@@ -100,14 +100,14 @@ switch task
         
         %% FIND OUTPUT
         % Get the mask images
-        D = dir(fullfile(Spth, 'bet*mask*'));
+        D = aa_dir(fullfile(Spth, 'bet*mask*'));
         outMask = '';
         for d = 1:length(D)
             outMask = strvcat(outMask, fullfile(Spth, D(d).name));
         end
         
         % Get also the meshes
-        D = dir(fullfile(Spth, 'bet*mesh*'));
+        D = aa_dir(fullfile(Spth, 'bet*mesh*'));
         outMesh = '';
         for d = 1:length(D)
             outMesh = strvcat(outMesh, fullfile(Spth, D(d).name));

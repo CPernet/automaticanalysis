@@ -113,13 +113,20 @@ switch task
         % Locate all the EPIs we want to coregister
         for sess = aap.acq_details.selected_sessions
             EPIimg{sess} = aas_getfiles_bystream(aap,subj,sess,'epi');
+            % Get volume number...
+            V = spm_vol(EPIimg{sess});
             
             % For each image, apply the space of the mean EPI image
             fprintf('\nCoregistering images for session: %s\n', aas_getsessname(aap,subj,sess))
-            for e = 1:size(EPIimg{sess},1)
-                % Apply the space of the coregistered mean EPI to the
-                % remaining EPIs (safest solution!)
-                spm_get_space(deblank(EPIimg{sess}(e,:)), MM);
+            for e = 1:length(V)
+                if V(e).n(1) == 1
+                    % Apply the space of the coregistered mean EPI to the
+                    % remaining EPIs (safest solution!)
+                    spm_get_space(V(e).fname, MM);                    
+                else
+                    % If 4D volume, use this...
+                    spm_get_space(sprintf('%s,%d', V(e).fname, V(e).n(1)), MM);
+                end
             end
         end
         

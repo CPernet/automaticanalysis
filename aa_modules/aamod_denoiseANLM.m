@@ -23,15 +23,21 @@ switch task
         
     case 'doit'
         
-        Sfn = aas_getfiles_bystream(aap,subj,'structural');
+        Istreams = aap.tasklist.currenttask.inputstreams.stream;
         
-        DHimg = aas_findstream(aap,'structural_dicom_header', subj);
+        [DHimg, streamHeader] = aas_findstream(aap,'dicom_header', subj);
         
         if ~isempty(DHimg)
             % dcmhdr{n}.SeriesDescription
             dcmhdr = [];
             load(DHimg);
+            
+            streamStructural = Istreams(~strcmp(streamHeader,Istreams));
+        else
+            streamStructural = Istreams{:};
         end
+        
+        Sfn = aas_getfiles_bystream(aap,subj, streamStructural);
         
         %% Denoise the images
         
@@ -105,13 +111,12 @@ switch task
             dcmhdr = {dcmhdr{aap.tasklist.currenttask.settings.structural}};
             save(DHimg, 'dcmhdr')
             
-            aap=aas_desc_outputs(aap,subj,'structural_dicom_header', DHimg);
+            aap=aas_desc_outputs(aap,subj, streamHeader, DHimg);
         end
         
         % Structural image after denoising
-        aap=aas_desc_outputs(aap,subj,'structural', outstruct);
+        aap=aas_desc_outputs(aap,subj, streamStructural, outstruct);
         
-        % Residual image after denoising
+        % Residual image after denoising (if stream exists)
         aap=aas_desc_outputs(aap,subj,'denoiseResidual', outresid);
-        
 end

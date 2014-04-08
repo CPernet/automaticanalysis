@@ -24,7 +24,7 @@ switch task
         if ~exist(fullfile(aas_getsubjpath(aap,subj),'diagnostic_aamod_firstlevel_contrast.jpg'),'file')
             efficiency(aap,subj);
         end
-        fdiag = dir(fullfile(aas_getsubjpath(aap,subj),'diagnostic_*.jpg'));
+        fdiag = aa_dir(fullfile(aas_getsubjpath(aap,subj),'diagnostic_*.jpg'));
         for d = 1:numel(fdiag)
             aap = aas_report_add(aap,subj,'<table><tr><td>');
             aap=aas_report_addimage(aap,subj,fullfile(aas_getsubjpath(aap,subj),fdiag(d).name));
@@ -258,7 +258,7 @@ switch task
         cd (cwd);
         
         %% DIAGNOSTICS (check distribution of T-values in contrasts)
-        D = dir(fullfile(anadir, 'spmT_*.img'));
+        D = aa_dir(fullfile(anadir, 'spmT_*.img'));
         for d = 1:length(D)
             h = img2hist(fullfile(anadir, D(d).name), [], contrasts.con(d).name);
             saveas(h, fullfile(aap.acq_details.root, 'diagnostics', ...

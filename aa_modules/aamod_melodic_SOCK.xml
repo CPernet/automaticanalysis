@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<aap>
+    <tasklist>
+        <currenttask mfile_alias='aamod_melodic_SOCK' domain='session' desc='SOCK denoising for FSL MELODIC' modality='MRI'>
+            
+            <qsub>
+                <timeBase>3</timeBase>
+                <memoryBase>2</memoryBase>
+            </qsub>
+            
+            <permanenceofoutput>2</permanenceofoutput>
+            
+            ﻿<inputstreams>
+                <stream>melodic</stream> 
+                <stream>epi</stream>
+            </inputstreams>
+            
+            <outputstreams>
+                <stream>epi</stream> 
+            </outputstreams>
+                        
+        </currenttask>
+    </tasklist>
+</aap>

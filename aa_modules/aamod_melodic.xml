@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<aap>
+    <tasklist>
+        <currenttask mfile_alias='aamod_melodic' domain='session' desc='FSL MELODIC' modality='MRI'>
+            
+            <qsub>
+                <timeBase>5</timeBase>
+                <memoryBase>1</memoryBase>
+            </qsub>
+            
+            <permanenceofoutput>2</permanenceofoutput>
+            
+            ﻿<inputstreams>
+                <stream>epi_dicom_header</stream> 
+                <stream>epi</stream>
+            </inputstreams>
+            
+            <outputstreams>
+                <stream>melodic</stream>
+            </outputstreams>
+            
+            <FWHM></FWHM>
+            
+            <!-- MELODIC OPTIONS (default - make it verbose) -->
+            <MELODICoptions>-v --report --Oall</MELODICoptions>
+            
+            <!-- Only use if you don't have DICOM headers... -->
+            <TR></TR>
+            
+        </currenttask>
+    </tasklist>
+</aap>

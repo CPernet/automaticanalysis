@@ -3,7 +3,7 @@
 % This automatically transforms the 3D data into 4D data as well
 % [NOTE: This function may become obsolete later on]
 
-function [aap,resp]=aamod_melodic_denoise(aap,task,subj,sess)
+function [aap,resp]=aamod_melodic_SOCK(aap,task,subj,sess)
 
 resp='';
 
@@ -17,24 +17,17 @@ switch task
         sessPth = aas_getsesspath(aap,subj,sess);
         cd(sessPth)
         
-        %% retrieve TR from DICOM header
-        % TR is manually specified (not recommended as source of error)
-        if isfield(aap.tasklist.currenttask.settings,'TR') && ...
-                ~isempty(aap.tasklist.currenttask.settings.TR)
-            TR =aap.tasklist.currenttask.settings.TR;
-        else
-            % Get TR from DICOM header
-            DICOMHEADERS=load(aas_getfiles_bystream(aap,subj,sess,'epi_dicom_header'));
-            try
-                TR = DICOMHEADERS.DICOMHEADERS{1}.volumeTR;
-            catch
-                % [AVG] This is for backwards compatibility!
-                TR = DICOMHEADERS.DICOMHEADERS{1}.RepetitionTime/1000;
-            end
-        end
-        
         % Let us use the native space...
         EPIimg = aas_getfiles_bystream(aap,subj,sess,'epi');
+        
+        %% CONCATENATE THE DATA...
+        data4D = aas_3d4dmerge(aap, sessPth, mriname, EPIimg);
+                
+        [pth, fn, ext] = fileparts(data4D);
+        data4Dfiltered = fullfile(pth, ['d' fn ext]);
+        
+        outDir = fullfile(sessPth, 'MELODIC');
+        cd(fullfile(outDir, 'stats'))
         
         %% MASKING
         % Do we already have a mask?
@@ -58,52 +51,39 @@ switch task
         aas_log(aap, false, sprintf('Mask contains %d voxels', sum(M(:))));
         clear M
         
-        %% CONCATENATE THE DATA...
-        data4D = aas_3d4dmerge(aap, sessPth, mriname, EPIimg);
+        %% RUN SOCK
+        % SOCK should be in the matlab path for this to work...
+        path_SOCK = fileparts(which('SOCK'));
+        addpath(genpath(path_SOCK))
+        
+        SOCK_main([outDir, filesep], 1, path_SOCK);
+        
+        % Get components
+        IC = [];
+        load(fullfile(outDir, 'IC.mat'))
                 
-        [pth, fn, ext] = fileparts(data4D);
-        data4Dfiltered = fullfile(pth, ['d' fn ext]);
-        
-        %% RUN MELODIC
-        fprintf('\nRunning MELODIC\n')
-        
-        outDir = fullfile(sessPth, 'MELODIC');
-        if ~exist(outDir, 'dir')
-            mkdir(outDir)
-        end
-        
-        FSLcommand = sprintf('melodic -i %s %s -o %s -m %s --tr=%0.4f', ...
-            data4D, ...
-            aap.tasklist.currenttask.settings.MELODICoptions, ...
-            outDir, ...
-            Mimg, ...
-            TR);
-        disp(FSLcommand)
-        [junk, w] = aas_runfslcommand(aap, FSLcommand);
-        disp(w);
-        
         %% FILTER COMPONENTS
         fprintf('\nRunning RegFilt\n')
         
-        FSLcommand = sprintf('fsl_regfilt -i %s -d %s -o %s -m %s -F -v --debug', ...
+        filteredComponents = sprintf('%d ', IC.artifacts);
+        FSLcommand = sprintf('fsl_regfilt -i %s -d %s -o %s -m %s -f %s -v --debug', ...
             data4D, ...
             fullfile(outDir, 'melodic_mix'), ...
             data4Dfiltered, ...
-            Mimg);
+            Mimg, ...
+            filteredComponents(1:end-1));
         disp(FSLcommand)
         [junk, w] = aas_runfslcommand(aap, FSLcommand);
         disp(w);
         
         %% Find filtered components...
         % Get all probability maps and frequencies
-        C = aa_dir(fullfile(sessPth, 'MELODIC', 'stats', 'probmap_*.nii'));
+        C = dir(fullfile(outDir, 'stats', 'probmap_*.nii'));
         
         % Read output and get components that are filtered
-        compStart = strfind(w, 'Calculating filtered data') + 25;
-        compEnd = strfind(w, 'newMix') - 1;
-        compClean = str2num(w(compStart:compEnd));
-        compAll = 1:length(C);
-        compFiltered = compAll(~ismember(compAll, compClean));
+        compClean = IC.non_artifacts;        
+        compFiltered = IC.artifacts;
+        compAll = sort([compClean compFiltered]);
         
         % Save the identities of the filtered and clean components...
         save(fullfile(sessPth, 'components.mat'), 'compClean', 'compFiltered')
@@ -113,10 +93,10 @@ switch task
         spectFiltered = 0;
         for c = compFiltered
             % Pmap
-            V = spm_vol(fullfile(sessPth, 'MELODIC', 'stats', sprintf('probmap_%d.nii', c)));
+            V = spm_vol(fullfile(outDir, 'stats', sprintf('probmap_%d.nii', c)));
             probmapFiltered = probmapFiltered + spm_read_vols(V);
             % Spectrum
-            spectFiltered = spectFiltered + load(fullfile(sessPth, 'MELODIC', 'report', sprintf('f%d.txt', c)));
+            spectFiltered = spectFiltered + load(fullfile(outDir, 'report', sprintf('f%d.txt', c)));
         end
         probmapFiltered = probmapFiltered/length(compFiltered);
         spectFiltered = spectFiltered/length(compFiltered);
@@ -132,10 +112,10 @@ switch task
         spectClean = 0;
         for c = compClean
             % Pmap
-            V = spm_vol(fullfile(sessPth, 'MELODIC', 'stats', sprintf('probmap_%d.nii', c)));
+            V = spm_vol(fullfile(outDir, 'stats', sprintf('probmap_%d.nii', c)));
             probmapClean = probmapClean + spm_read_vols(V);
             % Spectrum
-            spectClean = spectClean + load(fullfile(sessPth, 'MELODIC', 'report', sprintf('f%d.txt', c)));
+            spectClean = spectClean + load(fullfile(outDir, 'report', sprintf('f%d.txt', c)));
         end
         probmapClean = probmapClean/length(compFiltered);
         spectClean = spectClean/length(compClean);
@@ -210,31 +190,6 @@ switch task
             aas_log(aap,false, 'Normal calls to spm_read_vols may fail with files greater than 2GB')
         end
         %% DESCRIBE OUTPUTS!
-        %{
-        % MAKE A SEPARATE FUNCTION OF THIS SOMETIME?
-        melodicFiles = [];
-        fldrDir = genpath(outDir);
-        % Then recurse inside each directory until you run out of paths
-        while ~isempty(strtok(fldrDir, ':'))
-            % Get each of the directories made by gendir
-            [fldrCurr fldrDir] = strtok(fldrDir, ':');
-            % Check it's not a .svn folder
-            D = aa_dir(fldrCurr);
-            for d = 1:length(D)
-                if ~D(d).isdir && isempty(strfind(D(d).name(1), '.'))
-                    melodicFiles = strvcat(melodicFiles, fullfile(fldrCurr, D(d).name));
-                else
-                    % It is an invisible file/folder
-                end
-            end
-        end
-        
-        aap=aas_desc_outputs(aap,subj,sess,'melodic', melodicFiles);
-        %}
-        % Delete MELODIC large files...
-        unix(['rm -rf ' fullfile(outDir, '*.nii')])
-        unix(['rm -rf ' fullfile(outDir, '*', '*.nii')])
-        unix(['rm -rf ' fullfile(outDir, '*', 'IC*png')])
         
         % Delete original 4D file once we finish!
         delete(data4D)
@@ -244,6 +199,5 @@ switch task
             delete(Mimg);
         end
         
-        aap=aas_desc_outputs(aap,subj,sess,'epi', dEPIimg);
-        
+        aap=aas_desc_outputs(aap,subj,sess,'epi', dEPIimg);        
 end

@@ -1,11 +1,13 @@
 % AA find stream
 % Checks if a particular stream exists in the module
 
-function FNs = aas_findstream(aap, streamString, varargin)
+function [FNs, streamName] = aas_findstream(aap, streamString, varargin)
 
 FNs = [];
+streamName = {};
 for Sind=1:length(aap.tasklist.currenttask.inputstreams.stream)
     if ~isempty(strfind(aap.tasklist.currenttask.inputstreams.stream{Sind}, streamString))
+        streamName = [streamName aap.tasklist.currenttask.inputstreams.stream{Sind}];
         if isempty(FNs)
             switch (nargin)
                 case 2

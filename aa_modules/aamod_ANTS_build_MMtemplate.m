@@ -99,8 +99,8 @@ switch task
         delete(fullfile(Tpth,'*txt'))
         delete(fullfile(Tpth,'subj*'))
         delete(fullfile(Tpth,'rigid*'))
-        D = dir(Tpth);
-        for d = 3:length(D)
+        D = aa_dir(Tpth);
+        for d = 1:length(D)
             if isdir(fullfile(Tpth, D(d).name))
                 rmdir(fullfile(Tpth, D(d).name), 's')
             end

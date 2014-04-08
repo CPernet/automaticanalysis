@@ -5,16 +5,22 @@ function [ Bx, By, Bz ] = mvpaa_makeSphere( aap )
 
 radius = aap.tasklist.currenttask.settings.ROIradius;
 
-sphere=zeros(ceil(radius)*2 + 1, ceil(radius)*2 + 1,ceil(radius)*2 + 1);
-[X, Y, Z] = meshgrid(1:(ceil(radius)*2 + 1), 1:(ceil(radius)*2 + 1), 1:(ceil(radius)*2 + 1));
+sphereSize = ceil(radius)*2 + 1;
+
+% Get X, Y, Z coords
+[X, Y, Z] = meshgrid(1:sphereSize, 1:sphereSize, 1:sphereSize);
+
+% Set centre of sphere to 0, 0, 0
 X = X - (ceil(radius) + 1);
 Y = Y - (ceil(radius) + 1);
 Z = Z - (ceil(radius) + 1);
+
+% Get distance from centre...
 D = sqrt(X.^2 + Y.^2 + Z.^2);
 
 % Get sphere by looking at radius
-sphere(D < (radius + 0.001)) = 1;
-ROIind = find(sphere==1);
+sphere = D < (radius + 0.001);
+ROIind = find(sphere);
 [Bx, By, Bz] = ind2sub(size(sphere), ROIind);
 
 % Base indices

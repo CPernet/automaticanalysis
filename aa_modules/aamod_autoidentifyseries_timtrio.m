@@ -52,7 +52,7 @@ switch task
                     if (isempty(thispth)) 
                         break;
                     end
-                    fn=dir(fullfile(thispth,aap.directory_conventions.dicomfilter));
+                    fn=aa_dir(fullfile(thispth,aap.directory_conventions.dicomfilter));
                     for fnind=1:length(fn)
                         if (~fn(fnind).isdir)
                             fullfn=fullfile(thispth,fn(fnind).name);

@@ -75,8 +75,7 @@ for s = aap.acq_details.selected_sessions
                 moveRegs{s} = [moveRegs{s}, movesN{o,d}];
             end
         end
-    end
-    
+    end    
     
     % Volterra expansion, if requested
     if volterraMovement

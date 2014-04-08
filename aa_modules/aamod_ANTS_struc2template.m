@@ -51,7 +51,7 @@ switch task
         
         % Regularisation...
         if ~isempty(aap.tasklist.currenttask.settings.regularisation)
-            regularisation = aap.tasklist.currenttask.settings.regularisation;
+            regularisation = ['-r ' aap.tasklist.currenttask.settings.regularisation ' '];
         else
             regularisation = '';
         end
@@ -84,7 +84,7 @@ switch task
             extraoptions = '';
         end
         
-        ANTS_command = [ ANTSpath Ndim outfiles maxiterations SyN metrics extraoptions];
+        ANTS_command = [ ANTSpath Ndim outfiles maxiterations SyN regularisation metrics extraoptions];
         
         cd(Spth)
         

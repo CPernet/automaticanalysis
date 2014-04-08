@@ -22,24 +22,23 @@ end
 
 colours = distinguishable_colors(maxclust);
 
-D = dir(pth);
+D = aa_dir(pth);
 
 for d = length(D):-1:1
-    if ~D(d).isdir || strcmp(D(d).name, 'diagnostics') || ...
-            strcmp(D(d).name, '..') || strcmp(D(d).name, '.')
+    if ~D(d).isdir || strcmp(D(d).name, 'diagnostics')
         D(d) = [];
     else
         % In case we have a folder within a folder...
-        DD = dir(fullfile(pth, D(d).name));
+        DD = aa_dir(fullfile(pth, D(d).name));
         if length(DD) == 3 && DD(3).isdir
             D(d).name = fullfile(D(d).name, DD(3).name);
         end
     end
 end
 
-tD = dir(fullfile(pth, D(1).name, sprintf('%s_*.img', imgtype)));
+tD = aa_dir(fullfile(pth, D(1).name, sprintf('%s_*.img', imgtype)));
 if isempty(tD)
-    tD = dir(fullfile(pth, D(1).name, sprintf('%s_*.nii',imgtype)));
+    tD = aa_dir(fullfile(pth, D(1).name, sprintf('%s_*.nii',imgtype)));
 end
 
 for c = 1:length(tD)

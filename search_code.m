@@ -33,7 +33,7 @@ while ~isempty(strtok(fldrDir, ':'))
     
     for f = 1:length(filters)
         
-        D = dir(fullfile(fldrCurr, filters{f}));
+        D = aa_dir(fullfile(fldrCurr, filters{f}));
         for d = 1:length(D)
             T = textread(fullfile(fldrCurr, D(d).name), '%s', 'whitespace', '', 'bufsize', 1024^2);
             
