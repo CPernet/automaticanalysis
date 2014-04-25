@@ -1,4 +1,10 @@
 
+STDIN.*
+
+*dccn*.e*
+
+*dccn*.o*
+
 *.m~
 
 *.xml~
