@@ -67,7 +67,7 @@ switch task
         
         instreams = aap.tasklist.currenttask.inputstreams.stream;
         streamSPM = strcmp(instreams, 'firstlevel_spm');
-        if streamSPM ~= 0
+        if any(streamSPM ~= 0)
             streamSPM = instreams{streamSPM};
         else
             streamSPM = [];
@@ -80,7 +80,7 @@ switch task
         clear flSPMfn;
         for subj = 1:nsub
             if ~isempty(streamSPM)
-                flSPMfn{subj}=aas_getfiles_bystream(aap,subj,steamSPM);
+                flSPMfn{subj}=aas_getfiles_bystream(aap,subj,streamSPM);
             end
             
             % Get the confiles in order...

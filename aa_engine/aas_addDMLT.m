@@ -6,7 +6,7 @@
 % DMLTname = name of the labelling (e.g. 'FacesVSHouses')
 % DMLTvector = vector containing category to image mapping (e.g. [1 2 2 1])
 
-function aap=aas_addDMLT(aap,modulename,subject,DMLTname,DMLTvector)
+function aap=aas_addDMLT(aap,modulename,subject,DMLTname,DMLTvector,DMLTobject)
 
 % Get number from end of module name if present in format _%05d (e.g, _00001)
 if (length(modulename>6)) %#ok<ISMT>
@@ -31,5 +31,6 @@ if (~any(whichmodel))
     aap.tasksettings.(modulename)(moduleindex).model(end+1)=emptymod;
 else
     aap.tasksettings.(modulename)(moduleindex).model(whichmodel).contrast(end+1).name=contrastname;
-    aap.tasksettings.(modulename)(moduleindex).model(whichmodel).contrast(end).matrix=matrix;
+    aap.tasksettings.(modulename)(moduleindex).model(whichmodel).contrast(end).vector=DMLTvector;
+    aap.tasksettings.(modulename)(moduleindex).model(whichmodel).contrast(end).object=DMLTobject;
 end

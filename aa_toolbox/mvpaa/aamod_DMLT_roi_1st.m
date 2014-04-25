@@ -19,8 +19,10 @@ switch task
                 
         %% ANALYSIS
         
+        aap.subj = subj;
+        
         % Load the data into a single big structure...
-        [aap, data] = mvpaa_loadData(aap, subj);
+        [aap, data] = mvpaa_loadData(aap);
         
         % Load the ROIs from which to extract the data
         try
@@ -49,7 +51,8 @@ switch task
             ROI = uint8(spm_read_vols(spm_vol(fullfile(Rpth, [Rfn Rext]))));
             
             % Check that the ROI size is equal to the data size
-            if any(size(ROI) ~= size(data{1,1,1}));
+            dataSize = size(data);
+            if any(size(ROI) ~= dataSize(2:4));
                 aas_log(aap, true, 'Your ROI size is different from your data size!');
             end
             
@@ -60,13 +63,13 @@ switch task
             voxels = sum(ROI(:));
             
             % Get rid of NaNs in data...
-            ROI = and(ROI, ~isnan(data{1,1,1}));
+            ROI = and(ROI, ~isnan(squeeze(data(1,:,:,:))));
             voxelsReal = sum(ROI(:));
             
             % ROI to linear index...
             ROI = find(ROI);
             
-            Betas = mvpaa_extraction(aap, data, ROI);
+            X = mvpaa_extraction(aap, data, ROI);
             
             fprintf('\t ROI = %s; vox. = %d (%d)\n',Rfn, voxelsReal, voxels)
             
@@ -80,12 +83,8 @@ switch task
                 % Get the DMLT object...
                 DMLTtemp = DMLT(c);
                 
-                Y = reshape( ...
-                    repmat(DMLTtemp.vector(:), [1 aap.tasklist.currenttask.settings.blocks]), ...
-                    [1, length(DMLTtemp.vector(:))*aap.tasklist.currenttask.settings.blocks])';
-                
-                X = reshape(Betas, [size(Betas,1) size(Betas,2)*size(Betas,3)])';
-                
+                Y = DMLTtemp.vector(aap.tasklist.currenttask.settings.conditionNum);
+                                
                 % Remove NaNs
                 X = X(~isnan(Y), :);
                 Y = Y(~isnan(Y), :);
