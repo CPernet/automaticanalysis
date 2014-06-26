@@ -168,8 +168,14 @@ switch task
             %SPM.xM	= struct('T',-Inf,'TH',ones(nsub*2,1)*-Inf,...
             %		 'I',1,'VM',spm_vol('/home/rh01/SPM/spm5/apriori/brainmask.nii'),'xs',Mdes);
             
+            
             SPM.xM	= struct('T',-Inf,'TH',ones(nsub*2,1)*-Inf,...
                 'I',1,'VM',[],'xs',Mdes);
+            
+            % Turn off masking
+            if isfield(aap.tasklist.currenttask.settings, 'masking') && ~aap.tasklist.currenttask.settings.masking
+                SPM.xM.I=0;
+            end
             
             Pdes 	= {{'1 condition, +0 covariate, +0 block, +0 nuisance'; '1 total, having 1 degrees of freedom'; 'leaving 8 degrees of freedom from 9 images'}};
             

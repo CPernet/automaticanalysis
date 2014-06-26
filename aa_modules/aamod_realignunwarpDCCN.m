@@ -110,7 +110,7 @@ switch task
                 diagnosticN = EPIimg{sess}(1,:);
             end
             
-            if isfield(aap.options, 'NIFTI4D') && aap.options.NIFTI4D % 4D
+            if isfield(aap.options, 'NIFTI4D') && aap.options.NIFTI4D
                 V = spm_vol(EPIimg{sess});
                 f0 = EPIimg{sess};
                 EPIimg{sess} = '';

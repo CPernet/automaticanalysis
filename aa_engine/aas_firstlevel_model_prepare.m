@@ -14,7 +14,7 @@ bigFile = false; % Boolean for 4D files, to cope with 32 bit SPM...
 for sess = aap.acq_details.selected_sessions
     files{sess} = aas_getfiles_bystream(aap,subj,sess,'epi');
     
-    if isfield(aap.options, 'NIFTI4D') && aap.options.NIFTI4D % 4D        
+    if isfield(aap.options, 'NIFTI4D') && aap.options.NIFTI4D
         info4D = aa_dir(files{sess});
         if info4D.bytes > 2*10^9
             bigFile = true;
@@ -23,10 +23,10 @@ for sess = aap.acq_details.selected_sessions
 end
 
 for sess = aap.acq_details.selected_sessions
-    if isfield(aap.options, 'NIFTI4D') && aap.options.NIFTI4D % 4D
+    if isfield(aap.options, 'NIFTI4D') && aap.options.NIFTI4D
         
-        % Good code, but problematic for very big files > 2GB because of SPM still being 32 bit [AVG]
-        if bigFile == false
+        % Good code, but problematic for very big files > 2GB because of SPM8 still being 32 bit [AVG]
+        if bigFile == false || aas_spmVersion > 8
             V = spm_vol(files{sess});
             f0 = files{sess};
             files{sess} = '';

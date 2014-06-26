@@ -132,13 +132,6 @@ switch task
         
         close(h.regs)
         close(h.betas)
-        
-        % Clean up
-        for sess = aap.acq_details.selected_sessions
-            for f = 1:size(files{sess},1)
-                delete(files{sess}(f,:));
-            end
-        end        
     case 'checkrequirements'
         
     otherwise

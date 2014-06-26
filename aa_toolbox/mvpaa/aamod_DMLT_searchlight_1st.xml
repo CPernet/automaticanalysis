@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<aap>
+    <tasklist>
+        <currenttask domain='subject' mfile_alias = 'aamod_DMLT_searchlight_1st' desc='Use DMLT to classify data' modality='MRI'>
+            
+            
+            <qsub>
+                <timeBase>5</timeBase>
+                <memoryBase>2</memoryBase>
+            </qsub>
+            
+            <permanenceofoutput>2</permanenceofoutput>
+            
+            <inputstreams>
+                <!--
+                <stream>rois</stream>
+                -->
+                <!--
+                <stream>segmasksExclusive</stream>
+                -->
+                <stream>firstlevel_spm</stream>
+                <!--Depending on previous module (model or contrasts) we choose either betas or t-values -->
+                <stream>firstlevel_betas</stream>
+            </inputstreams>
+            
+            <outputstreams>
+                <stream>DMLT</stream>
+            </outputstreams>
+            
+            <!--SETTINGS-->
+            <!--Is the MVPA performed in native space? (0 - no, 1 - yes)-->
+            <native>1</native>
+            <!-- Which mask do we use? -->
+            <maskNum>1</maskNum>
+            <!-- Inclusive? (0 - no, 1 - yes) -->
+            <maskInclusive>1</maskInclusive>
+            <!-- Minimum number of valid voxels present in ROI (otherwise error)-->
+            <minVoxels>30</minVoxels>
+            
+            <!-- Force equal number of conditions across blocks? -->
+            <constantFactors>1</constantFactors>
+            <!-- Force equal number of blocks across sessions? -->
+            <constantBlocks>1</constantBlocks>
+            <!-- Force equal number of conditions across sessions? -->
+            <constantSessions>1</constantSessions>
+            
+            <!-- Consider conditions in different sessions as unique/independent -->
+            <collapseFactors>0</collapseFactors>
+            
+            <radius desc='radius of the hypersphere in terms of array elements (diameter will be 1 + 2 * radius)'
+            >3</radius>
+            <step desc='stepsize in terms of array elements  '
+            >2</step>
+            <stats desc='the statistics to save in value (e.g. {"accuracy","binomial"}); empty stats field will just call validator.statistic'
+            >accuracy</stats>
+            <verbose desc='How much do we print?'
+            >0</verbose>
+            
+            <diagnostic>1</diagnostic>
+            
+            <!-- Empty structure to put DMLT vector in... -->
+            <model>
+                <subject></subject>
+                <DMLT>
+                    <name></name>
+                    <vector></vector>
+                    <object></object>
+                </DMLT>
+            </model>
+            
+        </currenttask>
+    </tasklist>
+</aap>

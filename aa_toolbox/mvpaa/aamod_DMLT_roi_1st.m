@@ -16,7 +16,7 @@ switch task
         
         mriname = aas_prepare_diagnostic(aap,subj);
         fprintf('Working with data from participant %s. \n', mriname)
-                
+        
         %% ANALYSIS
         
         aap.subj = subj;
@@ -69,9 +69,9 @@ switch task
             % ROI to linear index...
             ROI = find(ROI);
             
-            X = mvpaa_extraction(aap, data, ROI);
+            Betas = mvpaa_extraction(aap, data, ROI);
             
-            fprintf('\t ROI = %s; vox. = %d (%d)\n',Rfn, voxelsReal, voxels)
+            fprintf('\t ROI = %s; vox. = %d (%d)\n', Rfn, voxelsReal, voxels)
             
             if isempty(Betas)
                 aas_log(aap, false, sprintf('Not enough voxels in ROI, minimum is %i, you have %i', ...
@@ -84,10 +84,11 @@ switch task
                 DMLTtemp = DMLT(c);
                 
                 Y = DMLTtemp.vector(aap.tasklist.currenttask.settings.conditionNum);
-                                
+                X = Betas;
+                
                 % Remove NaNs
                 X = X(~isnan(Y), :);
-                Y = Y(~isnan(Y), :);
+                Y = Y(~isnan(Y))';
                 
                 % If we input it as a string to make it work in aa qsub...
                 if ischar(DMLTtemp.object)
@@ -122,7 +123,7 @@ switch task
                     end
                 end
                 W = W./length(DMLTtemp.object.model);
-                DMLTtemp.weights = nan(size(data{1}));
+                DMLTtemp.weights = nan(dataSize(2:4));
                 DMLTtemp.weights(ROI) = W;
                 
                 DMLout{r,c} = DMLTtemp;

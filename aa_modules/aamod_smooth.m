@@ -36,7 +36,7 @@ switch task
                 end
             end
             
-            if bigFile == true
+            if bigFile == true && aas_spmVersion < 12
                 P4d = P;
                 
                 % ...instead we split them for now
@@ -65,7 +65,7 @@ switch task
             end
             
             %% TEMPORARY SOLUTION FOR 4D PROBLEM
-            if bigFile == true
+            if bigFile == true && aas_spmVersion < 12
                 [pth, nme, ext] = fileparts(P4d);
                 P4d = fullfile(pth, ['s' nme ext]);
                 

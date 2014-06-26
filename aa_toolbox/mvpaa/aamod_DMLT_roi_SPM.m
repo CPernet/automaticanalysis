@@ -81,14 +81,17 @@ switch task
         
         %% MASK SMOOTHED IMAGES!
         % Included mask to mask out untested data
+        %{
         fprintf('NaNing untested voxels... \n')
         
         mask = spm_read_vols(spm_vol(Flist(1,:)));
         mask = mask > 0;
+        %}
         
         for f = 2:size(Flist,1)
             V = spm_vol(Flist(f,:));
             Y = spm_read_vols(V);
+            %{
             if strfind(Flist(f,:), 'spmT')
                 % Zero mask in statistics...
                 Y(~mask) = 0;
@@ -97,8 +100,12 @@ switch task
                 % NaN mask in statistics...
                 Y(~mask) = NaN;
             end
+            %}
             spm_write_vol(V, Y);
         end
+        
+        % DEBUG
+        mask = Y ~= 0;
         
         %% Modify SPM!
         % Clear SPM.xCon
